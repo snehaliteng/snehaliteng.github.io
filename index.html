@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snehal IT Eng - Innovative IT Solutions & Software Engineering</title>
+    <meta name="description" content="Snehal IT Eng delivers cutting-edge software engineering, cloud-native architecture, AI integration, and enterprise solutions with 19+ years of global experience.">
+    <meta name="keywords" content="IT startup, software engineering, cloud solutions, AI integration, Azure, AWS, GCP, .NET Core, Angular, React, Kubernetes, Docker">
+    <meta name="author" content="Snehal IT Eng">
+    <meta property="og:title" content="Snehal IT Eng - Innovative IT Solutions & Software Engineering">
+    <meta property="og:description" content="Delivering cutting-edge software engineering, cloud-native architecture, and AI integration solutions with global experience.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://snehaliteng.com">
+    <meta property="og:image" content="images/og-image.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="font-sans text-gray-800 bg-white">
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-white shadow-md z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-blue-600">Snehal<span class="text-gray-800">IT</span><span class="text-blue-400">Eng</span></a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="index.html" class="nav-link active px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="services.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Services</a>
+                        <a href="portfolio.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+                        <a href="about.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">About</a>
+                        <a href="careers.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Careers</a>
+                        <a href="contact.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-800 hover:text-blue-600 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link active">Home</a>
+                <a href="services.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Services</a>
+                <a href="portfolio.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Portfolio</a>
+                <a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">About</a>
+                <a href="careers.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Careers</a>
+                <a href="contact.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white pt-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="animate-fade-in-up">
+                <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
+                    Innovative <span class="text-blue-600">IT Solutions</span><br>
+                    For The Digital Era
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                    Transforming businesses with cutting-edge software engineering, cloud-native architecture, and AI integration. 19+ years of global excellence.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="contact.html" class="btn-primary px-8 py-3 rounded-lg text-white font-semibold text-lg shadow-lg">
+                        Get a Quote
+                    </a>
+                    <a href="services.html" class="btn-secondary px-8 py-3 rounded-lg text-blue-600 font-semibold text-lg border-2 border-blue-600">
+                        Our Services
+                    </a>
+                </div>
+            </div>
+            <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 opacity-75">
+                <div class="tech-badge p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow">
+                    <p class="font-semibold text-blue-600">Azure</p>
+                </div>
+                <div class="tech-badge p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow">
+                    <p class="font-semibold text-blue-600">AWS</p>
+                </div>
+                <div class="tech-badge p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow">
+                    <p class="font-semibold text-blue-600">AI & GPT</p>
+                </div>
+                <div class="tech-badge p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow">
+                    <p class="font-semibold text-blue-600">Kubernetes</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-16 bg-blue-600 text-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="animate-fade-in">
+                    <div class="text-4xl md:text-5xl font-bold mb-2">19+</div>
+                    <div class="text-lg">Years Experience</div>
+                </div>
+                <div class="animate-fade-in">
+                    <div class="text-4xl md:text-5xl font-bold mb-2">100+</div>
+                    <div class="text-lg">Projects Delivered</div>
+                </div>
+                <div class="animate-fade-in">
+                    <div class="text-4xl md:text-5xl font-bold mb-2">50+</div>
+                    <div class="text-lg">Enterprise Clients</div>
+                </div>
+                <div class="animate-fade-in">
+                    <div class="text-4xl md:text-5xl font-bold mb-2">24/7</div>
+                    <div class="text-lg">Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Preview -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Core Services</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Delivering comprehensive IT solutions tailored to your business needs</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Software Development</h3>
+                    <p class="text-gray-600">Full-stack development with .NET Core, Angular, React, MERN & MEAN stacks for scalable applications.</p>
+                </div>
+                <div class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Cloud Solutions</h3>
+                    <p class="text-gray-600">Expert migration and deployment on Azure, AWS & GCP with Kubernetes, Docker & CI/CD automation.</p>
+                </div>
+                <div class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">AI & Generative AI</h3>
+                    <p class="text-gray-600">LLM integration, LangChain, Semantic Kernel & Copilot solutions for intelligent automation.</p>
+                </div>
+                <div class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Data Engineering & BI</h3>
+                    <p class="text-gray-600">SQL Server, SSIS, Power BI & Azure Data Factory for comprehensive data solutions.</p>
+                </div>
+                <div class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Enterprise Solutions</h3>
+                    <p class="text-gray-600">SaaS platforms, microservices architecture & enterprise-grade applications.</p>
+                </div>
+                <div class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">IoT & Automation</h3>
+                    <p class="text-gray-600">Smart IoT solutions & government automation projects for digital transformation.</p>
+                </div>
+            </div>
+            <div class="text-center mt-12">
+                <a href="services.html" class="btn-primary px-8 py-3 rounded-lg text-white font-semibold inline-block">View All Services</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Preview -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Featured Projects</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Showcasing our expertise across diverse industries</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="portfolio-card rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <div class="h-48 overflow-hidden">
+                        <img src="images/international-research.svg" alt="International Research Project" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">International Research Project</h3>
+                        <p class="text-gray-600 mb-4">International research collaboration with advanced data management systems.</p>
+                        <span class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Research</span>
+                    </div>
+                </div>
+                <div class="portfolio-card rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <div class="h-48 overflow-hidden">
+                        <img src="images/healthcare-saas.svg" alt="Healthcare SaaS" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Healthcare SaaS Platform</h3>
+                        <p class="text-gray-600 mb-4">HL7, CCDA & EDI integration for seamless healthcare data exchange.</p>
+                        <span class="inline-block bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Healthcare</span>
+                    </div>
+                </div>
+                <div class="portfolio-card rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
+                    <div class="h-48 overflow-hidden">
+                        <img src="images/iot-automation.svg" alt="IoT Automation" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">IoT Automation</h3>
+                        <p class="text-gray-600 mb-4">Smart automation solutions for state transport department operations.</p>
+                        <span class="inline-block bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">Government</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-12">
+                <a href="portfolio.html" class="btn-primary px-8 py-3 rounded-lg text-white font-semibold inline-block">View Full Portfolio</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Client Testimonials</h2>
+                <p class="text-xl text-gray-600">What our clients say about us</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <div class="text-yellow-400 mb-4">★★★★★</div>
+                        <p class="text-gray-600 mb-4">"Exceptional service and technical expertise. Delivered our project ahead of schedule with all integrations working flawlessly."</p>
+                        <div class="font-bold">- Healthcare Industry Client</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <div class="text-yellow-400 mb-4">★★★★★</div>
+                        <p class="text-gray-600 mb-4">"The IoT automation solution transformed our operations. Outstanding support and innovative approach to problem-solving."</p>
+                        <div class="font-bold">- Government Sector Client</div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-8">
+                        <div class="text-yellow-400 mb-4">★★★★★</div>
+                        <p class="text-gray-600 mb-4">"Working with Snehal IT Eng was a game-changer. Professional, reliable, and technically superior."</p>
+                        <div class="font-bold">- SaaS Platform Client</div>
+                    </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="py-16 bg-blue-600 text-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold mb-4">Stay Updated with Our Innovations</h2>
+            <p class="text-xl mb-8">Subscribe to our newsletter for the latest in IT solutions and industry insights.</p>
+            <form id="newsletter-form" class="max-w-md mx-auto flex gap-4">
+                <input type="email" placeholder="Enter your email" required class="flex-1 px-4 py-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                <button type="submit" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold text-blue-400 mb-4">Snehal<span class="text-white">IT</span><span class="text-blue-300">Eng</span></h3>
+                    <p class="text-gray-400">Innovative IT solutions for the digital era. Transforming businesses worldwide with cutting-edge technology.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="services.html" class="text-gray-400 hover:text-white transition-colors">Services</a></li>
+                        <li><a href="portfolio.html" class="text-gray-400 hover:text-white transition-colors">Portfolio</a></li>
+                        <li><a href="about.html" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Services</h4>
+                    <ul class="space-y-2">
+                        <li><a href="services.html" class="text-gray-400 hover:text-white transition-colors">Software Development</a></li>
+                        <li><a href="services.html" class="text-gray-400 hover:text-white transition-colors">Cloud Solutions</a></li>
+                        <li><a href="services.html" class="text-gray-400 hover:text-white transition-colors">AI Integration</a></li>
+                        <li><a href="services.html" class="text-gray-400 hover:text-white transition-colors">Data Engineering</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact Us</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>Email: snehaliteng@gmail.com</li>
+                        <li>Phone: Available upon request</li>
+                        <li>LinkedIn: <a href="https://www.linkedin.com/in/snehal-kadiya-7364ba1b/">/in/snehal-kadiya-7364ba1b/</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2026 Snehal IT Eng. All rights reserved. | <a href="#" class="hover:text-white">Download Brochure</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
