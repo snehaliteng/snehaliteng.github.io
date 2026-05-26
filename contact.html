@@ -104,40 +104,42 @@
                     </form>
                     <script>
     document.getElementById("contactForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
+  e.preventDefault();
 
-      const payload = {
-        name: document.getElementById("name").value,
-        email: document.getElementById("email").value,
-		phone: document.getElementById("phone").value,
-		service: document.getElementById("service").value,
-		message: document.getElementById("message").value
-      };
+  const payload = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
+    service: document.getElementById("service").value,
+    message: document.getElementById("message").value
+  };
 
-      try {
-        const response = await fetch("https://vgipghqejzbcoighktij.supabase.co/rest/v1/contact", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo",
-            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo",
-            "Prefer": "return=representation"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-          alert("✅ Your message has been saved!");
-          document.getElementById("contactForm").reset();
-        } else {
-          alert("❌ Error saving message. Check console.");
-          console.error(await response.text());
-        }
-      } catch (err) {
-        console.error(err);
-        alert("❌ Network error.");
-      }
+  try {
+    const response = await fetch("https://api.github.com/repos/nehaliteng/snehaliteng.github.io/dispatches", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer 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", // GitHub Personal Access Token
+        "Accept": "application/vnd.github.everest-preview+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        event_type: "contact_form",
+        client_payload: payload
+      })
     });
+
+    if (response.ok) {
+      alert("✅ Your message has been submitted!");
+      document.getElementById("contactForm").reset();
+    } else {
+      alert("❌ Error submitting form. Check console.");
+      console.error(await response.text());
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Network error.");
+  }
+});
   </script>
                     <div id="form-success" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-lg">
                         Thank you! Your message has been sent successfully.
