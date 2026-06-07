@@ -1,6 +1,6 @@
-# Kanz Jewels — Premium Jewellery Website
+# Ornate Jewels — Premium Jewellery Website
 
-A modern, responsive static website for Kanz Jewels, a jewellery shop in Ahmedabad. Built with HTML, CSS (Bootstrap 5), and JavaScript.
+A modern, responsive static website for Ornate Jewels, a jewellery shop in Ahmedabad. Built with HTML, CSS (Bootstrap 5), and JavaScript.
 
 ## Features
 
@@ -21,7 +21,7 @@ A modern, responsive static website for Kanz Jewels, a jewellery shop in Ahmedab
 ## File Structure
 
 ```
-kanz-jewels/
+ornate-jewels/
 ├── index.html          # Home page
 ├── products.html       # Products & catalogue
 ├── gallery.html        # Image gallery
@@ -39,19 +39,19 @@ kanz-jewels/
 
 ### GitHub Pages
 
-1. Create a repository on GitHub (e.g., `kanz-jewels`)
+1. Create a repository on GitHub (e.g., `ornate-jewels`)
 2. Push all files to the repository:
    ```bash
    git init
    git add .
-   git commit -m "Initial commit — Kanz Jewels website"
+   git commit -m "Initial commit — Ornate Jewels website"
    git branch -M main
-   git remote add origin https://github.com/your-username/kanz-jewels.git
+   git remote add origin https://github.com/your-username/ornate-jewels.git
    git push -u origin main
    ```
 3. Go to **Settings → Pages** in your repository
 4. Under "Branch", select `main` and `/ (root)` folder
-5. Click **Save**. Your site will be live at `https://your-username.github.io/kanz-jewels/`
+5. Click **Save**. Your site will be live at `https://your-username.github.io/ornate-jewels/`
 
 ### Netlify
 
@@ -73,7 +73,7 @@ kanz-jewels/
 
 ## Customization
 
-- **Brand name, contact info, social links**: Edit in each HTML file (search for `Kanz Jewels`, `98765`, etc.)
+- **Brand name, contact info, social links**: Edit in each HTML file (search for `Ornate Jewels`, `98765`, etc.)
 - **WhatsApp number**: Update in the WhatsApp float link (`wa.me/91XXXXXXXXXX`)
 - **Google Maps embed**: Replace the `src` URL in `contact.html`
 - **Colors**: Edit CSS custom properties in `css/style.css` (the `:root` section)
