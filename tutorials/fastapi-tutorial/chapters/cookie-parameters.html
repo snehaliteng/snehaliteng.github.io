@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Cookie Parameters — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>19. Cookie Parameters</h1>
+<pre><code>from fastapi import FastAPI, Cookie
+from fastapi.responses import JSONResponse
+
+app = FastAPI()
+
+# Read cookies
+@app.get("/items/")
+def read_items(ads_id: str = Cookie(None)):
+    return {"ads_id": ads_id}
+
+# Set cookies
+@app.get("/set-cookie/")
+def set_cookie():
+    response = JSONResponse({"message": "Cookie set"})
+    response.set_cookie(
+        key="my_cookie",
+        value="cookie_value",
+        max_age=3600,
+        httponly=True,
+        samesite="lax"
+    )
+    return response
+
+# Delete cookies
+@app.get("/delete-cookie/")
+def delete_cookie():
+    response = JSONResponse({"message": "Cookie deleted"})
+    response.delete_cookie("my_cookie")
+    return response
+
+# Multiple cookies
+@app.get("/read-all-cookies/")
+def read_all_cookies(
+    session_id: str = Cookie(None),
+    user_pref: str = Cookie(None)
+):
+    return {"session_id": session_id, "user_pref": user_pref}</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create an endpoint that reads a "visited" cookie. If not present, set it with current timestamp. Return the visit count based on cookie history.</div>
+<nav><a href="file-upload.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="header-parameters.html">Next: Header Parameters &rarr;</a></nav>
+</div></body></html>

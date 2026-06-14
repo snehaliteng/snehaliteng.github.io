@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mastering RAG — AI Engineer Core</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <div class="chapter">
+    <a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#2563eb;text-decoration:none;">&larr; Back to Tutorials</a>
+    <h1>Mastering RAG</h1>
+
+    <h2>Fundamentals</h2>
+    <p>RAG grounds LLM responses in retrieved data, reducing hallucinations and improving accuracy. Key components: embedding model, vector store, and LLM.</p>
+
+    <img src="../images/rag-pipeline.svg" alt="RAG pipeline diagram">
+
+    <h2>LangChain &amp; Vector Databases</h2>
+    <pre><code>pip install langchain chromadb sentence-transformers</code></pre>
+
+    <h3>Chunking and Indexing</h3>
+    <pre><code>from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+chunks = splitter.split_text(document)
+
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+vectorstore = Chroma.from_texts(chunks, embeddings)</code></pre>
+
+    <h2>Complete RAG Pipeline</h2>
+    <pre><code>from langchain.chains import RetrievalQA
+
+qa = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 3})
+)
+result = qa.invoke("What is the capital of France?")
+print(result)</code></pre>
+
+    <h2>RAG Evaluations</h2>
+    <ul>
+      <li><strong>Faithfulness</strong> — Does the answer match the retrieved context?</li>
+      <li><strong>Relevance</strong> — Is the retrieved context relevant to the query?</li>
+      <li><strong>LLM-as-Judge</strong> — Use an LLM to rate answer quality</li>
+    </ul>
+
+    <h2>Advanced RAG Techniques</h2>
+    <ul>
+      <li><strong>Pre-processing</strong> — Clean documents before chunking</li>
+      <li><strong>Re-ranking</strong> — Re-rank retrieved chunks with a cross-encoder</li>
+      <li><strong>Query Expansion</strong> — Generate multiple queries from one question</li>
+      <li><strong>GraphRAG</strong> — Build a knowledge graph from documents for better retrieval</li>
+    </ul>
+
+    <div class="exercise">
+      <strong>✏️ Exercise:</strong> Build a complete RAG pipeline with conversation history. Use LangChain, ChromaDB, and a Gradio chat interface. Implement: (1) document upload and chunking with overlap, (2) vector embedding and indexing, (3) hybrid search (keyword + vector), (4) conversation-aware retrieval, and (5) an LLM-as-Judge evaluation step.
+    </div>
+
+    <nav>
+      <a href="llm-showdown.html">&larr; Previous</a>
+      <a href="../index.html">Back to Index</a>
+      <a href="ml-dl-finetuning.html">Next: ML to DL to Fine-Tuning &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>

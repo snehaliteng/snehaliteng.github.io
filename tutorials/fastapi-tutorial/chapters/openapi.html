@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>OpenAPI &amp; Swagger — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>4. OpenAPI &amp; Swagger</h1>
+<h2>Automatic Documentation</h2>
+<p>FastAPI automatically generates an OpenAPI schema from your code. Visit:</p>
+<ul><li><strong>Swagger UI:</strong> <code>http://127.0.0.1:8000/docs</code></li>
+<li><strong>ReDoc:</strong> <code>http://127.0.0.1:8000/redoc</code></li>
+<li><strong>OpenAPI JSON:</strong> <code>http://127.0.0.1:8000/openapi.json</code></li>
+</ul>
+<h2>Customizing Metadata</h2>
+<pre><code>app = FastAPI(
+    title="My API",
+    description="A sample FastAPI application",
+    version="1.0.0",
+    contact={"name": "Snehal", "email": "snehal@example.com"},
+    license_info={"name": "MIT"},
+)
+
+@app.get("/items/{item_id}",
+         summary="Get an item",
+         description="Retrieve an item by its ID",
+         tags=["items"],
+         deprecated=False)
+def read_item(item_id: int): ...</code></pre>
+<h2>OpenAPI Schema</h2>
+<pre><code># View the raw schema at /openapi.json
+{
+  "openapi": "3.1.0",
+  "info": {"title": "My API", "version": "1.0.0"},
+  "paths": {
+    "/items/{item_id}": {
+      "get": {
+        "parameters": [...],
+        "responses": {...}
+      }
+    }
+  }
+}</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Run your app and open /docs. Add title, description, and version metadata. Verify the Swagger UI reflects your changes.</div>
+<nav><a href="hello-world.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="uvicorn.html">Next: Uvicorn Basics &rarr;</a></nav>
+</div></body></html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Query Parameters — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>10. Query Parameters</h1>
+<pre><code>from fastapi import FastAPI
+
+app = FastAPI()
+
+# Optional query param with default
+@app.get("/items/")
+def list_items(skip: int = 0, limit: int = 10):
+    return {"skip": skip, "limit": limit}
+
+# Optional query param (can be None)
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: str = None, short: bool = False):
+    return {"item_id": item_id, "q": q, "short": short}
+
+# Required query param (no default)
+@app.get("/search/")
+def search(q: str):
+    return {"query": q}
+
+# Type conversion
+@app.get("/users/")
+def get_users(active: bool = True, page: int = 1):
+    return {"active": active, "page": page}
+
+# Multiple values
+from typing import List
+
+@app.get("/filter/")
+def filter_items(tags: List[str] = None):
+    return {"tags": tags}
+# URL: /filter/?tags=a&tags=b&tags=c</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create an endpoint that accepts <code>category</code> (optional), <code>min_price</code> (optional float), and <code>sort_by</code> (default "name") query parameters.</div>
+<nav><a href="path-parameters.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="parameter-validation.html">Next: Parameter Validation &rarr;</a></nav>
+</div></body></html>

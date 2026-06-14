@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Pricing — Snowflake Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#29b5e8;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>7. Pricing Model</h1>
+<h2>Compute (Credits)</h2>
+<p>Pay per second of warehouse uptime (min 60s). Credit consumption by size:</p>
+<table><tr><th>Size</th><th>Credits/hr</th><th>Nodes</th></tr>
+<tr><td>X-Small</td><td>1</td><td>1</td></tr>
+<tr><td>Small</td><td>2</td><td>2</td></tr>
+<tr><td>Medium</td><td>4</td><td>4</td></tr>
+<tr><td>Large</td><td>8</td><td>8</td></tr>
+</table>
+<h2>Storage &amp; Serverless</h2>
+<p>Pay per TB/month for compressed data. Serverless features (auto-clustering, materialized views) consume credits per use.</p>
+<pre><code>SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE START_TIME > DATEADD(day, -7, CURRENT_TIMESTAMP);</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Query <code>WAREHOUSE_METERING_HISTORY</code> for the last 7 days and estimate cost.</div>
+<nav><a href="editions.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="objects.html">Next: Core Objects &rarr;</a></nav>
+</div></body></html>

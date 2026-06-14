@@ -1,0 +1,46 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>WebSockets — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>29. WebSockets</h1>
+<pre><code>from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from typing import List
+
+app = FastAPI()
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str):
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await manager.broadcast(f"Client {client_id}: {data}")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        await manager.broadcast(f"Client {client_id} left")</code></pre>
+<h2>Client Example (HTML/JS)</h2>
+<pre><code>&lt;script&gt;
+  const ws = new WebSocket("ws://localhost:8000/ws/user1");
+  ws.onmessage = (event) => console.log(event.data);
+  ws.send("Hello everyone!");
+&lt;/script&gt;</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Build a simple chat server using WebSockets. Create an HTML client that connects, sends messages, and displays incoming messages in real time.</div>
+<nav><a href="graphql.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="event-handlers.html">Next: Event Handlers &rarr;</a></nav>
+</div></body></html>

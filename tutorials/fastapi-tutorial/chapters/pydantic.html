@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Pydantic Models — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>12. Pydantic Models</h1>
+<pre><code>from pydantic import BaseModel, Field, EmailStr
+from typing import Optional
+
+class Item(BaseModel):
+    name: str
+    price: float = Field(..., gt=0, description="Price must be positive")
+    is_offer: bool = False
+    tax: Optional[float] = None
+
+class User(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    full_name: Optional[str] = None
+
+# Validator
+from pydantic import validator
+
+class Order(BaseModel):
+    items: List[Item]
+    discount: float = 0.0
+
+    @validator("discount")
+    def check_discount(cls, v):
+        if v < 0 or v > 100:
+            raise ValueError("Discount must be 0-100")
+        return v</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create a Pydantic model for a <code>Product</code> with name, price (>0), category, and an optional description. Add a validator for price.</div>
+<nav><a href="parameter-validation.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="request-body.html">Next: Request Body &rarr;</a></nav>
+</div></body></html>

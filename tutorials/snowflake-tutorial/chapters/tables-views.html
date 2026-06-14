@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Table &amp; View Types — Snowflake Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#29b5e8;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>9. Table &amp; View Types</h1>
+<h2>Table Types</h2>
+<table><tr><th>Type</th><th>Fail-safe</th><th>Time Travel</th><th>Cost</th></tr>
+<tr><td>Permanent</td><td>7 days</td><td>0-90 days</td><td>Standard</td></tr>
+<tr><td>Transient</td><td>None</td><td>0-1 day</td><td>Lower</td></tr>
+<tr><td>Temporary</td><td>None</td><td>0-1 day</td><td>Session-only</td></tr>
+</table>
+<h2>View Types</h2>
+<ul><li><strong>Standard View</strong> — Query definition, no storage</li><li><strong>Materialized View</strong> — Pre-computed result, refreshed automatically</li><li><strong>Secure View</strong> — Data hidden from users; predicates applied</li></ul>
+<pre><code>CREATE TRANSIENT TABLE temp_data (id INT);
+CREATE MATERIALIZED VIEW daily_sales AS
+SELECT DATE_TRUNC('day', sale_ts), SUM(amount)
+FROM sales GROUP BY 1;</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create a permanent table, a transient table, and a materialized view. Compare the storage costs using ACCOUNT_USAGE views.</div>
+<nav><a href="objects.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="login.html">Next: Login &amp; Setup &rarr;</a></nav>
+</div></body></html>

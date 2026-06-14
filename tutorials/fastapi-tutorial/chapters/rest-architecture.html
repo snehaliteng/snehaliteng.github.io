@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>REST Architecture — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>8. REST Architecture</h1>
+<h2>HTTP Methods</h2>
+<table><tr><th>Method</th><th>CRUD</th><th>FastAPI Decorator</th></tr>
+<tr><td>GET</td><td>Read</td><td>@app.get()</td></tr>
+<tr><td>POST</td><td>Create</td><td>@app.post()</td></tr>
+<tr><td>PUT</td><td>Update (full)</td><td>@app.put()</td></tr>
+<tr><td>PATCH</td><td>Update (partial)</td><td>@app.patch()</td></tr>
+<tr><td>DELETE</td><td>Delete</td><td>@app.delete()</td></tr>
+</table>
+<h2>RESTful Design Principles</h2>
+<pre><code># Resources as nouns, not verbs
+# GOOD
+GET    /users          # List users
+GET    /users/{id}     # Get user
+POST   /users          # Create user
+PUT    /users/{id}     # Update user
+DELETE /users/{id}     # Delete user
+
+# BAD
+GET    /get_users
+POST   /create_user
+POST   /delete_user</code></pre>
+<h2>Status Codes</h2>
+<pre><code>from fastapi import FastAPI, status
+
+@app.post("/items/", status_code=status.HTTP_201_CREATED)
+def create_item():
+    return {"item": "created"}
+
+@app.delete("/items/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_item(id: int):
+    return  # No body for 204</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Design RESTful endpoints for a blog API (posts, comments, users). Implement the GET and POST endpoints using FastAPI decorators.</div>
+<nav><a href="ide-support.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="path-parameters.html">Next: Path Parameters &rarr;</a></nav>
+</div></body></html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Middleware — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>32. Middleware</h1>
+<pre><code>from fastapi import FastAPI, Request
+from starlette.middleware.base import BaseHTTPMiddleware
+import time
+
+app = FastAPI()
+
+# Custom middleware class
+class ProcessTimeMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start
+        response.headers["X-Process-Time"] = str(process_time)
+        return response
+
+app.add_middleware(ProcessTimeMiddleware)
+
+# Simple middleware using @app.middleware
+@app.middleware("http")
+async def add_custom_header(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Powered-By"] = "FastAPI"
+    return response
+
+# Authentication middleware
+@app.middleware("http")
+async def authenticate(request: Request, call_next):
+    if request.url.path.startswith("/admin"):
+        token = request.headers.get("Authorization")
+        if not token:
+            return JSONResponse(
+                {"error": "Not authenticated"},
+                status_code=401
+            )
+    response = await call_next(request)
+    return response</code></pre>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create middleware that logs each request's method, path, and duration. Add a middleware that blocks requests from specific IPs.</div>
+<nav><a href="sub-app.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="flask-mount.html">Next: Flask Mount &rarr;</a></nav>
+</div></body></html>

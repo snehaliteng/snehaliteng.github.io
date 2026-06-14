@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Form Data — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<body><div class="chapter">
+<a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
+<h1>17. Form Data</h1>
+<pre><code>pip install python-multipart</code></pre>
+<pre><code>from fastapi import FastAPI, Form
+
+app = FastAPI()
+
+@app.post("/submit/")
+def submit_form(
+    username: str = Form(...),
+    password: str = Form(...),
+    remember_me: bool = Form(False)
+):
+    return {
+        "username": username,
+        "remember_me": remember_me
+    }
+
+# Multiple form fields
+@app.post("/register/")
+def register(
+    username: str = Form(..., min_length=3),
+    email: str = Form(...),
+    age: int = Form(..., ge=18),
+    bio: str = Form(None, max_length=500)
+):
+    return {"username": username, "email": email}
+
+# Form data with file
+from fastapi import UploadFile, File
+
+@app.post("/profile/")
+def create_profile(
+    name: str = Form(...),
+    avatar: UploadFile = File(...)
+):
+    return {"name": name, "avatar": avatar.filename}</code></pre>
+<div class="note"><strong>⚠️ Note:</strong> Form data uses <code>application/x-www-form-urlencoded</code>. Do NOT mix Form and JSON Body parameters in the same endpoint — use separate endpoints or Body parameters.</div>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create a form POST endpoint that accepts name, email, and age. Return a summary of the submitted data.</div>
+<nav><a href="html-forms.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="file-upload.html">Next: File Upload &rarr;</a></nav>
+</div></body></html>
