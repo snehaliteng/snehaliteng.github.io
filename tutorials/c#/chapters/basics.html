@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started with C# - C# Tutorial</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<div class="chapter">
+  <a href="../../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#3b82f6;text-decoration:none;">&larr; Back to Tutorials</a>
+  <span class="tag">Chapter 1</span>
+  <h1>Getting Started with C#</h1>
+    <h2>What is C#?</h2>
+  <p>C# (pronounced "C Sharp") is a modern, object-oriented programming language developed by Microsoft. It runs on the .NET platform and is used for building desktop apps, web apps, games (Unity), mobile apps, and cloud services.</p>
+  <div class="note"><strong>Key Idea:</strong> C# is a statically-typed language — variables must have a declared type checked at compile time.</div>
+  <h2>Your First C# Program</h2>
+  <pre><code>using System;
+namespace MyApp
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Hello, World!");
+        }
+    }
+}</code></pre>
+  <h2>Basic Syntax</h2>
+  <ul><li>Statements end with semicolon <code>;</code></li><li>Blocks use curly braces <code>{ }</code></li><li><code>using</code> imports namespaces</li><li><code>Main</code> is the entry point</li></ul>
+  <h2>Console Output</h2>
+  <pre><code>Console.WriteLine("With new line");
+Console.Write("Without new line");
+Console.WriteLine($"Interpolated: {value}");</code></pre>
+  <h2>Comments</h2>
+  <pre><code>// Single-line
+/* Multi-line */
+/// XML documentation</code></pre>
+  <img src="../images/csharp-flowchart.svg" alt="C# program structure">
+  <div class="exercise">
+    <h3>Practice Task</h3>
+    <p>Write a C# program that applies the concepts covered in this chapter. Experiment with different inputs and test your understanding.</p>
+  </div>
+
+  <nav>
+    <a href="../index.html">Back to Index</a>
+    <a href="control-flow.html">Next: Variables &amp; Control Flow &rarr;</a>
+  </nav>
+</div>
+</body>
+</html>
