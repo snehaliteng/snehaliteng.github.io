@@ -129,6 +129,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Load portfolio demos from JSON
+    async function loadPortfolioDemos() {
+      try {
+        const res = await fetch('data/usr/json/portfolio-sites.json');
+        const sites = await res.json();
+        const grid = document.getElementById('portfolio-demos');
+        if (!grid) return;
+        grid.innerHTML = sites.map(s => `
+          <a href="${s.url}" class="portfolio-card rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 block">
+            <div class="h-48 overflow-hidden">
+              <img src="${s.image}" alt="${s.title}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22400%22 height=%22300%22/%3E%3Ctext fill=%22%236b7280%22 font-size=%2224%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22%3E${s.title}%3C/text%3E%3C/svg%3E'">
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold mb-2">${s.title}</h3>
+              <p class="text-gray-600 mb-4">${s.description}</p>
+              <span class="inline-block ${s.color} text-sm px-3 py-1 rounded-full">${s.category}</span>
+            </div>
+          </a>
+        `).join('');
+      } catch(e) { console.log('Portfolio demos not loaded:', e); }
+    }
+    loadPortfolioDemos();
+
     // Intersection Observer for scroll animations
     const observerOptions = {
         threshold: 0.1,

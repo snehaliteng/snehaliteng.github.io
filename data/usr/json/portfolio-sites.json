@@ -1,0 +1,20 @@
+[
+  {
+    "id": "jewelleryshop",
+    "title": "Ornate Jewels",
+    "description": "Premium jewellery store website with product catalog, gallery & testimonials.",
+    "category": "E-Commerce",
+    "color": "bg-yellow-100 text-yellow-800",
+    "image": "images/jewellery-shop.svg",
+    "url": "portfolio/jewelleryshop/"
+  },
+  {
+    "id": "watchstore",
+    "title": "Timeless Elegance",
+    "description": "Modern watch store with product showcase, filter system, gallery & contact.",
+    "category": "E-Commerce",
+    "color": "bg-blue-100 text-blue-800",
+    "image": "images/watch-store.svg",
+    "url": "portfolio/watchstore/"
+  }
+]
