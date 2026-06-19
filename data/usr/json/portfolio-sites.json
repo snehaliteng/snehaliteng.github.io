@@ -25,5 +25,14 @@
     "color": "bg-blue-100 text-blue-800",
     "image": "portfolio/dentalclinic/data/usr/img/clinic.svg",
     "url": "portfolio/dentalclinic/"
+  },
+  {
+    "id": "medicalstore",
+    "title": "ABC Medical Store",
+    "description": "Medical store site with dynamic product catalog, search/filter, and contact integration.",
+    "category": "Healthcare",
+    "color": "bg-green-100 text-green-800",
+    "image": "portfolio/medicalstore/data/usr/img/banner.svg",
+    "url": "portfolio/medicalstore/"
   }
 ]
