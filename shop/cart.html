@@ -50,7 +50,10 @@
 
   <div class="container">
     <div id="alert-container"></div>
-    <h1>Checkout</h1>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+      <h1 style="margin:0;">Checkout</h1>
+      <span id="user-info" style="font-size:.85rem;color:#64748b;"></span>
+    </div>
     <div id="cart-container"><div class="empty-state"><h3>Loading...</h3></div></div>
   </div>
 
@@ -69,8 +72,7 @@
       navAuth.href = '#';
       navAuth.addEventListener('click', async (e) => { e.preventDefault(); await signOut(); window.location.reload(); });
 
-      let cartData = [];
-      let totalAmount = 0;
+      document.getElementById('user-info').textContent = user.email ? 'Logged in as: ' + user.email : '';
 
       function buildUpiDeepLink(app, total) {
         const pa = 'snehaliteng@okaxis';
