@@ -2,8 +2,10 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const SUPABASE_URL = 'https://vgipghqejzbcoighktij.supabase.co';
 const _shop = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const RAZORPAY_KEY_ID = 'rzp_test_XXXXXXXXXXXXXXXX'; // Replace with your Razorpay key
 const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1`;
+
+const UPI_ID = 'snehaliteng@okaxis';
+const UPI_PHONE = '+919974031480';
 
 async function getCurrentUser() {
   const { data: { user }, error } = await _shop.auth.getUser();
@@ -73,29 +75,17 @@ async function clearCart(userId) {
   if (error) throw error;
 }
 
-function formatPrice(p) { return '₹' + Number(p).toFixed(2); }
+function formatPrice(p) { return '\u20b9' + Number(p).toFixed(2); }
 
-async function createRazorpayOrder(amount, currency = 'INR') {
+async function createOrder(paymentMethod, transactionId) {
   const session = await _shop.auth.getSession();
   const token = session.data?.session?.access_token;
-  const res = await fetch(`${EDGE_FUNCTION_URL}/create-razorpay-order`, {
+  const res = await fetch(`${EDGE_FUNCTION_URL}/create-order`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({ amount, currency })
+    body: JSON.stringify({ payment_method: paymentMethod, transaction_id: transactionId })
   });
   if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to create order'); }
-  return res.json();
-}
-
-async function verifyPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature) {
-  const session = await _shop.auth.getSession();
-  const token = session.data?.session?.access_token;
-  const res = await fetch(`${EDGE_FUNCTION_URL}/verify-payment`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({ razorpay_order_id: razorpayOrderId, razorpay_payment_id: razorpayPaymentId, razorpay_signature: razorpaySignature })
-  });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Verification failed'); }
   return res.json();
 }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payment Successful - Snehal IT Eng</title>
+  <title>Order Placed - Snehal IT Eng</title>
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -17,10 +17,12 @@
   </nav>
 
   <div class="container text-center" style="padding-top:80px;">
-    <div class="success-icon">&#10004;&#65039;</div>
-    <h1>&#9989; Payment Successful!</h1>
-    <p style="color:#64748b;font-size:1.1rem;margin:12px 0 24px;">Thank you for your purchase. Your e-books will be emailed to you shortly.</p>
+    <div class="success-icon">&#128221;</div>
+    <h1>&#9989; Order Placed!</h1>
+    <p style="color:#64748b;font-size:1.1rem;margin:12px 0 8px;">Your order has been submitted and is pending payment confirmation.</p>
+    <p style="color:#ef4444;font-weight:600;font-size:.95rem;margin-bottom:24px;">&#9888;&#65039; Please complete the payment to receive your e-books.</p>
     <div id="order-summary" style="max-width:500px;margin:0 auto 32px;background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:24px;"></div>
+    <div id="payment-reminder" style="max-width:500px;margin:0 auto 32px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;padding:20px;display:none;"></div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
       <a href="index.html" class="btn btn-primary">Continue Shopping</a>
       <a href="../tutorials/" class="btn btn-secondary">Browse Tutorials</a>
@@ -31,6 +33,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       const data = localStorage.getItem('last_order');
       const summary = document.getElementById('order-summary');
+      const reminder = document.getElementById('payment-reminder');
       if (data) {
         const order = JSON.parse(data);
         summary.innerHTML = `
@@ -44,8 +47,19 @@
           <div style="display:flex;justify-content:space-between;padding:12px 0 0;font-weight:700;font-size:1.1rem;">
             <span>Total</span><span>&#8377;${Number(order.total).toFixed(2)}</span>
           </div>
-          <div style="margin-top:12px;font-size:.85rem;color:#64748b;">Payment ID: ${order.payment_id}</div>
+          <div style="margin-top:12px;font-size:.85rem;color:#64748b;">
+            Payment Method: <strong>${order.payment_method === 'upi' ? 'UPI (GPay / PhonePe / Paytm)' : 'Net Banking / NEFT / IMPS'}</strong><br>
+            Transaction ID: <strong>${order.transaction_id}</strong>
+          </div>
         `;
+
+        if (order.payment_method === 'upi') {
+          reminder.style.display = 'block';
+          reminder.innerHTML = '<strong>Did not pay yet?</strong><br>Send payment to <strong>snehaliteng@okaxis</strong> (UPI) or <strong>+919974031480</strong>. After payment, your e-books will be emailed within 24 hours.';
+        } else {
+          reminder.style.display = 'block';
+          reminder.innerHTML = '<strong>Did not pay yet?</strong><br>Transfer the total amount to the bank account shown during checkout. After confirmation, your e-books will be emailed within 24 hours.';
+        }
       } else {
         summary.innerHTML = '<p style="color:#64748b;">No recent order found.</p>';
       }
