@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Table &amp; View Types — Snowflake Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Table &amp; View Types Ã¢â‚¬â€ Snowflake Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#29b5e8;text-decoration:none;">&larr; Back to Tutorials</a>
 <h1>9. Table &amp; View Types</h1>
@@ -22,11 +22,13 @@
 <tr><td>Temporary</td><td>None</td><td>0-1 day</td><td>Session-only</td></tr>
 </table>
 <h2>View Types</h2>
-<ul><li><strong>Standard View</strong> — Query definition, no storage</li><li><strong>Materialized View</strong> — Pre-computed result, refreshed automatically</li><li><strong>Secure View</strong> — Data hidden from users; predicates applied</li></ul>
+<ul><li><strong>Standard View</strong> Ã¢â‚¬â€ Query definition, no storage</li><li><strong>Materialized View</strong> Ã¢â‚¬â€ Pre-computed result, refreshed automatically</li><li><strong>Secure View</strong> Ã¢â‚¬â€ Data hidden from users; predicates applied</li></ul>
 <pre><code>CREATE TRANSIENT TABLE temp_data (id INT);
 CREATE MATERIALIZED VIEW daily_sales AS
 SELECT DATE_TRUNC('day', sale_ts), SUM(amount)
 FROM sales GROUP BY 1;</code></pre>
-<div class="exercise"><strong>✏️ Exercise:</strong> Create a permanent table, a transient table, and a materialized view. Compare the storage costs using ACCOUNT_USAGE views.</div>
+<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Create a permanent table, a transient table, and a materialized view. Compare the storage costs using ACCOUNT_USAGE views.</div>
 <nav><a href="objects.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="login.html">Next: Login &amp; Setup &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

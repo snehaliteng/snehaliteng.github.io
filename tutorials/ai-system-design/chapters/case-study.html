@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>19. Case Study – AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>19. Case Study Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>19. Case Study: Recommendation Engine</h1>
@@ -22,15 +22,15 @@
 <li><strong>Non-functional:</strong> p99 latency &lt; 200ms for homepage, 500M DAU, 10K QPS peak, 99.95% uptime. Recommendations must update within 1 hour of user action.</li>
 </ul>
 <h2>Scale Estimation</h2>
-<pre><code>MAU: 50M → DAU: ~20M (40%)
+<pre><code>MAU: 50M Ã¢â€ â€™ DAU: ~20M (40%)
 Homepage loads per day: 40M (2 per user per day)
-Peak QPS: ~2,000 with 5x holiday surge → 10,000 QPS
+Peak QPS: ~2,000 with 5x holiday surge Ã¢â€ â€™ 10,000 QPS
 Products per recommendation: 20
-Total recommendations per day: 40M × 20 = 800M
+Total recommendations per day: 40M Ãƒâ€” 20 = 800M
 
 Features per user: ~200 (demographics, purchase history, browsing, etc.)
 Features per product: ~100 (category, price, rating, inventory, etc.)
-Feature store read per request: ~300 features × 8 bytes ≈ 2.4KB</code></pre>
+Feature store read per request: ~300 features Ãƒâ€” 8 bytes Ã¢â€°Ë† 2.4KB</code></pre>
 <h2>Architecture</h2>
 <p>The recommendation system uses a two-stage retrieval + ranking architecture:</p>
 <pre><code># Two-stage pipeline
@@ -69,8 +69,8 @@ Stage 3: Post-processing
 
 # Online feature computation (streaming)
 Real-time events (click, add-to-cart, purchase):
-  → Kafka → feature update → invalidate relevant caches
-  → Update user embedding incrementally
+  Ã¢â€ â€™ Kafka Ã¢â€ â€™ feature update Ã¢â€ â€™ invalidate relevant caches
+  Ã¢â€ â€™ Update user embedding incrementally
 
 # Batch feature computation (hourly)
 Compute aggregated features:
@@ -86,10 +86,12 @@ Compute aggregated features:
 </ul>
 <h2>Key Trade-offs</h2>
 <ul>
-<li><strong>Personalization vs cold-start:</strong> New users have no history → rely on trending/popular items. Gradually blend in personalized recommendations as data accumulates.</li>
+<li><strong>Personalization vs cold-start:</strong> New users have no history Ã¢â€ â€™ rely on trending/popular items. Gradually blend in personalized recommendations as data accumulates.</li>
 <li><strong>Freshness vs stability:</strong> Real-time embedding updates improve freshness but can cause thrashing. Micro-batch updates every 5 minutes balance both.</li>
 <li><strong>Diversity vs relevance:</strong> Strictly relevant recommendations may all be from one category. Apply diversity penalty during ranking.</li>
 </ul>
 <div class="exercise"><strong>Exercise:</strong> Extend this recommendation engine to include a "real-time session-based" component that uses the user's current browsing session (last 5 clicks) to adjust recommendations instantly, without waiting for daily retraining. Describe: a) how you compute session vectors, b) where you store them, c) how they blend with the user's long-term profile, d) the latency budget for the session component.</div>
 <nav><a href="security.html">&larr; Previous</a><a href="../index.html">Index</a><a href="trade-offs.html">Next: Trade-Offs &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>20. Trade-Offs – AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>20. Trade-Offs Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>20. Trade-Offs</h1>
@@ -21,7 +21,7 @@
 <table>
 <tr><th>Decision</th><th>Accuracy</th><th>Latency</th><th>Cost</th></tr>
 <tr><td>Large model (e.g., GPT-4)</td><td>Best</td><td>~2s per response</td><td>High</td></tr>
-<tr><td>Distilled model (e.g., GPT-4 → Llama-7B)</td><td>Good (90% of large)</td><td>~100ms</td><td>Low</td></tr>
+<tr><td>Distilled model (e.g., GPT-4 Ã¢â€ â€™ Llama-7B)</td><td>Good (90% of large)</td><td>~100ms</td><td>Low</td></tr>
 <tr><td>Quantized model (INT8)</td><td>98% of FP16</td><td>4x faster</td><td>Lower</td></tr>
 <tr><td>Rule-based fallback</td><td>Moderate</td><td>~5ms</td><td>Minimal</td></tr>
 </table>
@@ -29,7 +29,7 @@
 <h2>Batch vs Real-Time</h2>
 <table>
 <tr><th>Factor</th><th>Batch</th><th>Real-Time</th></tr>
-<tr><td>Freshness</td><td>Hours–days stale</td><td>Sub-second</td></tr>
+<tr><td>Freshness</td><td>HoursÃ¢â‚¬â€œdays stale</td><td>Sub-second</td></tr>
 <tr><td>Infrastructure complexity</td><td>Lower</td><td>Higher (stream processing, low-latency DB)</td></tr>
 <tr><td>Cost</td><td>Lower (use spot instances, batch optimization)</td><td>Higher (always-on, low-latency infra)</td></tr>
 <tr><td>Error handling</td><td>Simple (retry entire batch)</td><td>Complex (partial failures, exactly-once processing)</td></tr>
@@ -55,7 +55,7 @@ Example:
   Optimization: Add 2 more models to ensemble
   Cost: +$500/month GPU, +20ms latency
   Benefit: +0.5% accuracy
-  ROI: $500/month for 0.5% — only worth it if 0.5% = $5000+ in revenue</code></pre>
+  ROI: $500/month for 0.5% Ã¢â‚¬â€ only worth it if 0.5% = $5000+ in revenue</code></pre>
 <h2>Consistency vs Availability (CAP for AI)</h2>
 <ul>
 <li><strong>Strong consistency:</strong> All feature updates visible immediately. Harder to scale. Use for payment ML models.</li>
@@ -64,12 +64,14 @@ Example:
 <h2>Model Complexity vs Interpretability</h2>
 <table>
 <tr><th>Model Type</th><th>Accuracy</th><th>Interpretability</th><th>Use Case</th></tr>
-<tr><td>Linear regression / Logistic</td><td>Low–Moderate</td><td>High</td><td>Credit scoring (regulated)</td></tr>
-<tr><td>Decision Trees / Random Forest</td><td>Moderate–High</td><td>Moderate</td><td>Fraud detection</td></tr>
+<tr><td>Linear regression / Logistic</td><td>LowÃ¢â‚¬â€œModerate</td><td>High</td><td>Credit scoring (regulated)</td></tr>
+<tr><td>Decision Trees / Random Forest</td><td>ModerateÃ¢â‚¬â€œHigh</td><td>Moderate</td><td>Fraud detection</td></tr>
 <tr><td>XGBoost / LightGBM</td><td>High</td><td>Low (SHAP needed)</td><td>Ranking, CTR prediction</td></tr>
 <tr><td>Deep Neural Networks</td><td>Highest</td><td>Very Low</td><td>Image, text, complex patterns</td></tr>
 <tr><td>LLMs</td><td>Highest</td><td>Low (emergent)</td><td>Chat, generation, reasoning</td></tr>
 </table>
 <div class="exercise"><strong>Exercise:</strong> Your team is building an AI system that automatically approves or rejects small business loan applications. List 5 significant trade-offs you must navigate. For each: describe the two options, the pros/cons of each, and your recommended choice with justification. Consider: accuracy vs speed, batch vs real-time, model complexity vs regulatory requirements, autonomy vs human review, cost vs quality.</div>
 <nav><a href="case-study.html">&larr; Previous</a><a href="../index.html">Index</a><a href="interview-prep.html">Next: Interview Prep &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

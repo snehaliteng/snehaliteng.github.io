@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Loading Data — Snowflake Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Loading Data Ã¢â‚¬â€ Snowflake Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#29b5e8;text-decoration:none;">&larr; Back to Tutorials</a>
 <h1>15. Loading Data</h1>
@@ -47,6 +47,8 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
 <pre><code>CREATE PIPE sales_pipe AS
   COPY INTO sales_table FROM @my_stage FILE_FORMAT = csv_ff;
 ALTER PIPE sales_pipe REFRESH;</code></pre>
-<div class="exercise"><strong>✏️ Exercise:</strong> Upload a CSV file to a stage and load it into a table. Use VALIDATION_MODE first, then load. Verify with COPY_HISTORY.</div>
+<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Upload a CSV file to a stage and load it into a table. Use VALIDATION_MODE first, then load. Verify with COPY_HISTORY.</div>
 <nav><a href="table-columns.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="queries.html">Next: Useful Queries &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

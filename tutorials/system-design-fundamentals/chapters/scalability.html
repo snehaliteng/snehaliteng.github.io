@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>6. Scalability – System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>6. Scalability Ã¢â‚¬â€œ System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>6. Scalability</h1>
@@ -23,7 +23,7 @@
 <tr><td>Diagonal</td><td>Vertical within a tier, horizontal across tiers</td><td>Balanced approach</td><td>Complexity of both</td></tr>
 </table>
 <pre><code># Horizontal scaling pattern
-[Users] → [Load Balancer] → [App Server 1] → [Shared DB]
+[Users] Ã¢â€ â€™ [Load Balancer] Ã¢â€ â€™ [App Server 1] Ã¢â€ â€™ [Shared DB]
                              [App Server 2]
                              [App Server N]
 # Stateless apps scale easily; stateful (DB) requires sharding/replication</code></pre>
@@ -37,7 +37,7 @@
 <li><strong>Circuit breaking:</strong> Stop routing to a backend when it repeatedly fails.</li>
 </ul>
 <h2>Auto-Scaling</h2>
-<p>Auto-scaling automatically adjusts the number of compute resources based on demand. Metrics-based (CPU > 70% → add instance) or schedule-based (scale up at 8 AM, scale down at 10 PM).</p>
+<p>Auto-scaling automatically adjusts the number of compute resources based on demand. Metrics-based (CPU > 70% Ã¢â€ â€™ add instance) or schedule-based (scale up at 8 AM, scale down at 10 PM).</p>
 <pre><code># Auto-scaling configuration (conceptual)
 AutoScalingGroup:
   min: 2
@@ -75,4 +75,6 @@ Shard 3: user_id % 4 == 3</code></pre>
 </ul>
 <div class="exercise"><strong>Exercise:</strong> Design a sharding strategy for a social media platform where users can follow others and see a timeline. Describe your shard key choice, how you handle cross-shard queries (e.g., fetching a timeline from followed users), and how you would reshard from 4 to 8 shards with zero downtime.</div>
 <nav><a href="web-concepts.html">&larr; Previous</a><a href="../index.html">Index</a><a href="storage.html">Next: Storage &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

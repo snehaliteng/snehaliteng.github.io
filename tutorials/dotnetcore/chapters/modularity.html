@@ -53,13 +53,13 @@ dotnet nuget push bin/Release/MyPackage.1.0.0.nupkg --api-key YOUR_KEY --source 
     <p>The <code>Microsoft.Extensions.DependencyInjection</code> library provides a first-class DI container. It is the foundation of ASP.NET Core and can be used in any .NET application.</p>
 
     <h3>Service Lifetimes</h3>
-    <pre><code>// Transient — new instance every time
+    <pre><code>// Transient Ã¢â‚¬â€ new instance every time
 services.AddTransient&lt;IMyService, MyService&gt;();
 
-// Scoped — same instance per request/scope (common in web apps)
+// Scoped Ã¢â‚¬â€ same instance per request/scope (common in web apps)
 services.AddScoped&lt;IMyService, MyService&gt;();
 
-// Singleton — single instance for the application lifetime
+// Singleton Ã¢â‚¬â€ single instance for the application lifetime
 services.AddSingleton&lt;IMyService, MyService&gt;();</code></pre>
 
     <h3>Consuming Dependencies</h3>
@@ -100,5 +100,7 @@ var logLevel = configuration["Logging:LogLevel:Default"];</code></pre>
       <a href="project-files.html">Next: Project &amp; Build System &rarr;</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

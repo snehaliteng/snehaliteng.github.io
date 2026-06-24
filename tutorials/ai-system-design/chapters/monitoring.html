@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>16. Monitoring &amp; Observability – AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>16. Monitoring &amp; Observability Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>16. Monitoring &amp; Observability</h1>
@@ -38,8 +38,8 @@ Feature: "transaction_amount"
 Training mean: 125.4, std: 89.2
 Serving mean: 178.1, std: 112.5
 KS statistic: 0.23 (threshold: 0.1)
-→ ALERT: transaction_amount feature has drifted significantly
-→ Possible causes: new merchant category, seasonal effect, data pipeline bug</code></pre>
+Ã¢â€ â€™ ALERT: transaction_amount feature has drifted significantly
+Ã¢â€ â€™ Possible causes: new merchant category, seasonal effect, data pipeline bug</code></pre>
 <h2>Prometheus + Grafana Stack</h2>
 <p>Standard open-source monitoring stack for AI systems:</p>
 <ul>
@@ -51,13 +51,13 @@ KS statistic: 0.23 (threshold: 0.1)
 <h2>Distributed Tracing</h2>
 <p>Trace requests across microservices to identify bottlenecks:</p>
 <pre><code># Trace: single inference request
-Span 1: API Gateway → 5ms
-Span 2: Auth → 3ms
-Span 3: Feature fetch → 22ms (Redis)
-Span 4: Feature compute → 15ms
-Span 5: Model inference → 87ms (GPU)
-Span 6: Post-process → 8ms
-Span 7: Log to Kafka → 2ms (async)
+Span 1: API Gateway Ã¢â€ â€™ 5ms
+Span 2: Auth Ã¢â€ â€™ 3ms
+Span 3: Feature fetch Ã¢â€ â€™ 22ms (Redis)
+Span 4: Feature compute Ã¢â€ â€™ 15ms
+Span 5: Model inference Ã¢â€ â€™ 87ms (GPU)
+Span 6: Post-process Ã¢â€ â€™ 8ms
+Span 7: Log to Kafka Ã¢â€ â€™ 2ms (async)
 Total: ~142ms</code></pre>
 <h2>Logging Strategy</h2>
 <ul>
@@ -79,4 +79,6 @@ Total: ~142ms</code></pre>
 }</code></pre>
 <div class="exercise"><strong>Exercise:</strong> Design the monitoring dashboard for a real-time language translation service. List 6 panels you would include in your Grafana dashboard. For each panel, specify: metric source (Prometheus/application logs), aggregation (p50, p95, rate), and alert threshold if applicable. Include at least one model-drift-specific panel.</div>
 <nav><a href="fault-tolerance.html">&larr; Previous</a><a href="../index.html">Index</a><a href="privacy.html">Next: Privacy &amp; Compliance &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

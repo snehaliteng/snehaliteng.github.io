@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Response Model — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Response Model Ã¢â‚¬â€ FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
 <h1>21. Response Model</h1>
@@ -46,6 +46,8 @@ def get_item(id: int):
 @app.get("/items/", response_model=list[ItemOut])
 def list_items():
     return [{"name": "A", "price": 1.0}]</code></pre>
-<div class="exercise"><strong>✏️ Exercise:</strong> Create In/Out models for a User. Input has password, output excludes password. Create a POST endpoint that returns only the safe fields.</div>
+<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Create In/Out models for a User. Input has password, output excludes password. Create a POST endpoint that returns only the safe fields.</div>
 <nav><a href="header-parameters.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="nested-models.html">Next: Nested Models &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

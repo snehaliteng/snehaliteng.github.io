@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>7. Storage – System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>7. Storage Ã¢â‚¬â€œ System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>7. Storage</h1>
@@ -29,7 +29,7 @@
 <h3>Hash-Based Sharding</h3>
 <p>Use a hash function on the shard key: <code>shard = hash(key) % N</code>. Provides even distribution but makes range queries expensive.</p>
 <h3>Range-Based Sharding</h3>
-<p>Split data by value ranges: shard 1 = user IDs 1–1M, shard 2 = 1M–2M, etc. Range queries are efficient but can cause hot spots.</p>
+<p>Split data by value ranges: shard 1 = user IDs 1Ã¢â‚¬â€œ1M, shard 2 = 1MÃ¢â‚¬â€œ2M, etc. Range queries are efficient but can cause hot spots.</p>
 <h3>Directory-Based Sharding</h3>
 <p>Maintain a lookup table mapping keys to shards. Flexible but adds a lookup step and single point of failure risk.</p>
 <h3>Geographic Sharding</h3>
@@ -37,7 +37,7 @@
 <h2>Replication</h2>
 <p>Replication copies data across multiple nodes for fault tolerance and read scalability.</p>
 <pre><code># Leader-Follower Replication
-Writes go to Leader → replicates to Followers
+Writes go to Leader Ã¢â€ â€™ replicates to Followers
 Reads can go to any replica (Follower or Leader)
 If Leader fails, a Follower is promoted to Leader
 
@@ -52,11 +52,13 @@ No single point of failure; higher availability</code></pre>
 <p>Systems like Google File System (GFS) and Hadoop HDFS split files into chunks (e.g., 64MB or 128MB) and replicate chunks across machines. A metadata server tracks chunk locations. Optimized for sequential reads/writes on large files.</p>
 <h2>Big Data Storage</h2>
 <ul>
-<li><strong>Columnar storage:</strong> Parquet, ORC — efficient for analytics on specific columns.</li>
-<li><strong>Data warehouses:</strong> Snowflake, Redshift, BigQuery — optimized for analytical queries on large datasets.</li>
+<li><strong>Columnar storage:</strong> Parquet, ORC Ã¢â‚¬â€ efficient for analytics on specific columns.</li>
+<li><strong>Data warehouses:</strong> Snowflake, Redshift, BigQuery Ã¢â‚¬â€ optimized for analytical queries on large datasets.</li>
 <li><strong>Data lakes:</strong> Store raw data in native format; schema applied at read time.</li>
-<li><strong>Time-series databases:</strong> InfluxDB, TimescaleDB — optimized for time-stamped data (metrics, logs).</li>
+<li><strong>Time-series databases:</strong> InfluxDB, TimescaleDB Ã¢â‚¬â€ optimized for time-stamped data (metrics, logs).</li>
 </ul>
 <div class="exercise"><strong>Exercise:</strong> Design a storage layer for a photo-sharing app with 500M users. Each user uploads 10 photos/month (5MB average). Consider: metadata storage (user profiles, albums), photo storage (blob), serving photos quickly (CDN), and handling peak upload traffic (e.g., New Year's Eve).</div>
 <nav><a href="scalability.html">&larr; Previous</a><a href="../index.html">Index</a><a href="performance.html">Next: Performance &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>17. Privacy &amp; Compliance – AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>17. Privacy &amp; Compliance Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>17. Privacy &amp; Compliance</h1>
@@ -32,49 +32,51 @@
 For each training batch:
   1. Compute gradients
   2. Clip gradient norm to C (max sensitivity)
-  3. Add Gaussian noise with scale σ = C * √(2 * log(1.25/δ)) / ε
+  3. Add Gaussian noise with scale ÃÆ’ = C * Ã¢Ë†Å¡(2 * log(1.25/ÃŽÂ´)) / ÃŽÂµ
   4. Apply noisy gradients
 
 Parameters:
-  ε (epsilon): privacy budget. Smaller = stronger privacy.
-  δ (delta): probability of privacy breach. Typically &lt; 1/N.
+  ÃŽÂµ (epsilon): privacy budget. Smaller = stronger privacy.
+  ÃŽÂ´ (delta): probability of privacy breach. Typically &lt; 1/N.
 
-Practical values: ε=8 (moderate privacy), ε=1 (strong privacy)</code></pre>
+Practical values: ÃŽÂµ=8 (moderate privacy), ÃŽÂµ=1 (strong privacy)</code></pre>
 <h2>AI TRiSM (Trust, Risk, Security, Management)</h2>
 <p>IBM's AI TRiSM framework guides enterprise AI governance:</p>
 <ul>
 <li><strong>Trust:</strong> Model explainability, fairness auditing, bias detection.</li>
-<li><strong>Risk:</strong> Risk assessment for each model — what happens if it fails? Classification: low/medium/high/critical.</li>
+<li><strong>Risk:</strong> Risk assessment for each model Ã¢â‚¬â€ what happens if it fails? Classification: low/medium/high/critical.</li>
 <li><strong>Security:</strong> Model protection (adversarial robustness), data security, prompt injection defenses.</li>
-<li><strong>Management:</strong> Model lifecycle, approval gates (staging → production), compliance documentation.</li>
+<li><strong>Management:</strong> Model lifecycle, approval gates (staging Ã¢â€ â€™ production), compliance documentation.</li>
 </ul>
 <h2>Data Sovereignty</h2>
 <p>Data must stay within geographic boundaries. System design implications:</p>
 <ul>
 <li><strong>Regional deployment:</strong> Deploy inference pipelines in each region (EU, US, APAC) with local data stores.</li>
-<li><strong>Data routing:</strong> Route user data based on origin (EU users → EU cluster).</li>
+<li><strong>Data routing:</strong> Route user data based on origin (EU users Ã¢â€ â€™ EU cluster).</li>
 <li><strong>Cross-region transfer:</strong> Anonymize or pseudonymize before cross-border transfer.</li>
 <li><strong>Model training in-region:</strong> Training data must not leave the region.</li>
 </ul>
 <h2>Architecting for Compliance</h2>
 <pre><code># Compliance-aware system design
 Data ingestion:
-  → Check user consent (consent store)
-  → Tag data with region, consent level, retention policy
-  → Store in region-specific data lake
+  Ã¢â€ â€™ Check user consent (consent store)
+  Ã¢â€ â€™ Tag data with region, consent level, retention policy
+  Ã¢â€ â€™ Store in region-specific data lake
 
 Feature computation:
-  → Skip features for users who have revoked consent
-  → Apply retention window (delete features older than N days)
+  Ã¢â€ â€™ Skip features for users who have revoked consent
+  Ã¢â€ â€™ Apply retention window (delete features older than N days)
 
 Model inference:
-  → Log all predictions with feature values for audit
-  → Support explanation generation (SHAP, LIME)
-  → Support data deletion request (delete from feature store + retrain model)
+  Ã¢â€ â€™ Log all predictions with feature values for audit
+  Ã¢â€ â€™ Support explanation generation (SHAP, LIME)
+  Ã¢â€ â€™ Support data deletion request (delete from feature store + retrain model)
 
 Model registry:
-  → Store training data lineage (which dataset version, consent snapshot)
-  → Approval gates: legal review before production deployment</code></pre>
+  Ã¢â€ â€™ Store training data lineage (which dataset version, consent snapshot)
+  Ã¢â€ â€™ Approval gates: legal review before production deployment</code></pre>
 <div class="exercise"><strong>Exercise:</strong> You are designing a health recommendation system that uses patient medical history. The data is subject to HIPAA and GDPR. Describe your architecture for: a) obtaining and storing patient consent, b) ensuring data stays in-region, c) handling a patient's "right to be forgotten" request that requires deleting their data from the feature store AND retraining the model without their data, d) providing explainability for each recommendation.</div>
 <nav><a href="monitoring.html">&larr; Previous</a><a href="../index.html">Index</a><a href="security.html">Next: Security &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

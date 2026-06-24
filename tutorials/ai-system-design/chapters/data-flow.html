@@ -11,29 +11,29 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>5. Data Flow – AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>5. Data Flow Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>5. Data Flow</h1>
-<p>Data flows through an AI system in a continuous loop: ingestion → preprocessing → training → evaluation → deployment → inference → monitoring → feedback.</p>
+<p>Data flows through an AI system in a continuous loop: ingestion Ã¢â€ â€™ preprocessing Ã¢â€ â€™ training Ã¢â€ â€™ evaluation Ã¢â€ â€™ deployment Ã¢â€ â€™ inference Ã¢â€ â€™ monitoring Ã¢â€ â€™ feedback.</p>
 <h2>1. Ingestion</h2>
 <p>Raw data arrives from multiple sources:</p>
 <ul>
 <li><strong>Batch sources:</strong> Daily exports from databases, CSV files, S3 buckets.</li>
-<li><strong>Streaming sources:</strong> Kafka topics, Kinesis streams, event hubs — user clicks, transactions, sensor readings.</li>
+<li><strong>Streaming sources:</strong> Kafka topics, Kinesis streams, event hubs Ã¢â‚¬â€ user clicks, transactions, sensor readings.</li>
 <li><strong>External APIs:</strong> Weather data, social media feeds, third-party enrichments.</li>
 </ul>
 <h2>2. Preprocessing</h2>
 <p>Raw data is cleaned and transformed into features:</p>
 <pre><code># Preprocessing pipeline (batch)
-Raw data → Validate schema → Handle missing values
-→ Normalize/scale → Feature engineering → Feature validation
-→ Write to Feature Store (online + offline copies)</code></pre>
+Raw data Ã¢â€ â€™ Validate schema Ã¢â€ â€™ Handle missing values
+Ã¢â€ â€™ Normalize/scale Ã¢â€ â€™ Feature engineering Ã¢â€ â€™ Feature validation
+Ã¢â€ â€™ Write to Feature Store (online + offline copies)</code></pre>
 <p>Key decisions: Do you preprocess in the pipeline (painless) or at serving time (flexible)? The answer depends on latency requirements and feature complexity.</p>
 <h2>3. Training &amp; Evaluation</h2>
 <p>Preprocessed features are fed into training jobs. This can happen on a schedule (nightly), on demand (triggered by drift), or continuously (online learning).</p>
 <ul>
-<li><strong>Training pipeline:</strong> Split data (train/val/test) → train model → evaluate → log metrics → register model if metrics improve.</li>
+<li><strong>Training pipeline:</strong> Split data (train/val/test) Ã¢â€ â€™ train model Ã¢â€ â€™ evaluate Ã¢â€ â€™ log metrics Ã¢â€ â€™ register model if metrics improve.</li>
 <li><strong>Evaluation:</strong> Compare against champion model. If new model outperforms on key metrics, it moves to staging.</li>
 </ul>
 <h2>4. Deployment</h2>
@@ -41,10 +41,10 @@ Raw data → Validate schema → Handle missing values
 <h2>5. Inference</h2>
 <p>Live requests flow through the inference pipeline:</p>
 <pre><code># Online inference flow
-Request → Fetch features (from online feature store + cache)
-→ Feature transformation (consistent with training)
-→ Model prediction → Post-processing → Return result
-→ Log prediction + features to audit store</code></pre>
+Request Ã¢â€ â€™ Fetch features (from online feature store + cache)
+Ã¢â€ â€™ Feature transformation (consistent with training)
+Ã¢â€ â€™ Model prediction Ã¢â€ â€™ Post-processing Ã¢â€ â€™ Return result
+Ã¢â€ â€™ Log prediction + features to audit store</code></pre>
 <h2>6. Feedback Loop</h2>
 <p>The most critical and often overlooked step. Model predictions are compared against actual outcomes (once known) and fed back into the system:</p>
 <ul>
@@ -54,9 +54,11 @@ Request → Fetch features (from online feature store + cache)
 <li><strong>Drift detection:</strong> Statistical tests comparing prediction distribution to training distribution.</li>
 </ul>
 <pre><code># Feedback loop data flow
-Inference → Store prediction + features → Wait for ground truth
-→ Compute model quality metric (e.g., accuracy, precision)
-→ Compare to threshold → If degraded: trigger retraining alert</code></pre>
+Inference Ã¢â€ â€™ Store prediction + features Ã¢â€ â€™ Wait for ground truth
+Ã¢â€ â€™ Compute model quality metric (e.g., accuracy, precision)
+Ã¢â€ â€™ Compare to threshold Ã¢â€ â€™ If degraded: trigger retraining alert</code></pre>
 <div class="exercise"><strong>Exercise:</strong> Map the complete data flow for a content moderation system that classifies user-uploaded images as safe/unsafe. Identify: a) data sources, b) preprocessing steps, c) where the feedback loop connects, d) what metrics trigger retraining.</div>
 <nav><a href="architecture.html">&larr; Previous</a><a href="../index.html">Index</a><a href="components.html">Next: Key Components &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

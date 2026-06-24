@@ -83,9 +83,9 @@ let specific = new Date(2025, 0, 15); // Jan 15, 2025 (months are 0-indexed)
 let fromString = new Date("2025-01-15");
 
 console.log(now.getFullYear());
-console.log(now.getMonth());      // 0–11
+console.log(now.getMonth());      // 0Ã¢â‚¬â€œ11
 console.log(now.getDate());
-console.log(now.getDay());        // 0 (Sunday) – 6
+console.log(now.getDay());        // 0 (Sunday) Ã¢â‚¬â€œ 6
 console.log(now.toLocaleDateString("en-US"));
 console.log(now.toISOString());</code></pre>
 
@@ -132,7 +132,7 @@ console.log(Boolean("text")); // true</code></pre>
     <img src="../images/js-dom-tree.svg" alt="JavaScript data types hierarchy">
 
     <div class="note">
-      <strong>Important:</strong> JavaScript uses dynamic typing — a variable can hold any type. Use <code>typeof</code> to check the type: <code>typeof 42 // "number"</code>. Be careful with implicit coercion; it often leads to bugs.
+      <strong>Important:</strong> JavaScript uses dynamic typing Ã¢â‚¬â€ a variable can hold any type. Use <code>typeof</code> to check the type: <code>typeof 42 // "number"</code>. Be careful with implicit coercion; it often leads to bugs.
     </div>
 
     <div class="exercise">
@@ -145,5 +145,7 @@ console.log(Boolean("text")); // true</code></pre>
       <a href="functions-objects.html">Next: Functions &amp; Objects &rarr;</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

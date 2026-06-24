@@ -53,7 +53,7 @@ function BlogPost({ title, description }) {
   return (
     &lt;&gt;
       &lt;Helmet&gt;
-        &lt;title&gt;{title} — My Blog&lt;/title&gt;
+        &lt;title&gt;{title} Ã¢â‚¬â€ My Blog&lt;/title&gt;
         &lt;meta name="description" content={description} /&gt;
         &lt;meta property="og:title" content={title} /&gt;
       &lt;/Helmet&gt;
@@ -63,7 +63,7 @@ function BlogPost({ title, description }) {
 }</code></pre>
 
     <h2>Inline Styles</h2>
-    <p>React supports a <code>style</code> prop that accepts a JavaScript object with camelCased CSS properties. It is useful for dynamic styles, but avoid it for static styling — use CSS classes instead.</p>
+    <p>React supports a <code>style</code> prop that accepts a JavaScript object with camelCased CSS properties. It is useful for dynamic styles, but avoid it for static styling Ã¢â‚¬â€ use CSS classes instead.</p>
 
     <pre><code>function DynamicBox({ color }) {
   return (
@@ -84,7 +84,7 @@ function BlogPost({ title, description }) {
     <pre><code>import PropTypes from "prop-types";
 
 function UserCard({ name, age, isActive }) {
-  return (&lt;div&gt;{name} ({age}) — {isActive ? "Active" : "Inactive"}&lt;/div&gt;);
+  return (&lt;div&gt;{name} ({age}) Ã¢â‚¬â€ {isActive ? "Active" : "Inactive"}&lt;/div&gt;);
 }
 
 UserCard.propTypes = {
@@ -141,10 +141,10 @@ function IconsDemo() {
     <p>React provides low-level utilities that power many libraries and advanced patterns:</p>
 
     <ul>
-      <li><code>React.createElement(type, props, ...children)</code> — creates a React element (what JSX compiles to).</li>
-      <li><code>React.cloneElement(element, props, ...children)</code> — clones an element with merged new props.</li>
-      <li><code>React.Children</code> — utilities for manipulating <code>props.children</code> (map, forEach, count, only, toArray).</li>
-      <li><code>React.isValidElement</code> — checks if a value is a valid React element.</li>
+      <li><code>React.createElement(type, props, ...children)</code> Ã¢â‚¬â€ creates a React element (what JSX compiles to).</li>
+      <li><code>React.cloneElement(element, props, ...children)</code> Ã¢â‚¬â€ clones an element with merged new props.</li>
+      <li><code>React.Children</code> Ã¢â‚¬â€ utilities for manipulating <code>props.children</code> (map, forEach, count, only, toArray).</li>
+      <li><code>React.isValidElement</code> Ã¢â‚¬â€ checks if a value is a valid React element.</li>
     </ul>
 
     <pre><code>// createElement example (equivalent to JSX)
@@ -176,5 +176,7 @@ React.Children.map(children, (child) =&gt; (
       <a href="practice.html">Next: Practice &amp; Resources</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

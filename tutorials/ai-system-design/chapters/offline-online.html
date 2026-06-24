@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>8. Offline vs Online Pipelines – AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>8. Offline vs Online Pipelines Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>8. Offline vs Online Pipelines</h1>
@@ -49,11 +49,11 @@ Schedule: Daily at 2 AM
 All incoming data splits into two paths:
 
 Batch Layer:
-  Data → Batch processing → Pre-computed views (serving layer)
+  Data Ã¢â€ â€™ Batch processing Ã¢â€ â€™ Pre-computed views (serving layer)
   (complete, accurate, high latency)
 
 Speed Layer:
-  Data → Stream processing → Real-time views (serving layer)
+  Data Ã¢â€ â€™ Stream processing Ã¢â€ â€™ Real-time views (serving layer)
   (approximate, low latency)
 
 Serving Layer merges batch + speed views for query</code></pre>
@@ -61,7 +61,7 @@ Serving Layer merges batch + speed views for query</code></pre>
 <h2>Kappa Architecture</h2>
 <p>Simplified: everything is a stream. Batch is treated as a special case of streaming with a larger window.</p>
 <pre><code># Kappa Architecture
-Data → Event Stream (Kafka) → Stream Processor → Serving Layer
+Data Ã¢â€ â€™ Event Stream (Kafka) Ã¢â€ â€™ Stream Processor Ã¢â€ â€™ Serving Layer
 No separate batch layer.
 Batch jobs = stream processing with historical replay (reprocess from topic start)</code></pre>
 <p><strong>Pros:</strong> Single codebase, simpler operations. <strong>Cons:</strong> Harder to handle large historical backfills efficiently.</p>
@@ -74,6 +74,8 @@ Batch jobs = stream processing with historical replay (reprocess from topic star
 <tr><td>Real-time dashboard with historical data</td><td>Lambda (batch for history + speed for live)</td></tr>
 <tr><td>Simple streaming pipeline</td><td>Kappa</td></tr>
 </table>
-<div class="exercise"><strong>Exercise:</strong> A ride-sharing app needs to show real-time driver availability and calculate dynamic pricing. Data includes: driver GPS location (updated every 3s), ride requests, trip completions. Design the pipeline architecture — choose Lambda or Kappa, justify your choice, and describe how each component processes the data.</div>
+<div class="exercise"><strong>Exercise:</strong> A ride-sharing app needs to show real-time driver availability and calculate dynamic pricing. Data includes: driver GPS location (updated every 3s), ride requests, trip completions. Design the pipeline architecture Ã¢â‚¬â€ choose Lambda or Kappa, justify your choice, and describe how each component processes the data.</div>
 <nav><a href="agentic-ai.html">&larr; Previous</a><a href="../index.html">Index</a><a href="scalability.html">Next: Scalability &amp; Performance &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

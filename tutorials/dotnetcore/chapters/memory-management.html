@@ -33,10 +33,10 @@ object obj = new object(); // Reference on the stack, object on the heap</code><
     <h2>Garbage Collection</h2>
     <p>The .NET garbage collector (GC) manages heap memory automatically. It runs in generations:</p>
     <ul>
-      <li><strong>Gen 0</strong> — Short-lived objects collected most frequently</li>
-      <li><strong>Gen 1</strong> — Objects that survived a Gen 0 collection</li>
-      <li><strong>Gen 2</strong> — Long-lived objects collected infrequently</li>
-      <li><strong>Large Object Heap (LOH)</strong> — Objects &ge; 85,000 bytes are stored on a separate heap collected as Gen 2</li>
+      <li><strong>Gen 0</strong> Ã¢â‚¬â€ Short-lived objects collected most frequently</li>
+      <li><strong>Gen 1</strong> Ã¢â‚¬â€ Objects that survived a Gen 0 collection</li>
+      <li><strong>Gen 2</strong> Ã¢â‚¬â€ Long-lived objects collected infrequently</li>
+      <li><strong>Large Object Heap (LOH)</strong> Ã¢â‚¬â€ Objects &ge; 85,000 bytes are stored on a separate heap collected as Gen 2</li>
     </ul>
 
     <h3>GC Modes</h3>
@@ -94,5 +94,7 @@ span[0] = 10;  // Modifies in-place, no heap allocation</code></pre>
       <a href="execution.html">Next: Code Execution &rarr;</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

@@ -28,7 +28,7 @@
     <h2>Performance Metrics</h2>
 
     <h3>Classification Metrics</h3>
-    <p><strong>Accuracy</strong> = (TP + TN) / (TP + TN + FP + FN) — overall correctness. <strong>Precision</strong> = TP / (TP + FP) — how many positive predictions were correct. <strong>Recall</strong> = TP / (TP + FN) — how many actual positives were found. <strong>F1-score</strong> = 2 × (P × R) / (P + R) — harmonic mean of precision and recall.</p>
+    <p><strong>Accuracy</strong> = (TP + TN) / (TP + TN + FP + FN) Ã¢â‚¬â€ overall correctness. <strong>Precision</strong> = TP / (TP + FP) Ã¢â‚¬â€ how many positive predictions were correct. <strong>Recall</strong> = TP / (TP + FN) Ã¢â‚¬â€ how many actual positives were found. <strong>F1-score</strong> = 2 Ãƒâ€” (P Ãƒâ€” R) / (P + R) Ã¢â‚¬â€ harmonic mean of precision and recall.</p>
     <pre><code>from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 y_true = [0, 1, 1, 0, 1, 0, 1, 0, 1, 1]
@@ -88,7 +88,7 @@ print(f"CV scores: {scores}")
 print(f"Mean: {scores.mean():.3f} (+/- {scores.std() * 2:.3f})")</code></pre>
 
     <h2>ROC Curves and AUC</h2>
-    <p>The Receiver Operating Characteristic (ROC) curve plots the True Positive Rate against the False Positive Rate at various threshold settings. The Area Under the Curve (AUC) summarizes the model's ability to distinguish between classes — an AUC of 1.0 is perfect, 0.5 is random guessing.</p>
+    <p>The Receiver Operating Characteristic (ROC) curve plots the True Positive Rate against the False Positive Rate at various threshold settings. The Area Under the Curve (AUC) summarizes the model's ability to distinguish between classes Ã¢â‚¬â€ an AUC of 1.0 is perfect, 0.5 is random guessing.</p>
 
     <h2>Grid Search and Random Search</h2>
     <p>Hyperparameter tuning finds the optimal configuration for a model. Grid Search exhaustively evaluates all combinations in a parameter grid. Random Search samples random combinations, often finding good parameters faster for high-dimensional spaces.</p>
@@ -130,5 +130,7 @@ print(f"Best score:  {grid.best_score_:.3f}")</code></pre>
       <a href="mlops.html">Next: MLOps &rarr;</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

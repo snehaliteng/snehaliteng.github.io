@@ -14,7 +14,7 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Production & Governance — MAF Fundamentals</title>
+  <title>Production & Governance Ã¢â‚¬â€ MAF Fundamentals</title>
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -40,11 +40,11 @@ const agent = new Agent({
 
     <h3>Metrics to Track</h3>
     <ul>
-      <li><strong>Latency</strong> — LLM response time, tool execution time</li>
-      <li><strong>Token Usage</strong> — Input/output tokens per conversation</li>
-      <li><strong>Tool Success Rate</strong> — % of tool calls that succeed</li>
-      <li><strong>Conversation Length</strong> — Turns per session</li>
-      <li><strong>User Satisfaction</strong> — Thumbs up/down, feedback</li>
+      <li><strong>Latency</strong> Ã¢â‚¬â€ LLM response time, tool execution time</li>
+      <li><strong>Token Usage</strong> Ã¢â‚¬â€ Input/output tokens per conversation</li>
+      <li><strong>Tool Success Rate</strong> Ã¢â‚¬â€ % of tool calls that succeed</li>
+      <li><strong>Conversation Length</strong> Ã¢â‚¬â€ Turns per session</li>
+      <li><strong>User Satisfaction</strong> Ã¢â‚¬â€ Thumbs up/down, feedback</li>
     </ul>
 
     <h2>Guardrails</h2>
@@ -74,18 +74,18 @@ const agent = new Agent({
 
     <h2>Deployment Options</h2>
     <ul>
-      <li><strong>Azure Container Apps</strong> — Managed, serverless hosting</li>
-      <li><strong>Azure Kubernetes Service</strong> — Full orchestration control</li>
-      <li><strong>Azure Functions</strong> — Event-driven, cost-effective</li>
-      <li><strong>Self-hosted</strong> — On-premises or any Docker host</li>
+      <li><strong>Azure Container Apps</strong> Ã¢â‚¬â€ Managed, serverless hosting</li>
+      <li><strong>Azure Kubernetes Service</strong> Ã¢â‚¬â€ Full orchestration control</li>
+      <li><strong>Azure Functions</strong> Ã¢â‚¬â€ Event-driven, cost-effective</li>
+      <li><strong>Self-hosted</strong> Ã¢â‚¬â€ On-premises or any Docker host</li>
     </ul>
 
     <div class="note">
-      <strong>📘 Best Practice:</strong> Always use Azure RBAC to control which identities can create, update, invoke, or delete agents. Apply least-privilege principles.
+      <strong>Ã°Å¸â€œËœ Best Practice:</strong> Always use Azure RBAC to control which identities can create, update, invoke, or delete agents. Apply least-privilege principles.
     </div>
 
     <div class="exercise">
-      <strong>✏️ Exercise:</strong> Deploy your agent to Azure Container Apps. Configure Application Insights telemetry and verify you can see conversation traces. Set up a guardrail that blocks personally identifiable information (PII) from being shared.
+      <strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Deploy your agent to Azure Container Apps. Configure Application Insights telemetry and verify you can see conversation traces. Set up a guardrail that blocks personally identifiable information (PII) from being shared.
     </div>
 
     <nav>
@@ -94,5 +94,7 @@ const agent = new Agent({
       <a href="practice.html">Next: Practice &rarr;</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

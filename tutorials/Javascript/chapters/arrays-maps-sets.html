@@ -34,11 +34,11 @@
 } catch (error) {
   console.error("Something went wrong:", error.message);
 } finally {
-  console.log("This always runs — cleanup code here");
+  console.log("This always runs Ã¢â‚¬â€ cleanup code here");
 }</code></pre>
 
     <div class="note">
-      <strong>Best Practice:</strong> Always use <code>try/catch</code> around code that can fail — like network requests, file operations, or JSON parsing. The <code>finally</code> block is perfect for cleanup (closing connections, hiding spinners).
+      <strong>Best Practice:</strong> Always use <code>try/catch</code> around code that can fail Ã¢â‚¬â€ like network requests, file operations, or JSON parsing. The <code>finally</code> block is perfect for cleanup (closing connections, hiding spinners).
     </div>
 
     <h2>Throwing Errors</h2>
@@ -84,8 +84,8 @@ new URIError("Invalid URI");</code></pre>
     <p>The console offers much more than just <code>log</code>:</p>
     <pre><code>console.log("Standard log message");
 console.info("Informational message");
-console.warn("Warning — something might be wrong");
-console.error("Error — something definitely went wrong");
+console.warn("Warning Ã¢â‚¬â€ something might be wrong");
+console.error("Error Ã¢â‚¬â€ something definitely went wrong");
 
 // Tabular output for arrays of objects
 const users = [
@@ -110,10 +110,10 @@ console.timeEnd("loop");</code></pre>
     <h2>Browser DevTools</h2>
     <p>Modern browsers include powerful developer tools. Key panels include:</p>
     <ul>
-      <li><strong>Console</strong> — View log messages and interact with JavaScript</li>
-      <li><strong>Sources</strong> — Set breakpoints, step through code, inspect scopes</li>
-      <li><strong>Network</strong> — Monitor HTTP requests and responses</li>
-      <li><strong>Elements</strong> — Inspect and modify the DOM</li>
+      <li><strong>Console</strong> Ã¢â‚¬â€ View log messages and interact with JavaScript</li>
+      <li><strong>Sources</strong> Ã¢â‚¬â€ Set breakpoints, step through code, inspect scopes</li>
+      <li><strong>Network</strong> Ã¢â‚¬â€ Monitor HTTP requests and responses</li>
+      <li><strong>Elements</strong> Ã¢â‚¬â€ Inspect and modify the DOM</li>
     </ul>
     <p>Press <kbd>F12</kbd> or <kbd>Ctrl+Shift+I</kbd> to open DevTools in most browsers.</p>
 
@@ -145,10 +145,10 @@ function fetchUserData(userId) {
     <h2>JavaScript Versions and Compatibility</h2>
     <p>JavaScript follows the ECMAScript (ES) specification:</p>
     <ul>
-      <li><strong>ES5 (2009)</strong> — Widely supported, <code>strict mode</code></li>
-      <li><strong>ES6 / ES2015</strong> — Major update: <code>let</code>, <code>const</code>, arrow functions, classes, modules</li>
-      <li><strong>ES2016+</strong> — Annual releases with incremental features</li>
-      <li><strong>ES2024</strong> — Latest features including well-formed Unicode</li>
+      <li><strong>ES5 (2009)</strong> Ã¢â‚¬â€ Widely supported, <code>strict mode</code></li>
+      <li><strong>ES6 / ES2015</strong> Ã¢â‚¬â€ Major update: <code>let</code>, <code>const</code>, arrow functions, classes, modules</li>
+      <li><strong>ES2016+</strong> Ã¢â‚¬â€ Annual releases with incremental features</li>
+      <li><strong>ES2024</strong> Ã¢â‚¬â€ Latest features including well-formed Unicode</li>
     </ul>
     <p>Use <strong>Babel</strong> or <strong>TypeScript</strong> to transpile modern JS for older browser support.</p>
 
@@ -162,5 +162,7 @@ function fetchUserData(userId) {
       <a href="dom.html">Next: DOM &amp; Events &rarr;</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

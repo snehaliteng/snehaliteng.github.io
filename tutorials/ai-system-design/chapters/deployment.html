@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>14. Deployment Strategies – AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>14. Deployment Strategies Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>14. Deployment Strategies</h1>
@@ -19,22 +19,22 @@
 <h2>Canary Deployment</h2>
 <p>Route a small percentage of traffic to the new model version (the "canary"). Monitor metrics. Gradually increase traffic if metrics are healthy.</p>
 <pre><code># Canary rollout stages
-Stage 1: 5% traffic → new model, 95% → old model
+Stage 1: 5% traffic Ã¢â€ â€™ new model, 95% Ã¢â€ â€™ old model
   Monitor: latency, error rate, prediction distribution, business metrics
   Duration: 30 minutes or until confident
 
-Stage 2: 20% traffic → new model
+Stage 2: 20% traffic Ã¢â€ â€™ new model
   Monitor same + evaluate model-specific metrics (accuracy if ground truth available)
   Duration: 2 hours
 
-Stage 3: 100% traffic → new model (if all metrics pass)
+Stage 3: 100% traffic Ã¢â€ â€™ new model (if all metrics pass)
   Old model retained for rollback (keep 1 replica warm)</code></pre>
 <h2>Shadow Deployment</h2>
 <p>Run the new model in parallel with the current model, but discard its responses (or log them for analysis). Users see only the current model's output. Zero user impact.</p>
 <p><strong>Uses:</strong> Validate latency and reliability under production load. Compare prediction distributions. Test inference infrastructure changes.</p>
 <pre><code># Shadow deployment architecture
-User → API Gateway → Current Model (responds to user)
-                         → Shadow Model (response logged, not served)
+User Ã¢â€ â€™ API Gateway Ã¢â€ â€™ Current Model (responds to user)
+                         Ã¢â€ â€™ Shadow Model (response logged, not served)
 Compare: response latency, prediction values, resource usage</code></pre>
 <h2>A/B Testing</h2>
 <p>Route users to different model versions and measure business impact. Unlike canary (which focuses on system metrics), A/B tests focus on user-facing outcomes.</p>
@@ -49,7 +49,7 @@ Compare: response latency, prediction values, resource usage</code></pre>
 <ul>
 <li>Keep the previous N model versions deployed (or ready to deploy).</li>
 <li>Automated rollback triggers: error rate spikes, latency breach, drift threshold exceeded.</li>
-<li>Feature flags for model version routing — change instantly without redeploying.</li>
+<li>Feature flags for model version routing Ã¢â‚¬â€ change instantly without redeploying.</li>
 <li>Store model artifacts immutably (no overwrites).</li>
 </ul>
 <pre><code># Automated rollback configuration
@@ -70,4 +70,6 @@ rollback:
 </ul>
 <div class="exercise"><strong>Exercise:</strong> You are deploying a new ranking model for an e-commerce search. The new model promises 10% higher conversion rate but is 2x slower. Design a deployment plan that: a) validates the latency impact on real users, b) measures the conversion rate improvement, c) allows instant rollback, d) compares the old and new model's predictions for the same query to detect anomalous changes.</div>
 <nav><a href="data-freshness.html">&larr; Previous</a><a href="../index.html">Index</a><a href="fault-tolerance.html">Next: Fault Tolerance &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

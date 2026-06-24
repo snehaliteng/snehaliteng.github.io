@@ -28,12 +28,12 @@
 
     <h2>Synchronous vs Asynchronous</h2>
     <p>Synchronous code runs line by line, blocking further execution until each operation completes. Asynchronous code lets the program continue while waiting for slow operations:</p>
-    <pre><code>// Synchronous — blocks until complete
+    <pre><code>// Synchronous Ã¢â‚¬â€ blocks until complete
 console.log("Start");
 const data = fetchDataSync(); // Blocks for 2 seconds
 console.log(data);
 
-// Asynchronous — does not block
+// Asynchronous Ã¢â‚¬â€ does not block
 console.log("Start");
 fetchDataAsync((data) => {
   console.log(data); // Runs later
@@ -175,10 +175,10 @@ async function example() {
     <h2>The Event Loop</h2>
     <p>The event loop is JavaScript's concurrency model. It continuously checks the call stack and callback queue:</p>
     <ul>
-      <li><strong>Call Stack</strong> — Executes synchronous code (LIFO)</li>
-      <li><strong>Web APIs</strong> — Browser-provided APIs (timers, fetch, DOM events)</li>
-      <li><strong>Task Queue (Callback Queue)</strong> — Holds callbacks from Web APIs</li>
-      <li><strong>Microtask Queue</strong> — Promise callbacks have priority over task queue</li>
+      <li><strong>Call Stack</strong> Ã¢â‚¬â€ Executes synchronous code (LIFO)</li>
+      <li><strong>Web APIs</strong> Ã¢â‚¬â€ Browser-provided APIs (timers, fetch, DOM events)</li>
+      <li><strong>Task Queue (Callback Queue)</strong> Ã¢â‚¬â€ Holds callbacks from Web APIs</li>
+      <li><strong>Microtask Queue</strong> Ã¢â‚¬â€ Promise callbacks have priority over task queue</li>
     </ul>
     <pre><code>console.log("1");
 
@@ -198,7 +198,7 @@ console.log("4");
     </div>
 
     <div class="exercise">
-      <strong>Exercise:</strong> Rewrite the following callback-hell code using async/await with try/catch: simulate fetching a user (1s), then their orders (1s), then order details (1s) — each step depends on the previous result. Use <code>setTimeout</code> wrapped in a Promise to simulate each async operation. Also add a timeout race using <code>Promise.race</code> that rejects if the whole chain takes longer than 4 seconds.
+      <strong>Exercise:</strong> Rewrite the following callback-hell code using async/await with try/catch: simulate fetching a user (1s), then their orders (1s), then order details (1s) Ã¢â‚¬â€ each step depends on the previous result. Use <code>setTimeout</code> wrapped in a Promise to simulate each async operation. Also add a timeout race using <code>Promise.race</code> that rejects if the whole chain takes longer than 4 seconds.
     </div>
 
     <nav>
@@ -207,5 +207,7 @@ console.log("4");
       <span></span>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

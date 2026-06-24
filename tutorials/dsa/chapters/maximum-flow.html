@@ -34,12 +34,12 @@
 
     <h2>Flow Network Terminology</h2>
     <ul>
-      <li><strong>Source (s)</strong> — the vertex where flow originates; has no incoming edges carrying flow.</li>
-      <li><strong>Sink (t)</strong> — the vertex where flow terminates; has no outgoing edges carrying flow.</li>
-      <li><strong>Capacity</strong> — a non-negative integer or real on each edge, denoting the maximum flow through that edge.</li>
-      <li><strong>Flow</strong> — a non-negative value on each edge satisfying <code>0 &le; flow &le; capacity</code>.</li>
-      <li><strong>Conservation</strong> — for every vertex except s and t, flow in = flow out.</li>
-      <li><strong>Value of flow</strong> — the total flow leaving the source (which equals total flow arriving at the sink).</li>
+      <li><strong>Source (s)</strong> Ã¢â‚¬â€ the vertex where flow originates; has no incoming edges carrying flow.</li>
+      <li><strong>Sink (t)</strong> Ã¢â‚¬â€ the vertex where flow terminates; has no outgoing edges carrying flow.</li>
+      <li><strong>Capacity</strong> Ã¢â‚¬â€ a non-negative integer or real on each edge, denoting the maximum flow through that edge.</li>
+      <li><strong>Flow</strong> Ã¢â‚¬â€ a non-negative value on each edge satisfying <code>0 &le; flow &le; capacity</code>.</li>
+      <li><strong>Conservation</strong> Ã¢â‚¬â€ for every vertex except s and t, flow in = flow out.</li>
+      <li><strong>Value of flow</strong> Ã¢â‚¬â€ the total flow leaving the source (which equals total flow arriving at the sink).</li>
     </ul>
 
     <h2>Ford-Fulkerson Method</h2>
@@ -93,10 +93,10 @@
     return max_flow</code></pre>
 
     <h2>Edmonds-Karp Algorithm</h2>
-    <p>Edmonds-Karp is a specific implementation of Ford-Fulkerson that uses <strong>BFS</strong> to find the shortest augmenting path (in terms of number of edges). This guarantees <code>O(V * E²)</code> time complexity, whereas a naive DFS-based Ford-Fulkerson can be exponential.</p>
+    <p>Edmonds-Karp is a specific implementation of Ford-Fulkerson that uses <strong>BFS</strong> to find the shortest augmenting path (in terms of number of edges). This guarantees <code>O(V * EÃ‚Â²)</code> time complexity, whereas a naive DFS-based Ford-Fulkerson can be exponential.</p>
 
     <div class="note">
-      The key insight: BFS finds the path with the fewest edges, which bounds the number of augmentations to <code>O(V * E)</code>. Each BFS costs <code>O(E)</code>, yielding <code>O(V * E²)</code> overall.
+      The key insight: BFS finds the path with the fewest edges, which bounds the number of augmentations to <code>O(V * E)</code>. Each BFS costs <code>O(E)</code>, yielding <code>O(V * EÃ‚Â²)</code> overall.
     </div>
 
     <h2>Max-Flow Min-Cut Theorem</h2>
@@ -112,10 +112,10 @@
 
     <h2>Applications of Maximum Flow</h2>
     <ul>
-      <li><strong>Bipartite Matching</strong> — add a source connected to left vertices, connect right vertices to a sink, set all capacities to 1. The max flow equals the size of the maximum matching.</li>
-      <li><strong>Transportation</strong> — shipping goods from factories (sources) to warehouses (sinks) with road capacity limits.</li>
-      <li><strong>Image Segmentation</strong> — treat pixels as vertices; the min cut separates foreground from background.</li>
-      <li><strong>Circulation with Demands</strong> — supply and demand nodes connected by capacity-limited edges.</li>
+      <li><strong>Bipartite Matching</strong> Ã¢â‚¬â€ add a source connected to left vertices, connect right vertices to a sink, set all capacities to 1. The max flow equals the size of the maximum matching.</li>
+      <li><strong>Transportation</strong> Ã¢â‚¬â€ shipping goods from factories (sources) to warehouses (sinks) with road capacity limits.</li>
+      <li><strong>Image Segmentation</strong> Ã¢â‚¬â€ treat pixels as vertices; the min cut separates foreground from background.</li>
+      <li><strong>Circulation with Demands</strong> Ã¢â‚¬â€ supply and demand nodes connected by capacity-limited edges.</li>
     </ul>
 
     <pre><code># Bipartite matching via max flow
@@ -137,8 +137,8 @@ def max_bipartite_matching(left, right, edges):
     <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;margin:16px 0;">
       <tr style="background:#f1f5f9;"><th>Algorithm</th><th>Time Complexity</th><th>Notes</th></tr>
       <tr><td>Ford-Fulkerson (DFS)</td><td>O(E * |f|)</td><td>Depends on max flow value; can be slow</td></tr>
-      <tr><td>Edmonds-Karp (BFS)</td><td>O(V * E²)</td><td>Polynomial; guarantees termination</td></tr>
-      <tr><td>Dinic's</td><td>O(V² * E)</td><td>Faster for unit-capacity graphs; O(E * sqrt(V)) for bipartite matching</td></tr>
+      <tr><td>Edmonds-Karp (BFS)</td><td>O(V * EÃ‚Â²)</td><td>Polynomial; guarantees termination</td></tr>
+      <tr><td>Dinic's</td><td>O(VÃ‚Â² * E)</td><td>Faster for unit-capacity graphs; O(E * sqrt(V)) for bipartite matching</td></tr>
     </table>
 
     <div class="exercise">
@@ -160,5 +160,7 @@ def max_bipartite_matching(left, right, edges):
       <a href="time-complexity.html">Next: Time Complexity &rarr;</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

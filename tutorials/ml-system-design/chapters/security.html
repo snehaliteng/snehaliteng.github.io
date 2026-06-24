@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>14. Security &amp; Privacy – ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>14. Security &amp; Privacy Ã¢â‚¬â€œ ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>14. Security &amp; Privacy</h1>
@@ -24,11 +24,11 @@
 <h2>Role-Based Access Control (RBAC)</h2>
 <table>
 <tr><th>Role</th><th>Access to Data</th><th>Access to Models</th><th>Access to Infra</th></tr>
-<tr><td>Data Engineer</td><td>Raw data, feature store (R/W)</td><td>—</td><td>Data pipelines</td></tr>
+<tr><td>Data Engineer</td><td>Raw data, feature store (R/W)</td><td>Ã¢â‚¬â€</td><td>Data pipelines</td></tr>
 <tr><td>ML Engineer</td><td>Feature store (R), training data</td><td>Train, register, deploy</td><td>Training, serving</td></tr>
 <tr><td>MLOps</td><td>Monitoring (R)</td><td>Deploy, rollback</td><td>All infra</td></tr>
-<tr><td>Data Scientist</td><td>Feature store (R), predictions (R)</td><td>View registry</td><td>—</td></tr>
-<tr><td>Auditor</td><td>Logs (R)</td><td>Registry metadata (R)</td><td>—</td></tr>
+<tr><td>Data Scientist</td><td>Feature store (R), predictions (R)</td><td>View registry</td><td>Ã¢â‚¬â€</td></tr>
+<tr><td>Auditor</td><td>Logs (R)</td><td>Registry metadata (R)</td><td>Ã¢â‚¬â€</td></tr>
 </table>
 <h2>Differential Privacy</h2>
 <p>Adds calibrated noise to training data or model updates to protect individual privacy.</p>
@@ -54,7 +54,7 @@ for batch in dataloader:
 Group          | Approval Rate | False Positive | False Negative
 Male (50K)     | 72%           | 3.2%           | 2.1%
 Female (45K)   | 71%           | 3.4%           | 1.9%
-Other (5K)     | 65%           | 5.1%           | 3.8%  ⚠ Disparity
+Other (5K)     | 65%           | 5.1%           | 3.8%  Ã¢Å¡Â  Disparity
 
 Action: Investigate data representation for "Other" group</code></pre>
 <h2>Compliance (GDPR, CCPA, HIPAA)</h2>
@@ -67,4 +67,6 @@ Action: Investigate data representation for "Other" group</code></pre>
 </ul>
 <div class="exercise"><strong>Exercise:</strong> You are building an ML system for a healthcare provider (HIPAA-regulated) that predicts patient readmission risk. Design the security and privacy architecture: a) encryption strategy, b) RBAC roles with read/write permissions, c) differential privacy considerations, d) fairness auditing plan (which groups to monitor), e) how to handle a patient's request to delete their data.</div>
 <nav><a href="monitoring.html">&larr; Previous</a><a href="../index.html">Index</a><a href="trade-offs.html">Next: Trade-Offs &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

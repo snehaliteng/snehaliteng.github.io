@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Newsletter form handling
     const newsletterForm = document.getElementById('newsletter-form');
     if (newsletterForm) {
-        newsletterForm.addEventListener('submit', function(e) {
+        newsletterForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const emailInput = newsletterForm.querySelector('input[type="email"]');
@@ -101,14 +101,37 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.textContent = 'Subscribing...';
             submitButton.disabled = true;
 
-            setTimeout(function() {
+            try {
+                const response = await fetch("https://vgipghqejzbcoighktij.supabase.co/rest/v1/contact", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo",
+                        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo",
+                        "Prefer": "return=minimal"
+                    },
+                    body: JSON.stringify({
+                        name: "Newsletter Subscriber",
+                        email: emailInput.value,
+                        phone: "",
+                        service: "Newsletter Subscription",
+                        message: "Subscribed via newsletter form"
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to subscribe. Please try again.');
+                }
+
                 alert('Thank you for subscribing to our newsletter!');
                 emailInput.value = '';
+            } catch (error) {
+                alert(error.message);
+                console.error('Newsletter subscription error:', error);
+            } finally {
                 submitButton.textContent = originalText;
                 submitButton.disabled = false;
-            }, 1000);
-
-            console.log('Newsletter subscription:', emailInput.value);
+            }
         });
     }
 

@@ -65,7 +65,7 @@ const LazyChart = React.lazy(() =&gt; import("./Chart"));</code></pre>
 
     <h3>React.memo</h3>
     <pre><code>React.memo(Component, [areEqual])
-// Memoizes a component — only re-renders if props changed (shallow compare).
+// Memoizes a component Ã¢â‚¬â€ only re-renders if props changed (shallow compare).
 // Optional areEqual(prevProps, nextProps) for custom comparison.
 
 const PureList = React.memo(({ items }) =&gt; (
@@ -98,11 +98,11 @@ hydrateRoot(container, &lt;App /&gt;);
     <h3>render (Legacy)</h3>
     <pre><code>import ReactDOM from "react-dom";
 ReactDOM.render(&lt;App /&gt;, container);
-// Legacy API — use createRoot for new projects.</code></pre>
+// Legacy API Ã¢â‚¬â€ use createRoot for new projects.</code></pre>
 
     <h3>findDOMNode (Legacy)</h3>
     <pre><code>ReactDOM.findDOMNode(componentInstance);
-// Returns the underlying DOM node. Avoid — use refs instead.</code></pre>
+// Returns the underlying DOM node. Avoid Ã¢â‚¬â€ use refs instead.</code></pre>
 
     <h2>Hooks API Reference</h2>
     <p>All built-in hooks with their type signatures:</p>
@@ -176,8 +176,10 @@ ReactDOM.render(&lt;App /&gt;, container);
     <nav>
       <a href="practice.html">Previous: Practice &amp; Resources</a>
       <a href="../index.html">Back to Index</a>
-      <!-- Last chapter — no next link -->
+      <!-- Last chapter Ã¢â‚¬â€ no next link -->
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

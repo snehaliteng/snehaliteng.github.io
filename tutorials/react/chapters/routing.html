@@ -30,9 +30,9 @@
     <h2>Setting Up React Router</h2>
     <p>Install with <code>npm install react-router-dom</code>. The core components are:</p>
     <ul>
-      <li><code>BrowserRouter</code> — wraps the app and listens to URL changes</li>
-      <li><code>Routes</code> / <code>Route</code> — declarative route definitions</li>
-      <li><code>Link</code> / <code>NavLink</code> — navigation elements</li>
+      <li><code>BrowserRouter</code> Ã¢â‚¬â€ wraps the app and listens to URL changes</li>
+      <li><code>Routes</code> / <code>Route</code> Ã¢â‚¬â€ declarative route definitions</li>
+      <li><code>Link</code> / <code>NavLink</code> Ã¢â‚¬â€ navigation elements</li>
     </ul>
 
     <pre><code>import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
@@ -101,7 +101,7 @@ function UserProfile() {
 }
 
 // Route: &lt;Route path="/user/:username" element={&lt;UserProfile /&gt;} /&gt;
-// URL: /user/snehal  →  username = "snehal"</code></pre>
+// URL: /user/snehal  Ã¢â€ â€™  username = "snehal"</code></pre>
 
     <h2>Programmatic Navigation with useNavigate</h2>
     <p>Sometimes you need to navigate after an event (e.g. form submission). The <code>useNavigate</code> hook returns a navigation function.</p>
@@ -156,7 +156,7 @@ function ProductList() {
 
   return (
     &lt;div&gt;
-      &lt;h2&gt;Products — Page {page}&lt;/h2&gt;
+      &lt;h2&gt;Products Ã¢â‚¬â€ Page {page}&lt;/h2&gt;
       &lt;button onClick={nextPage}&gt;Next&lt;/button&gt;
     &lt;/div&gt;
   );
@@ -195,5 +195,7 @@ function ProductList() {
       <a href="state-management.html">Next: State Management</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

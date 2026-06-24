@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Basic Methods — Playwright Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Basic Methods Ã¢â‚¬â€ Playwright Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#e85d29;text-decoration:none;">&larr; Back to Tutorials</a>
 <h1>4. Basic Methods</h1>
@@ -47,7 +47,7 @@ await page.waitForSelector('.loading-spinner', { state: 'hidden' });
 await page.waitForURL('**/dashboard');
 await page.waitForTimeout(2000);  // not recommended</code></pre>
 <h2>Practice Apps</h2>
-<ul><li><strong>SauceDemo</strong> (https://www.saucedemo.com) — e-commerce practice</li><li><strong>OrangeHRM</strong> (https://opensource-demo.orangehrmlive.com) — HR management</li><li><strong>TodoMVC</strong> (https://todomvc.com) — simple CRUD</li></ul>
+<ul><li><strong>SauceDemo</strong> (https://www.saucedemo.com) Ã¢â‚¬â€ e-commerce practice</li><li><strong>OrangeHRM</strong> (https://opensource-demo.orangehrmlive.com) Ã¢â‚¬â€ HR management</li><li><strong>TodoMVC</strong> (https://todomvc.com) Ã¢â‚¬â€ simple CRUD</li></ul>
 <pre><code>// Example: Login to SauceDemo
 test('login', async ({ page }) => {
   await page.goto('https://www.saucedemo.com');
@@ -56,6 +56,8 @@ test('login', async ({ page }) => {
   await page.click('#login-button');
   await expect(page.locator('.inventory_list')).toBeVisible();
 });</code></pre>
-<div class="exercise"><strong>✏️ Exercise:</strong> Write a test that opens SauceDemo, logs in, extracts the text of all product names, and asserts there are 6 products.</div>
+<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Write a test that opens SauceDemo, logs in, extracts the text of all product names, and asserts there are 6 products.</div>
 <nav><a href="core-concepts.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="ui-components.html">Next: UI Components &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

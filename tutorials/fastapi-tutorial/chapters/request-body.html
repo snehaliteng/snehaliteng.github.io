@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Request Body — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Request Body Ã¢â‚¬â€ FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
 <h1>13. Request Body</h1>
@@ -52,6 +52,8 @@ def update_item(
     importance: int = Body(..., ge=1)
 ):
     return {"item_id": item_id, "item": item, "user": user}</code></pre>
-<div class="exercise"><strong>✏️ Exercise:</strong> Create a POST endpoint that accepts a <code>User</code> model (username, email, age) as the request body. Return the user data with a welcome message.</div>
+<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Create a POST endpoint that accepts a <code>User</code> model (username, email, age) as the request body. Return the user data with a welcome message.</div>
 <nav><a href="pydantic.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="templates.html">Next: Templates &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

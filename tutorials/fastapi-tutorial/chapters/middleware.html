@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Middleware — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Middleware Ã¢â‚¬â€ FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
 <h1>32. Middleware</h1>
@@ -51,6 +51,8 @@ async def authenticate(request: Request, call_next):
             )
     response = await call_next(request)
     return response</code></pre>
-<div class="exercise"><strong>✏️ Exercise:</strong> Create middleware that logs each request's method, path, and duration. Add a middleware that blocks requests from specific IPs.</div>
+<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Create middleware that logs each request's method, path, and duration. Add a middleware that blocks requests from specific IPs.</div>
 <nav><a href="sub-app.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="flask-mount.html">Next: Flask Mount &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

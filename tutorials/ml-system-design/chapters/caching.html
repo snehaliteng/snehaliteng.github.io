@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>9. Caching Strategies – ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>9. Caching Strategies Ã¢â‚¬â€œ ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>9. Caching Strategies</h1>
@@ -41,7 +41,7 @@ def get_features(user_id):
 <tr><td>Cache value</td><td>Serialized prediction + confidence score</td></tr>
 <tr><td>Eviction</td><td>LRU + TTL-based expiration</td></tr>
 <tr><td>Effectiveness</td><td>Best for: recommendations, search results, FAQs</td></tr>
-<tr><td>Risk</td><td>Stale predictions if features change — use short TTL or invalidate</td></tr>
+<tr><td>Risk</td><td>Stale predictions if features change Ã¢â‚¬â€ use short TTL or invalidate</td></tr>
 </table>
 <h2>3. Model Cache</h2>
 <p>Keep model weights loaded in GPU/CPU memory to avoid reloading for each request.</p>
@@ -53,12 +53,14 @@ def get_features(user_id):
 <h2>Cache Strategy Decision Matrix</h2>
 <table>
 <tr><th>Scenario</th><th>Feature Cache?</th><th>Prediction Cache?</th><th>Model Cache?</th></tr>
-<tr><td>User features (demographics)</td><td>Yes, TTL=1hr</td><td>—</td><td>—</td></tr>
-<tr><td>Real-time features (session clicks)</td><td>No (always compute)</td><td>—</td><td>—</td></tr>
-<tr><td>Identical product recommendations</td><td>—</td><td>Yes, TTL=5min</td><td>—</td></tr>
-<tr><td>Fraud detection (unique transactions)</td><td>—</td><td>No (rarely repeats)</td><td>—</td></tr>
-<tr><td>Multi-model serving</td><td>—</td><td>—</td><td>Yes, LRU eviction</td></tr>
+<tr><td>User features (demographics)</td><td>Yes, TTL=1hr</td><td>Ã¢â‚¬â€</td><td>Ã¢â‚¬â€</td></tr>
+<tr><td>Real-time features (session clicks)</td><td>No (always compute)</td><td>Ã¢â‚¬â€</td><td>Ã¢â‚¬â€</td></tr>
+<tr><td>Identical product recommendations</td><td>Ã¢â‚¬â€</td><td>Yes, TTL=5min</td><td>Ã¢â‚¬â€</td></tr>
+<tr><td>Fraud detection (unique transactions)</td><td>Ã¢â‚¬â€</td><td>No (rarely repeats)</td><td>Ã¢â‚¬â€</td></tr>
+<tr><td>Multi-model serving</td><td>Ã¢â‚¬â€</td><td>Ã¢â‚¬â€</td><td>Yes, LRU eviction</td></tr>
 </table>
 <div class="exercise"><strong>Exercise:</strong> Design caching for a real-time product search ranking system. Three cache types are available. For each: define cache key format, TTL, eviction policy, and invalidation strategy. Describe how the cache hit ratio changes during a flash sale event with 10x traffic.</div>
 <nav><a href="serving-architecture.html">&larr; Previous</a><a href="../index.html">Index</a><a href="indexing.html">Next: Indexing &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

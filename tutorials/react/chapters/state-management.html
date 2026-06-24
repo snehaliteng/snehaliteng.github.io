@@ -27,7 +27,7 @@
     <p>As your application grows, passing state through many levels of components (prop drilling) becomes cumbersome. State management libraries provide a central place to store and mutate shared state.</p>
 
     <h2>The Flux Pattern</h2>
-    <p>Flux is an architectural pattern introduced by Facebook. Data flows in a single direction: <strong>Action → Dispatcher → Store → View</strong>. A user action (click, input) dispatches an action object to the store, which updates itself and notifies the view to re-render.</p>
+    <p>Flux is an architectural pattern introduced by Facebook. Data flows in a single direction: <strong>Action Ã¢â€ â€™ Dispatcher Ã¢â€ â€™ Store Ã¢â€ â€™ View</strong>. A user action (click, input) dispatches an action object to the store, which updates itself and notifies the view to re-render.</p>
 
     <img src="../images/react-hooks-flow.svg" alt="React state management architecture">
 
@@ -51,7 +51,7 @@ function Toolbar() {
   return &lt;div&gt;Current theme: {theme}&lt;/div&gt;;
 }</code></pre>
 
-    <div class="info">Context is not a state management tool by itself — it is a dependency injection mechanism. Combine it with <code>useReducer</code> to mimic Redux-like behavior without external libraries.</div>
+    <div class="info">Context is not a state management tool by itself Ã¢â‚¬â€ it is a dependency injection mechanism. Combine it with <code>useReducer</code> to mimic Redux-like behavior without external libraries.</div>
 
     <h2>Redux</h2>
     <p>Redux is the most popular state management library. It follows the Flux pattern strictly: a single <strong>store</strong> holds the entire state tree, <strong>actions</strong> describe what happened, and <strong>reducers</strong> specify how the state changes.</p>
@@ -169,5 +169,7 @@ function Counter() {
       <a href="advanced.html">Next: Advanced Concepts</a>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

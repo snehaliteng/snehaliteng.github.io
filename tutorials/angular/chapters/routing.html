@@ -53,7 +53,7 @@ export class AppRoutingModule { }</code></pre>
   { path: 'products', component: ProductListComponent },
   { path: 'products/:id', component: ProductDetailComponent },
   { path: 'category/:categoryName', component: CategoryComponent },
-  { path: '**', component: NotFoundComponent }  // Wildcard — must be last
+  { path: '**', component: NotFoundComponent }  // Wildcard Ã¢â‚¬â€ must be last
 ];</code></pre>
 
     <h3>redirectTo</h3>
@@ -61,7 +61,7 @@ export class AppRoutingModule { }</code></pre>
     <pre><code>{ path: 'old-products', redirectTo: '/products', pathMatch: 'full' }</code></pre>
 
     <h3>Wildcard Route (**)</h3>
-    <p>Catches all unmatched routes — typically used for a 404 page. Must be defined last in the routes array.</p>
+    <p>Catches all unmatched routes Ã¢â‚¬â€ typically used for a 404 page. Must be defined last in the routes array.</p>
 
     <h2>Parameterized Routes (:id)</h2>
     <p>Pass dynamic values via the URL path:</p>
@@ -178,5 +178,7 @@ export class AuthGuard implements CanActivate {
       </span>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

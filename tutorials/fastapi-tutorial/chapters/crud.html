@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CRUD — FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CRUD Ã¢â‚¬â€ FastAPI Tutorial</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../" style="display:inline-block;margin-bottom:12px;font-size:.9rem;color:#059669;text-decoration:none;">&larr; Back to Tutorials</a>
 <h1>25. CRUD Operations</h1>
@@ -67,6 +67,8 @@ def delete_item(item_id: int):
     if item_id not in items_db:
         raise HTTPException(404, "Item not found")
     del items_db[item_id]</code></pre>
-<div class="exercise"><strong>✏️ Exercise:</strong> Build a complete CRUD API for a Todo app (title, description, completed, due_date). Test all 5 operations in Swagger UI.</div>
+<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Build a complete CRUD API for a Todo app (title, description, completed, due_date). Test all 5 operations in Swagger UI.</div>
 <nav><a href="cors.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="sql-databases.html">Next: SQL Databases &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

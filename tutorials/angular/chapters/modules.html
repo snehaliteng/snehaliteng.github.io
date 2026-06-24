@@ -25,7 +25,7 @@
     <h1>Modules</h1>
 
     <h2>What are NgModules?</h2>
-    <p>An <code>NgModule</code> is a container that organizes related components, directives, pipes, and services into cohesive blocks of functionality. Every Angular application has at least one module — the root module. As applications grow, you split them into feature modules, shared modules, and routing modules to maintain clarity and enable lazy loading.</p>
+    <p>An <code>NgModule</code> is a container that organizes related components, directives, pipes, and services into cohesive blocks of functionality. Every Angular application has at least one module Ã¢â‚¬â€ the root module. As applications grow, you split them into feature modules, shared modules, and routing modules to maintain clarity and enable lazy loading.</p>
 
     <h2>Root Module (AppModule)</h2>
     <p>The root module is the entry point of the application. It bootstraps the root component and imports essential modules like <code>BrowserModule</code> and <code>HttpClientModule</code>.</p>
@@ -46,11 +46,11 @@ export class AppModule { }</code></pre>
 
     <h2>NgModule Metadata Properties</h2>
     <ul>
-      <li><strong>declarations</strong> — The components, directives, and pipes that belong to this module. They are private by default and only usable within this module unless exported.</li>
-      <li><strong>imports</strong> — Other modules whose exported declarations are available to this module's templates.</li>
-      <li><strong>exports</strong> — Subset of declarations that can be used in the templates of modules that import this module.</li>
-      <li><strong>providers</strong> — Services registered with the application's root injector (or the module's injector for feature modules).</li>
-      <li><strong>bootstrap</strong> — The root component that Angular creates and inserts into the <code>index.html</code> host page (only in root module).</li>
+      <li><strong>declarations</strong> Ã¢â‚¬â€ The components, directives, and pipes that belong to this module. They are private by default and only usable within this module unless exported.</li>
+      <li><strong>imports</strong> Ã¢â‚¬â€ Other modules whose exported declarations are available to this module's templates.</li>
+      <li><strong>exports</strong> Ã¢â‚¬â€ Subset of declarations that can be used in the templates of modules that import this module.</li>
+      <li><strong>providers</strong> Ã¢â‚¬â€ Services registered with the application's root injector (or the module's injector for feature modules).</li>
+      <li><strong>bootstrap</strong> Ã¢â‚¬â€ The root component that Angular creates and inserts into the <code>index.html</code> host page (only in root module).</li>
     </ul>
 
     <h2>Feature Modules</h2>
@@ -70,7 +70,7 @@ import { ProductsRoutingModule } from './products-routing.module';
 })
 export class ProductsModule { }</code></pre>
 
-    <div class="note">Feature modules should import <code>CommonModule</code> instead of <code>BrowserModule</code>. <code>BrowserModule</code> should only be imported once — in the root module. <code>CommonModule</code> provides common directives like <code>ngIf</code> and <code>ngFor</code>.</div>
+    <div class="note">Feature modules should import <code>CommonModule</code> instead of <code>BrowserModule</code>. <code>BrowserModule</code> should only be imported once Ã¢â‚¬â€ in the root module. <code>CommonModule</code> provides common directives like <code>ngIf</code> and <code>ngFor</code>.</div>
 
     <h2>Shared Modules</h2>
     <p>Shared modules contain commonly used components, directives, pipes, and pipes that multiple feature modules need. Create a shared module to declare and export reusable pieces.</p>
@@ -120,10 +120,10 @@ export class ProductsRoutingModule { }</code></pre>
     <h2>Module Organization Best Practices</h2>
     <p>As your application scales, organize modules into layers:</p>
     <ul>
-      <li><strong>CoreModule</strong> — Singleton services, app-wide components (header, footer), guards, and interceptors. Import once in AppModule.</li>
-      <li><strong>SharedModule</strong> — Reusable components, directives, and pipes. Import in every feature module.</li>
-      <li><strong>Feature Modules</strong> — One module per feature area. Lazy-load them via routing.</li>
-      <li><strong>Routing Module</strong> — Separate module for route configuration per feature.</li>
+      <li><strong>CoreModule</strong> Ã¢â‚¬â€ Singleton services, app-wide components (header, footer), guards, and interceptors. Import once in AppModule.</li>
+      <li><strong>SharedModule</strong> Ã¢â‚¬â€ Reusable components, directives, and pipes. Import in every feature module.</li>
+      <li><strong>Feature Modules</strong> Ã¢â‚¬â€ One module per feature area. Lazy-load them via routing.</li>
+      <li><strong>Routing Module</strong> Ã¢â‚¬â€ Separate module for route configuration per feature.</li>
     </ul>
 
     <div class="info">Avoid re-importing services in lazy-loaded feature modules through the module's providers array. Doing so creates a separate instance of the service that is scoped to that module, which can lead to unexpected behavior if a singleton was intended. Use <code>providedIn: 'root'</code> on services instead.</div>
@@ -146,7 +146,7 @@ import { AppRoutingModule } from './app-routing.module';
     CoreModule,         // Singleton services and app shell
     SharedModule,       // Common components, pipes, directives
     ProductsModule,     // Feature module (can be lazy-loaded in production)
-    AppRoutingModule    // Root routing — should be last
+    AppRoutingModule    // Root routing Ã¢â‚¬â€ should be last
   ],
   providers: [],
   bootstrap: [AppComponent]
@@ -168,5 +168,7 @@ export class AppModule { }</code></pre>
       </span>
     </nav>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>7. Training Architecture – ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>7. Training Architecture Ã¢â‚¬â€œ ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>7. Training Architecture</h1>
@@ -37,7 +37,7 @@ for batch in dataloader:  # each GPU sees different data
 <h2>Model Parallelism</h2>
 <p>For models too large to fit on one GPU (e.g., 70B+ parameter LLMs). The model is split across GPUs, with each GPU holding a subset of layers.</p>
 <ul>
-<li><strong>Pipeline parallelism:</strong> Layer 1–10 on GPU0, 11–20 on GPU1, etc. Micro-batching keeps all GPUs busy.</li>
+<li><strong>Pipeline parallelism:</strong> Layer 1Ã¢â‚¬â€œ10 on GPU0, 11Ã¢â‚¬â€œ20 on GPU1, etc. Micro-batching keeps all GPUs busy.</li>
 <li><strong>Tensor parallelism:</strong> Split individual transformer layers across GPUs. Higher communication but lower memory per GPU.</li>
 </ul>
 <h2>Parameter Server</h2>
@@ -54,4 +54,6 @@ for batch in dataloader:  # each GPU sees different data
 - Async checkpointing: save in background thread, don't block training</code></pre>
 <div class="exercise"><strong>Exercise:</strong> You need to train a 13B parameter LLM on 200GB of text data. You have 4 nodes, each with 8 A100 GPUs (total 32 GPUs). Design the training architecture: data or model parallelism? What about FSDP? Calculate how the 200GB is split across GPUs, estimate training time, and describe your checkpointing strategy.</div>
 <nav><a href="batch-vs-realtime.html">&larr; Previous</a><a href="../index.html">Index</a><a href="serving-architecture.html">Next: Serving Architecture &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>

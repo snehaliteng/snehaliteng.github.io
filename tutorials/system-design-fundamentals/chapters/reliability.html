@@ -11,22 +11,22 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>9. Reliability – System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>9. Reliability Ã¢â‚¬â€œ System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>9. Reliability</h1>
 <h2>High Availability (HA)</h2>
 <p>Availability measures the percentage of time a system is operational. Standard targets:</p>
 <ul>
-<li><strong>99.9%</strong> ("three nines") → ~8.7 hours downtime/year</li>
-<li><strong>99.99%</strong> ("four nines") → ~52 minutes downtime/year</li>
-<li><strong>99.999%</strong> ("five nines") → ~5 minutes downtime/year</li>
+<li><strong>99.9%</strong> ("three nines") Ã¢â€ â€™ ~8.7 hours downtime/year</li>
+<li><strong>99.99%</strong> ("four nines") Ã¢â€ â€™ ~52 minutes downtime/year</li>
+<li><strong>99.999%</strong> ("five nines") Ã¢â€ â€™ ~5 minutes downtime/year</li>
 </ul>
-<p>HA is achieved through redundancy — eliminating single points of failure by having backup components ready to take over.</p>
+<p>HA is achieved through redundancy Ã¢â‚¬â€ eliminating single points of failure by having backup components ready to take over.</p>
 <pre><code># Active-Passive HA
 Primary server handles traffic
 Standby server mirrors primary (data replication)
-If primary fails → health check timeout → failover to standby
+If primary fails Ã¢â€ â€™ health check timeout Ã¢â€ â€™ failover to standby
 Users experience brief interruption (seconds to minutes)
 
 # Active-Active HA
@@ -76,4 +76,6 @@ elif circuit.state == HALF_OPEN:
 </ul>
 <div class="exercise"><strong>Exercise:</strong> A payment processing system must achieve 99.999% availability. Identify the top 5 single points of failure. For each, propose a redundancy strategy. Calculate the maximum allowed downtime per quarter and describe your monitoring/alerting approach.</div>
 <nav><a href="performance.html">&larr; Previous</a><a href="../index.html">Index</a><a href="security.html">Next: Security &rarr;</a></nav>
-</div></body></html>
+</div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../js/feedback.js"></script>
+</body></html>
