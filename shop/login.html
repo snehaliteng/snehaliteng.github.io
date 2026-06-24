@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Snehal IT Eng Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="shop-nav">
+    <a href="../" class="logo">SnehalITEng</a>
+    <div style="display:flex;gap:16px;">
+      <a href="../">Home</a>
+      <a href="index.html">Shop</a>
+      <a href="signup.html">Sign Up</a>
+    </div>
+  </nav>
+
+  <div class="auth-form">
+    <div id="alert-container"></div>
+    <h2>Login</h2>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Your password">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
+    </form>
+    <p class="text-center mt-4" style="font-size:.9rem;color:#64748b;">
+      Don't have an account? <a href="signup.html" style="color:#2563eb;">Sign Up</a>
+    </p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/shop.js"></script>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = this.querySelector('button');
+      btn.disabled = true; btn.textContent = 'Logging in...';
+      try {
+        await signIn(email, password);
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = params.get('redirect') || 'index.html';
+      } catch (err) {
+        document.getElementById('alert-container').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      }
+      btn.disabled = false; btn.textContent = 'Login';
+    });
+  </script>
+</body>
+</html>

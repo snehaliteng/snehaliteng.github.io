@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful - Snehal IT Eng</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="shop-nav">
+    <a href="../" class="logo">SnehalITEng</a>
+    <div style="display:flex;gap:16px;">
+      <a href="../">Home</a>
+      <a href="index.html">Shop</a>
+    </div>
+  </nav>
+
+  <div class="container text-center" style="padding-top:80px;">
+    <div class="success-icon">&#10004;&#65039;</div>
+    <h1>&#9989; Payment Successful!</h1>
+    <p style="color:#64748b;font-size:1.1rem;margin:12px 0 24px;">Thank you for your purchase. Your e-books will be emailed to you shortly.</p>
+    <div id="order-summary" style="max-width:500px;margin:0 auto 32px;background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:24px;"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="index.html" class="btn btn-primary">Continue Shopping</a>
+      <a href="../tutorials/" class="btn btn-secondary">Browse Tutorials</a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const data = localStorage.getItem('last_order');
+      const summary = document.getElementById('order-summary');
+      if (data) {
+        const order = JSON.parse(data);
+        summary.innerHTML = `
+          <strong>Order Summary</strong>
+          <div style="margin-top:12px;">${order.items.map(item => `
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+              <span>${item.title}</span>
+              <span style="font-weight:600;">&#8377;${Number(item.price).toFixed(2)}</span>
+            </div>
+          `).join('')}</div>
+          <div style="display:flex;justify-content:space-between;padding:12px 0 0;font-weight:700;font-size:1.1rem;">
+            <span>Total</span><span>&#8377;${Number(order.total).toFixed(2)}</span>
+          </div>
+          <div style="margin-top:12px;font-size:.85rem;color:#64748b;">Payment ID: ${order.payment_id}</div>
+        `;
+      } else {
+        summary.innerHTML = '<p style="color:#64748b;">No recent order found.</p>';
+      }
+    });
+  </script>
+</body>
+</html>

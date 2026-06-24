@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop - Snehal IT Eng Tutorials</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="shop-nav">
+    <a href="../" class="logo">SnehalITEng</a>
+    <div style="display:flex;gap:16px;align-items:center;">
+      <a href="../">Home</a>
+      <a href="../tutorials/">Tutorials</a>
+      <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+      <a href="login.html" id="nav-auth">Login</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1>Tutorial E-Books</h1>
+    <p class="subtitle">Downloadable PDF guides — one-time purchase, lifetime access.</p>
+    <div id="alert-container"></div>
+    <div id="products-container"><div class="empty-state"><h3>Loading...</h3></div></div>
+  </div>
+
+  <footer style="text-align:center;padding:24px;color:#94a3b8;font-size:.85rem;border-top:1px solid #e2e8f0;">
+    &copy; 2026 Snehal IT Eng
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/shop.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const user = await getCurrentUser();
+      const navAuth = document.getElementById('nav-auth');
+
+      if (user) {
+        navAuth.textContent = 'Logout';
+        navAuth.href = '#';
+        navAuth.addEventListener('click', async (e) => { e.preventDefault(); await signOut(); window.location.reload(); });
+      } else {
+        navAuth.textContent = 'Login';
+        navAuth.href = 'login.html';
+      }
+
+      async function loadProducts() {
+        try {
+          const products = await getProducts();
+          const container = document.getElementById('products-container');
+          if (!products.length) {
+            container.innerHTML = '<div class="empty-state"><h3>No products yet</h3></div>';
+            return;
+          }
+          container.innerHTML = `<div class="product-grid">${products.map(p => `
+            <div class="product-card">
+              ${p.cover_image ? `<img src="${p.cover_image}" alt="${escapeHtml(p.title)}" style="max-height:120px;object-fit:contain;margin-bottom:12px;">` : ''}
+              <h3>${escapeHtml(p.title)}</h3>
+              <p>${escapeHtml(p.description)}</p>
+              <div class="price">${formatPrice(p.price)}</div>
+              <button class="btn btn-primary btn-sm add-cart-btn" data-product-id="${p.id}">Add to Cart</button>
+            </div>
+          `).join('')}</div>`;
+
+          document.querySelectorAll('.add-cart-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+              if (!user) { window.location.href = 'login.html?redirect=shop/'; return; }
+              this.disabled = true;
+              this.textContent = 'Adding...';
+              try {
+                await addToCart(user.id, parseInt(this.dataset.productId));
+                updateCartCount(user.id);
+                showAlert('alert-container', 'Added to cart!', 'success');
+              } catch (err) {
+                showAlert('alert-container', err.message, 'error');
+              }
+              this.disabled = false;
+              this.textContent = 'Add to Cart';
+            });
+          });
+        } catch (err) {
+          document.getElementById('products-container').innerHTML = `<div class="alert alert-error">${escapeHtml(err.message)}</div>`;
+        }
+      }
+
+      async function updateCartCount(userId) {
+        const el = document.getElementById('cart-count');
+        if (!userId) { el.textContent = '0'; return; }
+        try {
+          const cart = await getCart(userId);
+          el.textContent = cart.length;
+        } catch { el.textContent = '0'; }
+      }
+
+      await loadProducts();
+      if (user) await updateCartCount(user.id);
+    });
+
+    function showAlert(id, msg, type) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+      setTimeout(() => el.innerHTML = '', 4000);
+    }
+  </script>
+</body>
+</html>

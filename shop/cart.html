@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart - Snehal IT Eng Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="shop-nav">
+    <a href="../" class="logo">SnehalITEng</a>
+    <div style="display:flex;gap:16px;">
+      <a href="../">Home</a>
+      <a href="index.html">Shop</a>
+      <a href="login.html" id="nav-auth">Login</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div id="alert-container"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:20px;">
+      <h1>Your Cart</h1>
+      <button id="clear-cart-btn" class="btn btn-danger btn-sm" style="display:none;">Clear Cart</button>
+    </div>
+    <div id="cart-container"><div class="empty-state"><h3>Loading...</h3></div></div>
+  </div>
+
+  <footer style="text-align:center;padding:24px;color:#94a3b8;font-size:.85rem;border-top:1px solid #e2e8f0;">
+    &copy; 2026 Snehal IT Eng
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/shop.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const user = await getCurrentUser();
+      const navAuth = document.getElementById('nav-auth');
+      if (!user) { window.location.href = 'login.html?redirect=shop/cart.html'; return; }
+      navAuth.textContent = 'Logout';
+      navAuth.href = '#';
+      navAuth.addEventListener('click', async (e) => { e.preventDefault(); await signOut(); window.location.reload(); });
+
+      async function loadCart() {
+        try {
+          const cart = await getCart(user.id);
+          const container = document.getElementById('cart-container');
+          const clearBtn = document.getElementById('clear-cart-btn');
+
+          if (!cart.length) {
+            container.innerHTML = '<div class="empty-state"><h3>Your cart is empty</h3><p><a href="index.html" style="color:#2563eb;">Browse tutorials</a></p></div>';
+            clearBtn.style.display = 'none';
+            return;
+          }
+
+          clearBtn.style.display = '';
+          const total = getCartTotal(cart);
+          container.innerHTML = `
+            <div class="cart-items">${cart.map(item => `
+              <div class="cart-item">
+                <div>
+                  <strong>${escapeHtml(item.shop_products?.title || 'Unknown')}</strong>
+                  <div style="font-size:.85rem;color:#64748b;">${formatPrice(item.shop_products?.price || 0)}</div>
+                </div>
+                <button class="btn btn-danger btn-sm remove-btn" data-cart-id="${item.id}">Remove</button>
+              </div>
+            `).join('')}</div>
+            <div class="cart-summary">
+              <div class="total"><span>Total</span><span>${formatPrice(total)}</span></div>
+              <button id="checkout-btn" class="btn btn-primary" style="width:100%;margin-top:16px;">Proceed to Payment</button>
+            </div>
+          `;
+
+          document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+              await removeFromCart(parseInt(this.dataset.cartId));
+              await loadCart();
+            });
+          });
+
+          document.getElementById('checkout-btn').addEventListener('click', async function() {
+            this.disabled = true; this.textContent = 'Processing...';
+            try {
+              const amount = Math.round(total * 100);
+              const order = await createRazorpayOrder(amount);
+              const options = {
+                key: RAZORPAY_KEY_ID,
+                amount: amount,
+                currency: 'INR',
+                name: 'Snehal IT Eng',
+                description: 'Tutorial E-Books',
+                order_id: order.id,
+                prefill: { email: user.email },
+                handler: async function(response) {
+                  try {
+                    await verifyPayment(response.razorpay_order_id, response.razorpay_payment_id, response.razorpay_signature);
+                    const items = cart.map(c => ({ product_id: c.product_id, title: c.shop_products?.title, price: c.shop_products?.price, pdf_url: c.shop_products?.pdf_url }));
+                    localStorage.setItem('last_order', JSON.stringify({ items, total, payment_id: response.razorpay_payment_id }));
+                    await clearCart(user.id);
+                    window.location.href = 'success.html';
+                  } catch (err) {
+                    document.getElementById('alert-container').innerHTML = `<div class="alert alert-error">Payment verification failed: ${err.message}</div>`;
+                  }
+                },
+                modal: { ondismiss: function() { this.disabled = false; this.textContent = 'Proceed to Payment'; } }
+              };
+              const rzp = new Razorpay(options);
+              rzp.open();
+            } catch (err) {
+              document.getElementById('alert-container').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+            }
+            this.disabled = false; this.textContent = 'Proceed to Payment';
+          });
+
+          document.getElementById('clear-cart-btn').addEventListener('click', async function() {
+            await clearCart(user.id);
+            await loadCart();
+          });
+        } catch (err) {
+          document.getElementById('cart-container').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+        }
+      }
+
+      await loadCart();
+    });
+  </script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</body>
+</html>

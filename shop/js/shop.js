@@ -1,0 +1,110 @@
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo';
+const SUPABASE_URL = 'https://vgipghqejzbcoighktij.supabase.co';
+const _shop = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const RAZORPAY_KEY_ID = 'rzp_test_XXXXXXXXXXXXXXXX'; // Replace with your Razorpay key
+const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1`;
+
+async function getCurrentUser() {
+  const { data: { user }, error } = await _shop.auth.getUser();
+  return error || !user ? null : user;
+}
+
+async function signUp(email, password) {
+  const { data, error } = await _shop.auth.signUp({ email, password });
+  if (error) throw error;
+  return data;
+}
+
+async function signIn(email, password) {
+  const { data, error } = await _shop.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
+}
+
+async function signOut() {
+  const { error } = await _shop.auth.signOut();
+  if (error) throw error;
+}
+
+function onAuthChange(cb) {
+  _shop.auth.onAuthStateChange((event, session) => cb(event, session?.user || null));
+}
+
+async function getProducts() {
+  const { data, error } = await _shop.from('shop_products').select('*').order('title');
+  if (error) throw error;
+  return data;
+}
+
+async function getProduct(slug) {
+  const { data, error } = await _shop.from('shop_products').select('*').eq('slug', slug).single();
+  if (error) throw error;
+  return data;
+}
+
+async function getCart(userId) {
+  const { data, error } = await _shop
+    .from('shop_cart')
+    .select('*, shop_products(*)')
+    .eq('user_id', userId);
+  if (error) throw error;
+  return data;
+}
+
+async function addToCart(userId, productId) {
+  const { data, error } = await _shop
+    .from('shop_cart')
+    .insert({ user_id: userId, product_id: productId })
+    .select()
+    .single();
+  if (error && error.code === '23505') return;
+  if (error) throw error;
+  return data;
+}
+
+async function removeFromCart(cartId) {
+  const { error } = await _shop.from('shop_cart').delete().eq('id', cartId);
+  if (error) throw error;
+}
+
+async function clearCart(userId) {
+  const { error } = await _shop.from('shop_cart').delete().eq('user_id', userId);
+  if (error) throw error;
+}
+
+function formatPrice(p) { return '₹' + Number(p).toFixed(2); }
+
+async function createRazorpayOrder(amount, currency = 'INR') {
+  const session = await _shop.auth.getSession();
+  const token = session.data?.session?.access_token;
+  const res = await fetch(`${EDGE_FUNCTION_URL}/create-razorpay-order`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ amount, currency })
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Failed to create order'); }
+  return res.json();
+}
+
+async function verifyPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature) {
+  const session = await _shop.auth.getSession();
+  const token = session.data?.session?.access_token;
+  const res = await fetch(`${EDGE_FUNCTION_URL}/verify-payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ razorpay_order_id: razorpayOrderId, razorpay_payment_id: razorpayPaymentId, razorpay_signature: razorpaySignature })
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Verification failed'); }
+  return res.json();
+}
+
+function getCartTotal(cartItems) {
+  return cartItems.reduce((sum, item) => sum + Number(item.shop_products?.price || 0), 0);
+}
+
+function escapeHtml(t) {
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}

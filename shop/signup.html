@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Snehal IT Eng Shop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="shop-nav">
+    <a href="../" class="logo">SnehalITEng</a>
+    <div style="display:flex;gap:16px;">
+      <a href="../">Home</a>
+      <a href="index.html">Shop</a>
+      <a href="login.html">Login</a>
+    </div>
+  </nav>
+
+  <div class="auth-form">
+    <div id="alert-container"></div>
+    <h2>Create Account</h2>
+    <form id="signup-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required minlength="6" placeholder="At least 6 characters">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Sign Up</button>
+    </form>
+    <p class="text-center mt-4" style="font-size:.9rem;color:#64748b;">
+      Already have an account? <a href="login.html" style="color:#2563eb;">Login</a>
+    </p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/shop.js"></script>
+  <script>
+    document.getElementById('signup-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = this.querySelector('button');
+      btn.disabled = true; btn.textContent = 'Creating...';
+      try {
+        await signUp(email, password);
+        document.getElementById('alert-container').innerHTML = '<div class="alert alert-success">Account created! Check your email to confirm. <a href="login.html" style="color:#166534;font-weight:600;">Login</a></div>';
+      } catch (err) {
+        document.getElementById('alert-container').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      }
+      btn.disabled = false; btn.textContent = 'Sign Up';
+    });
+  </script>
+</body>
+</html>
