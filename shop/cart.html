@@ -7,21 +7,35 @@
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    .payment-methods { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
-    .payment-method { flex: 1; min-width: 180px; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; cursor: pointer; text-align: center; transition: .2s; }
-    .payment-method:hover { border-color: #93c5fd; }
-    .payment-method.selected { border-color: #2563eb; background: #eff6ff; }
-    .payment-method .icon { font-size: 2rem; margin-bottom: 8px; }
-    .payment-method .name { font-weight: 600; font-size: .95rem; }
-    .payment-instructions { background: #f8fafc; border-radius: 12px; padding: 24px; margin: 16px 0; display: none; }
-    .payment-instructions.active { display: block; }
-    .upi-qr-placeholder { width: 200px; height: 200px; background: #fff; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: .85rem; color: #94a3b8; margin: 16px auto; }
-    .transaction-input { margin-top: 16px; }
-    .copy-btn { padding: 4px 12px; font-size: .8rem; background: #e2e8f0; border: none; border-radius: 4px; cursor: pointer; margin-left: 8px; }
+    .pay-methods { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+    .pay-method { flex: 1; min-width: 160px; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; cursor: pointer; text-align: center; transition: .2s; }
+    .pay-method:hover { border-color: #93c5fd; }
+    .pay-method.selected { border-color: #2563eb; background: #eff6ff; }
+    .pay-method .icon { font-size: 2rem; margin-bottom: 6px; }
+    .pay-method .name { font-weight: 600; font-size: .9rem; }
+    .pay-section { display: none; margin-top: 16px; }
+    .pay-section.active { display: block; }
+    .pay-section-inner { background: #f8fafc; border-radius: 12px; padding: 24px; }
+    .upi-detail { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+    .qr-wrap { text-align: center; margin: 16px 0; }
+    .qr-wrap img { width: 200px; height: 200px; border-radius: 12px; border: 2px solid #e2e8f0; }
+    .open-app-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: .95rem; border: none; cursor: pointer; text-decoration: none; color: #fff; transition: .2s; }
+    .open-app-btn.gpay { background: #4285f4; }
+    .open-app-btn.gpay:hover { background: #3367d6; }
+    .open-app-btn.phonepe { background: #5f259f; }
+    .open-app-btn.phonepe:hover { background: #4a1d7a; }
+    .open-app-btn.paytm { background: #00baf2; }
+    .open-app-btn.paytm:hover { background: #0095c7; }
+    .copy-btn { padding: 4px 12px; font-size: .8rem; background: #e2e8f0; border: none; border-radius: 4px; cursor: pointer; }
     .copy-btn:hover { background: #cbd5e1; }
     .bank-details { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 12px 0; }
-    .bank-details dt { font-weight: 600; font-size: .85rem; color: #64748b; }
+    .bank-details dt { font-weight: 600; font-size: .85rem; color: #64748b; margin-top: 8px; }
+    .bank-details dt:first-child { margin-top: 0; }
     .bank-details dd { font-size: 1rem; margin-bottom: 8px; }
+    .transaction-input { margin-top: 16px; }
+    .transaction-input label { font-weight: 600; font-size: .9rem; display: block; margin-bottom: 4px; }
+    .transaction-input input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: .95rem; }
+    .upi-apps { display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -55,8 +69,17 @@
       navAuth.href = '#';
       navAuth.addEventListener('click', async (e) => { e.preventDefault(); await signOut(); window.location.reload(); });
 
-      let selectedMethod = null;
       let cartData = [];
+      let totalAmount = 0;
+
+      function buildUpiDeepLink(app, total) {
+        const pa = 'snehaliteng@okaxis';
+        const pn = 'Snehal Kadiya';
+        const tn = 'Tutorial E-Books';
+        const am = total.toFixed(2);
+        const packages = { gpay: 'com.google.android.apps.nbu.paisa.user', phonepe: 'com.phonepe.app', paytm: 'net.one97.paytm' };
+        return `intent://pay?pa=${pa}&pn=${encodeURIComponent(pn)}&tn=${encodeURIComponent(tn)}&am=${am}&cu=INR#Intent;scheme=upi;package=${packages[app]};end`;
+      }
 
       async function loadCart() {
         try {
@@ -66,83 +89,137 @@
             container.innerHTML = '<div class="empty-state"><h3>Your cart is empty</h3><p><a href="index.html" style="color:#2563eb;">Browse tutorials</a></p></div>';
             return;
           }
-          const total = getCartTotal(cartData);
-          container.innerHTML = `
-            <div class="cart-items">${cartData.map(item => `
-              <div class="cart-item">
-                <div>
-                  <strong>${escapeHtml(item.shop_products?.title || 'Unknown')}</strong>
-                  <div style="font-size:.85rem;color:#64748b;">${formatPrice(item.shop_products?.price || 0)}</div>
-                </div>
-                <button class="btn btn-danger btn-sm remove-btn" data-cart-id="${item.id}">Remove</button>
-              </div>
-            `).join('')}</div>
-            <div class="cart-summary">
-              <div class="total"><span>Total</span><span>${formatPrice(total)}</span></div>
+          totalAmount = getCartTotal(cartData);
+          renderCheckout(container);
+        } catch (err) {
+          document.getElementById('cart-container').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+        }
+      }
 
-              <h3 style="margin-top:20px;margin-bottom:8px;">Select Payment Method</h3>
-              <div class="payment-methods">
-                <div class="payment-method" data-method="upi">
-                  <div class="icon">&#128179;</div>
-                  <div class="name">UPI (GPay / PhonePe / Paytm)</div>
-                </div>
-                <div class="payment-method" data-method="netbanking">
-                  <div class="icon">&#127974;</div>
-                  <div class="name">Net Banking / NEFT / IMPS</div>
-                </div>
+      function renderCheckout(container) {
+        container.innerHTML = `
+          <div class="cart-items">${cartData.map(item => `
+            <div class="cart-item">
+              <div>
+                <strong>${escapeHtml(item.shop_products?.title || 'Unknown')}</strong>
+                <div style="font-size:.85rem;color:#64748b;">${formatPrice(item.shop_products?.price || 0)}</div>
               </div>
+              <button class="btn btn-danger btn-sm remove-btn" data-cart-id="${item.id}">Remove</button>
+            </div>
+          `).join('')}</div>
+          <div class="cart-summary">
+            <div class="total"><span>Total</span><span>${formatPrice(totalAmount)}</span></div>
 
-              <div class="payment-instructions" id="upi-instructions">
-                <h4 style="margin-bottom:12px;">Pay via UPI</h4>
-                <p>Open any UPI app (GPay, PhonePe, Paytm) and scan or pay to:</p>
-                <div style="margin:16px 0;padding:12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;">
-                  <strong>UPI ID:</strong> <span id="upi-id">${UPI_ID}</span>
-                  <button class="copy-btn" onclick="navigator.clipboard.writeText('${UPI_ID}').then(() => this.textContent='Copied!').catch(() => {}); setTimeout(() => this.textContent='Copy', 2000);">Copy</button>
+            <h3 style="margin-top:20px;margin-bottom:8px;">Select Payment Method</h3>
+            <div class="pay-methods">
+              <div class="pay-method" data-method="gpay">
+                <div class="icon">G</div>
+                <div class="name">Google Pay</div>
+              </div>
+              <div class="pay-method" data-method="phonepe">
+                <div class="icon">P</div>
+                <div class="name">PhonePe</div>
+              </div>
+              <div class="pay-method" data-method="paytm">
+                <div class="icon">P</div>
+                <div class="name">Paytm</div>
+              </div>
+              <div class="pay-method" data-method="netbanking">
+                <div class="icon">&#127974;</div>
+                <div class="name">Net Banking / NEFT / IMPS</div>
+              </div>
+            </div>
+
+            <div class="pay-section" id="section-gpay">
+              <div class="pay-section-inner">
+                <h4 style="margin-bottom:12px;">Pay with Google Pay</h4>
+                <div class="qr-wrap">
+                  <img src="gpay.jpg" alt="GPay QR Code">
+                  <p style="font-size:.85rem;color:#64748b;margin-top:4px;">Scan with GPay app</p>
                 </div>
-                <div style="padding:12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:12px;">
-                  <strong>Phone Number:</strong> ${UPI_PHONE}
+                <div class="upi-detail">
+                  <span><strong>UPI ID:</strong> snehaliteng@okaxis</span>
+                  <button class="copy-btn" onclick="navigator.clipboard.writeText('snehaliteng@okaxis');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);">Copy</button>
                 </div>
-                <div class="upi-qr-placeholder">QR Code<br><span style="font-size:.75rem;">(Generate via any UPI app)</span></div>
-                <p style="font-size:.9rem;color:#64748b;">After payment, enter the UPI transaction ID (UTR) below:</p>
+                <a class="open-app-btn gpay" href="${buildUpiDeepLink('gpay', totalAmount)}" target="_blank">&#128274; Open in Google Pay</a>
                 <div class="transaction-input">
-                  <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:4px;">UPI Transaction ID / UTR</label>
-                  <input type="text" id="upi-transaction-id" placeholder="e.g. 123456789012" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:.95rem;">
+                  <label>UPI Transaction ID / UTR</label>
+                  <input type="text" class="tx-input" data-method="gpay" placeholder="Enter UPI transaction ID after payment">
                 </div>
               </div>
+            </div>
 
-              <div class="payment-instructions" id="netbanking-instructions">
+            <div class="pay-section" id="section-phonepe">
+              <div class="pay-section-inner">
+                <h4 style="margin-bottom:12px;">Pay with PhonePe</h4>
+                <div class="qr-wrap">
+                  <img src="gpay.jpg" alt="PhonePe QR Code">
+                  <p style="font-size:.85rem;color:#64748b;margin-top:4px;">Scan with PhonePe app</p>
+                </div>
+                <div class="upi-detail">
+                  <span><strong>UPI ID:</strong> snehaliteng@okaxis</span>
+                  <button class="copy-btn" onclick="navigator.clipboard.writeText('snehaliteng@okaxis');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);">Copy</button>
+                </div>
+                <a class="open-app-btn phonepe" href="${buildUpiDeepLink('phonepe', Math.round(totalAmount * 100))}" target="_blank">&#128274; Open in PhonePe</a>
+                <div class="transaction-input">
+                  <label>UPI Transaction ID / UTR</label>
+                  <input type="text" class="tx-input" data-method="phonepe" placeholder="Enter UPI transaction ID after payment">
+                </div>
+              </div>
+            </div>
+
+            <div class="pay-section" id="section-paytm">
+              <div class="pay-section-inner">
+                <h4 style="margin-bottom:12px;">Pay with Paytm</h4>
+                <div class="qr-wrap">
+                  <img src="gpay.jpg" alt="Paytm QR Code">
+                  <p style="font-size:.85rem;color:#64748b;margin-top:4px;">Scan with Paytm app</p>
+                </div>
+                <div class="upi-detail">
+                  <span><strong>UPI ID:</strong> snehaliteng@okaxis</span>
+                  <button class="copy-btn" onclick="navigator.clipboard.writeText('snehaliteng@okaxis');this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000);">Copy</button>
+                </div>
+                <a class="open-app-btn paytm" href="${buildUpiDeepLink('paytm', Math.round(totalAmount * 100))}" target="_blank">&#128274; Open in Paytm</a>
+                <div class="transaction-input">
+                  <label>UPI Transaction ID / UTR</label>
+                  <input type="text" class="tx-input" data-method="paytm" placeholder="Enter UPI transaction ID after payment">
+                </div>
+              </div>
+            </div>
+
+            <div class="pay-section" id="section-netbanking">
+              <div class="pay-section-inner">
                 <h4 style="margin-bottom:12px;">Pay via Net Banking / NEFT / IMPS</h4>
-                <p>Transfer the total amount to the following account:</p>
+                <p style="font-size:.9rem;color:#64748b;">Transfer the total amount to the following account:</p>
                 <dl class="bank-details">
                   <dt>Account Holder</dt>
                   <dd>Snehal Kadiya</dd>
-                  <dt>Bank Name</dt>
+                  <dt>Bank</dt>
                   <dd>State Bank of India (SBI)</dd>
                   <dt>Account Number</dt>
                   <dd><strong id="bank-account">[Your Account Number]</strong></dd>
                   <dt>IFSC Code</dt>
                   <dd><strong id="bank-ifsc">[Your IFSC Code]</strong></dd>
                   <dt>Amount</dt>
-                  <dd><strong>${formatPrice(total)}</strong></dd>
+                  <dd><strong>${formatPrice(totalAmount)}</strong></dd>
                 </dl>
-                <p style="font-size:.9rem;color:#64748b;">After transfer, enter the transaction reference number below:</p>
                 <div class="transaction-input">
-                  <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:4px;">Transaction Reference Number</label>
-                  <input type="text" id="netbanking-transaction-id" placeholder="e.g. NEFT reference or UTR" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:.95rem;">
+                  <label>Transaction Reference Number</label>
+                  <input type="text" class="tx-input" data-method="netbanking" placeholder="Enter NEFT/IMPS reference or UTR">
                 </div>
               </div>
-
-              <button id="place-order-btn" class="btn btn-primary" style="width:100%;margin-top:16px;" disabled>Select a payment method</button>
             </div>
-          `;
 
-          wireCartEvents(total);
-        } catch (err) {
-          document.getElementById('cart-container').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
-        }
+            <button id="place-order-btn" class="btn btn-primary" style="width:100%;margin-top:16px;" disabled>Select a payment method</button>
+          </div>
+        `;
+
+        wireEvents();
       }
 
-      function wireCartEvents(total) {
+      let selectedMethod = null;
+
+      function wireEvents() {
         document.querySelectorAll('.remove-btn').forEach(btn => {
           btn.addEventListener('click', async function() {
             await removeFromCart(parseInt(this.dataset.cartId));
@@ -150,22 +227,22 @@
           });
         });
 
-        document.querySelectorAll('.payment-method').forEach(el => {
+        document.querySelectorAll('.pay-method').forEach(el => {
           el.addEventListener('click', function() {
-            document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+            document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
             this.classList.add('selected');
             selectedMethod = this.dataset.method;
-            document.querySelectorAll('.payment-instructions').forEach(i => i.classList.remove('active'));
-            document.getElementById(selectedMethod + '-instructions').classList.add('active');
+            document.querySelectorAll('.pay-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('section-' + selectedMethod).classList.add('active');
             document.getElementById('place-order-btn').disabled = false;
-            document.getElementById('place-order-btn').textContent = 'Place Order (Pending Payment)';
+            document.getElementById('place-order-btn').textContent = 'Submit & Place Order';
           });
         });
 
-        const placeBtn = document.getElementById('place-order-btn');
-        placeBtn.addEventListener('click', async function() {
+        document.getElementById('place-order-btn').addEventListener('click', async function() {
           if (!selectedMethod) return;
-          const txId = document.getElementById(selectedMethod + '-transaction-id').value.trim();
+          const txInput = document.querySelector('.tx-input[data-method="' + selectedMethod + '"]');
+          const txId = txInput ? txInput.value.trim() : '';
           if (!txId) {
             document.getElementById('alert-container').innerHTML = '<div class="alert alert-error">Please enter the transaction ID after making payment.</div>';
             return;
@@ -173,19 +250,19 @@
           this.disabled = true;
           this.textContent = 'Placing order...';
           try {
-            const result = await createOrder(selectedMethod, txId);
+            const result = await createOrder(selectedMethod === 'gpay' || selectedMethod === 'phonepe' || selectedMethod === 'paytm' ? 'upi' : selectedMethod, txId);
+            const pdfUrls = cartData.map(c => c.shop_products?.pdf_url).filter(Boolean);
             localStorage.setItem('last_order', JSON.stringify({
-              items: cartData.map(c => ({ title: c.shop_products?.title, price: c.shop_products?.price })),
-              total: total,
-              transaction_id: txId,
-              payment_method: selectedMethod
+              items: cartData.map(c => ({ title: c.shop_products?.title, price: c.shop_products?.price, pdf_url: c.shop_products?.pdf_url })),
+              total: totalAmount, transaction_id: txId, payment_method: selectedMethod,
+              order_id: result.order_id, email_sent: result.email_sent
             }));
             window.location.href = 'success.html';
           } catch (err) {
             document.getElementById('alert-container').innerHTML = `<div class="alert alert-error">${err.message}</div>`;
           }
           this.disabled = false;
-          this.textContent = 'Place Order (Pending Payment)';
+          this.textContent = 'Submit & Place Order';
         });
       }
 

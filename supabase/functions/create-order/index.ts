@@ -54,7 +54,7 @@ serve(async (req) => {
         total_amount: totalAmount,
         payment_method,
         transaction_id,
-        payment_status: 'pending'
+        payment_status: 'confirmed'
       })
       .select()
       .single()
@@ -78,7 +78,21 @@ serve(async (req) => {
 
     await supabase.from('shop_cart').delete().eq('user_id', user.id)
 
-    return new Response(JSON.stringify({ status: 'created', order_id: order.id }), {
+    let emailSent = false
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (user.email && serviceKey) {
+      try {
+        const pdfUrls = items.map(i => i.pdf_url).filter(Boolean)
+        const emailRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-pdf-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${serviceKey}` },
+          body: JSON.stringify({ email: user.email, pdf_urls: pdfUrls, order_id: order.id })
+        })
+        emailSent = emailRes.ok
+      } catch (_) { /* email not critical for order */ }
+    }
+
+    return new Response(JSON.stringify({ status: 'confirmed', order_id: order.id, email_sent: emailSent }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   } catch (err) {
