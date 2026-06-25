@@ -40,7 +40,7 @@ serve(async (req) => {
     const rzpRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${basicAuth}` },
-      body: JSON.stringify({ amount: amountPaise, currency: 'INR', receipt: `receipt_${user.id}_${Date.now()}` })
+      body: JSON.stringify({ amount: amountPaise, currency: 'INR', receipt: `rcpt_${Date.now()}_${user.id.slice(0,8)}` })
     })
 
     if (!rzpRes.ok) {
