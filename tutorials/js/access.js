@@ -42,10 +42,13 @@
   function showPaywall() {
     if (paywallActive) return;
     paywallActive = true;
+    var ch = document.querySelector('.chapter');
+    if (ch) ch.style.display = 'none';
+    document.body.style.background = '#f8fafc';
     paywallEl = document.createElement('div');
     paywallEl.id = 'paywall-overlay';
-    paywallEl.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;';
-    paywallEl.innerHTML = '<div style="background:#fff;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);margin:20px;">' +
+    paywallEl.style.cssText = 'min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;';
+    paywallEl.innerHTML = '<div style="background:#fff;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.15);margin:40px 20px;">' +
       '<div style="font-size:48px;margin-bottom:12px;">📘</div>' +
       '<h2 style="font-size:1.4rem;font-weight:700;margin-bottom:8px;color:#0f172a;">Unlock Full Tutorial</h2>' +
       '<p style="color:#64748b;margin-bottom:20px;line-height:1.6;font-size:.95rem;">You\'ve reached the free preview limit. Purchase the complete guide to access all chapters and the downloadable PDF.</p>' +
@@ -59,6 +62,9 @@
     if (paywallEl && paywallEl.parentNode) {
       paywallEl.parentNode.removeChild(paywallEl);
     }
+    var ch = document.querySelector('.chapter');
+    if (ch) ch.style.display = '';
+    document.body.style.background = '';
     paywallActive = false;
     paywallEl = null;
   }
