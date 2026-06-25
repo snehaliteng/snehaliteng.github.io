@@ -29,32 +29,12 @@
   };
 
   var productSlug = PRODUCT_SLUGS[slug];
-
-  if (productSlug === undefined) return;
-  if (productSlug === '') return;
+  if (!productSlug) return;
 
   var MAX_FREE = 5;
-  var FREE_VIEWS_KEY = 'tut_free_views';
-  var PURCHASED_CACHE_KEY = 'tut_purchased';
+  var pageNum = parseInt((parts[4] || '').match(/^\d+/)?.[0], 10);
 
-  function getFreeViews() {
-    try { return parseInt(localStorage.getItem(FREE_VIEWS_KEY) || '0', 10); } catch(e) { return 0; }
-  }
-
-  function getPurchasedCache() {
-    try { return JSON.parse(localStorage.getItem(PURCHASED_CACHE_KEY) || '{}'); } catch(e) { return {}; }
-  }
-
-  function setPurchasedCache(slug, val) {
-    try { var c = getPurchasedCache(); c[slug] = val; localStorage.setItem(PURCHASED_CACHE_KEY, JSON.stringify(c)); } catch(e) {}
-  }
-
-  var isFreePage = (parts[4] || parts[3] || '').replace(/\.html$/,'');
-
-  function isPreviewPage() {
-    var pageNum = parseInt(isFreePage.match(/^\d+/)?.[0] || '99', 10);
-    return pageNum <= MAX_FREE;
-  }
+  if (!pageNum || pageNum <= MAX_FREE) return;
 
   var paywallActive = false;
   var paywallEl = null;
@@ -83,47 +63,17 @@
     paywallEl = null;
   }
 
-  var freeViews = getFreeViews();
-  var purchasedCache = getPurchasedCache();
-
-  if (purchasedCache[slug] === true) return;
-
-  if (purchasedCache[slug] !== false && window.supabase) {
+  if (window.supabase) {
     var _client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     _client.auth.getUser().then(function(resp) {
       var user = resp.data && resp.data.user;
-      if (!user) {
-        setPurchasedCache(slug, false);
-        if (freeViews >= MAX_FREE) showPaywall();
-        return;
-      }
+      if (!user) { showPaywall(); return; }
       return _client.rpc('check_tutorial_purchase', { p_product_slug: productSlug }).then(function(r) {
-        var purchased = !!r.data;
-        setPurchasedCache(slug, purchased);
-        if (purchased) {
-          removePaywall();
-        } else if (freeViews >= MAX_FREE) {
-          showPaywall();
-        }
+        if (r.data) { removePaywall(); }
+        else { showPaywall(); }
       });
-    }).catch(function() {
-      if (freeViews >= MAX_FREE) showPaywall();
-    });
+    }).catch(function() { showPaywall(); });
   } else {
-    if (freeViews >= MAX_FREE) showPaywall();
+    showPaywall();
   }
-
-  function countPageView() {
-    try {
-      var visited = JSON.parse(localStorage.getItem('tut_visited_' + slug) || '[]');
-      if (!Array.isArray(visited)) visited = [];
-      if (visited.indexOf(isFreePage) === -1) {
-        visited.push(isFreePage);
-        localStorage.setItem('tut_visited_' + slug, JSON.stringify(visited));
-        localStorage.setItem(FREE_VIEWS_KEY, String(visited.length));
-      }
-    } catch(e) {}
-  }
-
-  countPageView();
 })();
