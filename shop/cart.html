@@ -68,7 +68,7 @@
     document.addEventListener('DOMContentLoaded', async function() {
       const user = await getCurrentUser();
       const navAuth = document.getElementById('nav-auth');
-      if (!user) { window.location.href = 'login.html?redirect=shop/cart.html'; return; }
+      if (!user) { window.location.href = 'login.html?redirect=cart.html'; return; }
       navAuth.textContent = 'Logout';
       navAuth.href = '#';
       navAuth.addEventListener('click', async (e) => { e.preventDefault(); await signOut(); window.location.reload(); });

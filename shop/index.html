@@ -65,7 +65,7 @@
 
           document.querySelectorAll('.add-cart-btn').forEach(btn => {
             btn.addEventListener('click', async function() {
-              if (!user) { window.location.href = 'login.html?redirect=shop/'; return; }
+              if (!user) { window.location.href = 'login.html?redirect=index.html'; return; }
               this.disabled = true;
               this.textContent = 'Adding...';
               try {
