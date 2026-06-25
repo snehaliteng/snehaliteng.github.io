@@ -77,14 +77,63 @@ CREATE POLICY "Order items user read" ON shop_order_items FOR SELECT USING (
 );
 
 -- =============================================================
--- Seed data (run after tables are created)
+-- Check purchase RPC function
+-- =============================================================
+CREATE OR REPLACE FUNCTION check_tutorial_purchase(p_product_slug TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_product_id BIGINT;
+BEGIN
+  IF auth.uid() IS NULL THEN RETURN FALSE; END IF;
+  SELECT id INTO v_product_id FROM shop_products WHERE slug = p_product_slug;
+  IF v_product_id IS NULL THEN RETURN FALSE; END IF;
+  RETURN EXISTS (
+    SELECT 1 FROM shop_order_items oi
+    JOIN shop_orders o ON o.id = oi.order_id
+    WHERE o.user_id = auth.uid()
+      AND oi.product_id = v_product_id
+      AND o.payment_status = 'completed'
+  );
+END;
+$$;
+
+-- =============================================================
+-- Seed data — upsert all 30 tutorials at ₹500 each
 -- =============================================================
 INSERT INTO shop_products (title, slug, description, price, pdf_url, cover_image, tutorial_slug) VALUES
-('HTML Tutorial - Complete Guide', 'html-tutorial', 'Master HTML from basics to advanced. Covers all tags, forms, media, APIs, and best practices.', 49.00, '/tutorials/html/html-tutorial-complete-guide.pdf', '/tutorials/html/images/html-box-model.svg', 'html'),
-('CSS Tutorial - Complete Guide', 'css-tutorial', 'Complete CSS guide covering selectors, box model, flexbox, grid, animations, and responsive design.', 49.00, '/tutorials/css/css-tutorial-complete-guide.pdf', '/tutorials/css/images/css-box-model.svg', 'css'),
-('JavaScript Tutorial - Complete Guide', 'javascript-tutorial', 'From basics to advanced: DOM, async, modules, closures, and modern ES6+ patterns.', 49.00, '/tutorials/Javascript/Javascript-tutorial-complete-guide.pdf', '', 'Javascript'),
-('React Tutorial - Complete Guide', 'react-tutorial', 'Build modern UIs with React: components, hooks, state management, routing, and deployment.', 49.00, '/tutorials/react/react-tutorial-complete-guide.pdf', '', 'react'),
-('Python Tutorial - Complete Guide', 'python-tutorial', 'Learn Python: data types, functions, OOP, file I/O, modules, and real-world projects.', 49.00, '/tutorials/python/python-tutorial-complete-guide.pdf', '', 'python'),
-('Angular Tutorial - Complete Guide', 'angular-tutorial', 'Enterprise Angular: components, services, routing, forms, RxJS, and NgRx state management.', 49.00, '/tutorials/angular/angular-tutorial-complete-guide.pdf', '', 'angular'),
-('FastAPI Tutorial - Complete Guide', 'fastapi-tutorial', 'Build high-performance APIs with FastAPI: routing, Pydantic, SQLAlchemy, auth, and deployment.', 49.00, '/tutorials/fastapi-tutorial/fastapi-tutorial-complete-guide.pdf', '', 'fastapi-tutorial'),
-('.NET Core Tutorial - Complete Guide', 'dotnetcore-tutorial', 'Cross-platform .NET: C#, ASP.NET Core, EF Core, APIs, testing, and cloud deployment.', 49.00, '/tutorials/dotnetcore/dotnetcore-tutorial-complete-guide.pdf', '', 'dotnetcore');
+('HTML Tutorial - Complete Guide', 'html-tutorial', 'Master HTML from basics to advanced. Covers all tags, forms, media, APIs, and best practices.', 500.00, '/tutorials/html/html-tutorial-complete-guide.pdf', '/tutorials/html/images/html-box-model.svg', 'html'),
+('CSS Tutorial - Complete Guide', 'css-tutorial', 'Complete CSS guide covering selectors, box model, flexbox, grid, animations, and responsive design.', 500.00, '/tutorials/css/css-tutorial-complete-guide.pdf', '/tutorials/css/images/css-box-model.svg', 'css'),
+('JavaScript Tutorial - Complete Guide', 'javascript-tutorial', 'From basics to advanced: DOM, async, modules, closures, and modern ES6+ patterns.', 500.00, '/tutorials/Javascript/Javascript-tutorial-complete-guide.pdf', '', 'Javascript'),
+('React Tutorial - Complete Guide', 'react-tutorial', 'Build modern UIs with React: components, hooks, state management, routing, and deployment.', 500.00, '/tutorials/react/react-tutorial-complete-guide.pdf', '', 'react'),
+('Python Tutorial - Complete Guide', 'python-tutorial', 'Learn Python: data types, functions, OOP, file I/O, modules, and real-world projects.', 500.00, '/tutorials/python/python-tutorial-complete-guide.pdf', '', 'python'),
+('Angular Tutorial - Complete Guide', 'angular-tutorial', 'Enterprise Angular: components, services, routing, forms, RxJS, and NgRx state management.', 500.00, '/tutorials/angular/angular-tutorial-complete-guide.pdf', '', 'angular'),
+('FastAPI Tutorial - Complete Guide', 'fastapi-tutorial', 'Build high-performance APIs with FastAPI: routing, Pydantic, SQLAlchemy, auth, and deployment.', 500.00, '/tutorials/fastapi-tutorial/fastapi-tutorial-complete-guide.pdf', '', 'fastapi-tutorial'),
+('.NET Core Tutorial - Complete Guide', 'dotnetcore-tutorial', 'Cross-platform .NET: C#, ASP.NET Core, EF Core, APIs, testing, and cloud deployment.', 500.00, '/tutorials/dotnetcore/dotnetcore-tutorial-complete-guide.pdf', '', 'dotnetcore'),
+-- New tutorials
+('Artificial Intelligence Tutorial - Complete Guide', 'ai-tutorial', 'AI fundamentals: ML, NLP, computer vision, neural networks, expert systems, agents, and industry applications.', 500.00, '/tutorials/ai/ai-tutorial-complete-guide.pdf', '', 'ai'),
+('Agentic AI Engineering Tutorial - Complete Guide', 'ai-agentic-track-tutorial', 'Curriculum: OpenAI SDK, CrewAI, LangGraph, AutoGen, MCP, and capstone projects for building production AI agents.', 500.00, '/tutorials/ai-agentic-track/ai-agentic-track-tutorial-complete-guide.pdf', '', 'ai-agentic-track'),
+('Core AI Engineering Tutorial - Complete Guide', 'ai-engineer-core-tutorial', 'Curriculum: LLM products, multi-modal chatbots, HuggingFace, RAG, fine-tuning, QLoRA, and multi-agent systems.', 500.00, '/tutorials/ai-engineer-core/ai-engineer-core-tutorial-complete-guide.pdf', '', 'ai-engineer-core'),
+('AI System Design (2026) Tutorial - Complete Guide', 'ai-system-design-tutorial', 'Problem space, architecture, data flow, agentic AI, MCP, pipelines, scalability, caching, indexing, inference, deployment, monitoring, security.', 500.00, '/tutorials/ai-system-design/ai-system-design-tutorial-complete-guide.pdf', '', 'ai-system-design'),
+('Android Tutorial - Complete Guide', 'android-tutorial', 'Native Android development with Kotlin, Jetpack, MVVM, Room, Retrofit, and Material Design.', 500.00, '/tutorials/android/android-tutorial-complete-guide.pdf', '', 'android'),
+('C# Tutorial - Complete Guide', 'c-tutorial', 'Modern C# development: LINQ, async, OOP, .NET ecosystem, and real-world patterns.', 500.00, '/tutorials/c%23/c%23-tutorial-complete-guide.pdf', '', 'c#'),
+('Claude Vibe Coding Tutorial - Complete Guide', 'claude-vibe-course-tutorial', '3-week course: vibe coding, Claude Code CLI, MCP servers, multi-agent swarms, and production SaaS engineering.', 500.00, '/tutorials/claude-vibe-course/claude-vibe-course-tutorial-complete-guide.pdf', '', 'claude-vibe-course'),
+('Data Structures & Algorithms Tutorial - Complete Guide', 'dsa-tutorial', 'Arrays, linked lists, trees, graphs, sorting, searching, DP, and greedy algorithms with code examples.', 500.00, '/tutorials/dsa/dsa-tutorial-complete-guide.pdf', '', 'dsa'),
+('DSA – LeetCode 150-Day MAANG Roadmap Tutorial - Complete Guide', 'dsa-leetcode-roadmap-tutorial', 'Structured roadmap: Arrays, Strings, Linked Lists, Trees, Graphs, DP, System Design, OOD, Behavioral prep.', 500.00, '/tutorials/dsa-leetcode-roadmap/dsa-leetcode-roadmap-tutorial-complete-guide.pdf', '', 'dsa-leetcode-roadmap'),
+('Microsoft Foundry Tutorial - Complete Guide', 'foundry-fundamentals-tutorial', 'Azure AI Foundry deep-dive: agents, RAG pipelines, AI Gateway, Foundry IQ, multi-modal apps, and A2A protocol.', 500.00, '/tutorials/foundry-fundamentals/foundry-fundamentals-tutorial-complete-guide.pdf', '', 'foundry-fundamentals'),
+('Generative AI Tutorial - Complete Guide', 'genai-tutorial', 'GANs, transformers, VAEs, diffusion models, LLMs, ChatGPT, RLHF, and industry applications of generative AI.', 500.00, '/tutorials/genai/genai-tutorial-complete-guide.pdf', '', 'genai'),
+('Interpersonal Skills Tutorial - Complete Guide', 'interpersonal-skills-tutorial', 'Communication, active listening, emotional intelligence, conflict resolution, teamwork, negotiation, and decision-making.', 500.00, '/tutorials/interpersonal-skills/interpersonal-skills-tutorial-complete-guide.pdf', '', 'interpersonal-skills'),
+('iOS Tutorial - Complete Guide', 'ios-tutorial', 'Native iOS development with Swift, UIKit, SwiftUI, Core Data, MapKit, and App Store deployment.', 500.00, '/tutorials/ios/ios-tutorial-complete-guide.pdf', '', 'ios'),
+('MAF Fundamentals Tutorial - Complete Guide', 'maf-fundamentals-tutorial', 'Microsoft Agent Framework: agent lifecycle, patterns, multi-agent orchestration, Teams integration, and best practices.', 500.00, '/tutorials/maf-fundamentals/maf-fundamentals-tutorial-complete-guide.pdf', '', 'maf-fundamentals'),
+('Machine Learning Tutorial - Complete Guide', 'ml-tutorial', 'ML fundamentals: supervised/unsupervised learning, regression, classification, clustering, deep learning, and MLOps.', 500.00, '/tutorials/ml/ml-tutorial-complete-guide.pdf', '', 'ml'),
+('ML System Design (2026) Tutorial - Complete Guide', 'ml-system-design-tutorial', 'Objectives, stages, architecture, components, batch vs real-time, training & serving, caching, indexing, scalability.', 500.00, '/tutorials/ml-system-design/ml-system-design-tutorial-complete-guide.pdf', '', 'ml-system-design'),
+('Node.js Tutorial - Complete Guide', 'nodejs-tutorial', 'Server-side JavaScript runtime. Express, async, databases, REST APIs, real-time apps, and deployment.', 500.00, '/tutorials/nodejs/nodejs-tutorial-complete-guide.pdf', '', 'nodejs'),
+('Playwright Automation Tutorial - Complete Guide', 'playwright-tutorial', 'Complete guide: setup, locators, UI components, API testing, visual testing, CI/CD, Cucumber, TypeScript, AI agents.', 500.00, '/tutorials/playwright-tutorial/playwright-tutorial-tutorial-complete-guide.pdf', '', 'playwright-tutorial'),
+('Project Management Tutorial - Complete Guide', 'project-management-tutorial', 'PM fundamentals: methodologies, scheduling, risk, cost, quality, leadership, and certification prep.', 500.00, '/tutorials/project-management/project-management-tutorial-complete-guide.pdf', '', 'project-management'),
+('Progressive Web Apps Tutorial - Complete Guide', 'pwa-tutorial', 'Build reliable, fast, and installable PWAs. Service Workers, caching, offline, manifest, and push notifications.', 500.00, '/tutorials/pwa/pwa-tutorial-complete-guide.pdf', '', 'pwa'),
+('Snowflake Tutorial - Complete Guide', 'snowflake-tutorial', 'Complete guide: architecture, virtual warehouses, data loading, time travel, caching, external integrations.', 500.00, '/tutorials/snowflake-tutorial/snowflake-tutorial-tutorial-complete-guide.pdf', '', 'snowflake-tutorial'),
+('System Design Fundamentals Tutorial - Complete Guide', 'system-design-fundamentals-tutorial', 'Complete guide: networking, protocols, architecture patterns, scalability, storage, performance, reliability, security.', 500.00, '/tutorials/system-design-fundamentals/system-design-fundamentals-tutorial-complete-guide.pdf', '', 'system-design-fundamentals')
+ON CONFLICT (slug) DO UPDATE SET price = EXCLUDED.price, description = EXCLUDED.description;

@@ -34,6 +34,8 @@
     .card .status { font-size: .8rem; font-weight: 500; padding: 3px 10px; border-radius: 20px; display: inline-block; align-self: flex-start; }
     .card a { text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; }
     .available { background: #dcfce7; color: #166534; }
+    .preview { background: #eff6ff; color: #1e40af; }
+    .free { background: #dcfce7; color: #166534; }
     .coming-soon { background: #fef9c3; color: #854d0e; }
     .back-link { display: inline-flex; align-items: center; gap: 6px; color: #3b82f6; font-weight: 500; text-decoration: none; margin-bottom: 32px; }
     .back-link:hover { text-decoration: underline; }
@@ -56,6 +58,12 @@
     <h1>Learning Tutorials</h1>
     <p class="subtitle">Free step-by-step guides to master programming &amp; IT skills</p>
 
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px 20px;margin-bottom:40px;font-size:.9rem;color:#1e40af;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <span style="font-size:1.3rem;">📘</span>
+      <span style="flex:1;">Read <strong>5 pages free</strong> per tutorial. Unlock full access + PDF for <strong>₹500</strong> — <a href="/shop/" style="color:#2563eb;font-weight:600;text-decoration:underline;">Buy now</a>.</span>
+      <span style="background:#dbeafe;padding:4px 10px;border-radius:20px;font-size:.8rem;font-weight:500;">Angular is <strong>Free</strong></span>
+    </div>
+
     <div class="grid">
       <a href="html/" class="card">
         <div class="icon-wrap" style="background:#dbeafe;">
@@ -63,7 +71,7 @@
         </div>
         <h2>HTML</h2>
         <p>Structure the web. Learn HTML5 from scratch — tags, forms, media, APIs, and semantic markup.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="css/" class="card">
@@ -72,7 +80,7 @@
         </div>
         <h2>CSS</h2>
         <p>Style and layout with Flexbox, Grid, animations, responsive design, and modern CSS features.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="Javascript/" class="card">
@@ -81,7 +89,7 @@
         </div>
         <h2>JavaScript</h2>
         <p>Make pages interactive. DOM manipulation, ES6+, async/await, and modern JS patterns.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="nodejs/" class="card">
@@ -90,7 +98,7 @@
         </div>
         <h2>Node.js</h2>
         <p>Server-side JavaScript runtime. Express, async, databases, REST APIs, real-time apps, and deployment.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="pwa/" class="card">
@@ -99,7 +107,7 @@
         </div>
         <h2>Progressive Web Apps</h2>
         <p>Build reliable, fast, and installable PWAs. Service Workers, caching, offline, manifest, and push notifications.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="react/" class="card">
@@ -108,7 +116,7 @@
         </div>
         <h2>React</h2>
         <p>Build component-based UIs with React hooks, state management, and modern front-end tooling.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="angular/" class="card">
@@ -117,7 +125,7 @@
         </div>
         <h2>Angular</h2>
         <p>Enterprise-grade front-end with TypeScript, RxJS, components, services, and routing.</p>
-        <span class="status available">Available</span>
+        <span class="status free">Free</span>
       </a>
 
       <a href="ai/" class="card">
@@ -126,7 +134,7 @@
         </div>
         <h2>Artificial Intelligence</h2>
         <p>AI fundamentals: ML, NLP, computer vision, neural networks, expert systems, agents, and industry applications.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="genai/" class="card">
@@ -135,7 +143,7 @@
         </div>
         <h2>Generative AI</h2>
         <p>GANs, transformers, VAEs, diffusion models, LLMs, ChatGPT, RLHF, and industry applications of generative AI.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="ai-agentic-track/" class="card">
@@ -144,7 +152,7 @@
         </div>
         <h2>Agentic AI Engineering</h2>
         <p>Curriculum: OpenAI SDK, CrewAI, LangGraph, AutoGen, MCP, and capstone projects for building production AI agents.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="ai-engineer-core/" class="card">
@@ -153,7 +161,7 @@
         </div>
         <h2>Core AI Engineering</h2>
         <p>Curriculum: LLM products, multi-modal chatbots, HuggingFace, RAG, fine-tuning, QLoRA, and multi-agent systems.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="claude-vibe-course/" class="card">
@@ -162,7 +170,7 @@
         </div>
         <h2>Claude Vibe Coding</h2>
         <p>3-week course: vibe coding, Claude Code CLI, MCP servers, multi-agent swarms, and production SaaS engineering.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="maf-fundamentals/" class="card">
@@ -171,7 +179,7 @@
         </div>
         <h2>MAF Fundamentals</h2>
         <p>Microsoft Agent Framework: agent lifecycle, patterns, multi-agent orchestration, Teams integration, and best practices.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="foundry-fundamentals/" class="card">
@@ -180,7 +188,7 @@
         </div>
         <h2>Microsoft Foundry</h2>
         <p>Azure AI Foundry deep-dive: agents, RAG pipelines, AI Gateway, Foundry IQ, multi-modal apps, and A2A protocol.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="snowflake-tutorial/" class="card">
@@ -189,7 +197,7 @@
         </div>
         <h2>Snowflake</h2>
         <p>Complete guide: architecture, virtual warehouses, data loading, time travel, caching, external integrations, and best practices.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="android/" class="card">
@@ -198,7 +206,7 @@
         </div>
         <h2>Android</h2>
         <p>Native Android development with Kotlin, Jetpack, MVVM, Room, Retrofit, and Material Design.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="python/" class="card">
@@ -207,7 +215,7 @@
         </div>
         <h2>Python</h2>
         <p>Python fundamentals: data types, functions, OOP, file I/O, and standard library essentials.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="c%23/" class="card">
@@ -216,7 +224,7 @@
         </div>
         <h2>C#</h2>
         <p>Modern C# development: LINQ, async, OOP, .NET ecosystem, and real-world patterns.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="dotnetcore/" class="card">
@@ -225,7 +233,7 @@
         </div>
         <h2>.NET Core</h2>
         <p>Cross-platform development with ASP.NET Core, Entity Framework, Web APIs, and minimal APIs.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="project-management/" class="card">
@@ -234,7 +242,7 @@
         </div>
         <h2>Project Management</h2>
         <p>PM fundamentals: methodologies, scheduling, risk, cost, quality, leadership, and certification prep.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="interpersonal-skills/" class="card">
@@ -243,7 +251,7 @@
         </div>
         <h2>Interpersonal Skills</h2>
         <p>Communication, active listening, emotional intelligence, conflict resolution, teamwork, negotiation, and decision-making.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="ml/" class="card">
@@ -252,7 +260,7 @@
         </div>
         <h2>Machine Learning</h2>
         <p>ML fundamentals: supervised/unsupervised learning, regression, classification, clustering, deep learning, and MLOps.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="dsa/" class="card">
@@ -261,7 +269,7 @@
         </div>
         <h2>Data Structures &amp; Algorithms</h2>
         <p>Arrays, linked lists, trees, graphs, sorting, searching, DP, and greedy algorithms with code examples.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="dsa-leetcode-roadmap/" class="card">
@@ -270,7 +278,7 @@
         </div>
         <h2>DSA – LeetCode 150-Day MAANG Roadmap</h2>
         <p>Structured roadmap: Arrays, Strings, Linked Lists, Trees, Graphs, DP, System Design, OOD, Behavioral prep, and revision checkpoints.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="ios/" class="card">
@@ -279,7 +287,7 @@
         </div>
         <h2>iOS</h2>
         <p>Native iOS development with Swift, UIKit, SwiftUI, Core Data, MapKit, and App Store deployment.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="fastapi-tutorial/" class="card">
@@ -288,7 +296,7 @@
         </div>
         <h2>FastAPI</h2>
         <p>Complete guide: Hello World, OpenAPI, Pydantic, CRUD, SQL/MongoDB, WebSockets, GraphQL, middleware, deployment, and more.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="playwright-tutorial/" class="card">
@@ -297,7 +305,7 @@
         </div>
         <h2>Playwright Automation</h2>
         <p>Complete guide: setup, locators, UI components, API testing, visual testing, CI/CD, Cucumber, TypeScript, AI agents, and interview prep.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="system-design-fundamentals/" class="card">
@@ -306,7 +314,7 @@
         </div>
         <h2>System Design Fundamentals</h2>
         <p>A complete guide: networking, protocols, architecture patterns, scalability, storage, performance, reliability, security, interview blueprint, and 13 case studies.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="ai-system-design/" class="card">
@@ -315,7 +323,7 @@
         </div>
         <h2>AI System Design (2026)</h2>
         <p>A complete guide: problem space, architecture, data flow, agentic AI, MCP, pipelines, scalability, caching, indexing, inference, deployment, monitoring, security, and a recommendation engine case study.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
 
       <a href="ml-system-design/" class="card">
@@ -324,7 +332,7 @@
         </div>
         <h2>ML System Design (2026)</h2>
         <p>A complete guide: objectives, stages, architecture, components, batch vs real-time, training &amp; serving architecture, caching, indexing, scalability, fault tolerance, monitoring, security, trade-offs, and a recommendation system case study.</p>
-        <span class="status available">Available</span>
+        <span class="status preview">Free Preview</span>
       </a>
     </div>
   </div>

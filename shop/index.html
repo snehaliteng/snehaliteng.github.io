@@ -32,7 +32,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/shop.js"></script>
   <script src="../js/version.js"></script>
-  <script>
+    <script>
     document.addEventListener('DOMContentLoaded', async function() {
       const user = await getCurrentUser();
       const navAuth = document.getElementById('nav-auth');
@@ -46,6 +46,20 @@
         navAuth.href = 'login.html';
       }
 
+      async function fetchPurchasedSlugs() {
+        if (!user) return [];
+        try {
+          var { data: orders } = await _shop.from('shop_orders').select('id').eq('payment_status', 'completed');
+          if (!orders || !orders.length) return [];
+          var orderIds = orders.map(function(o) { return o.id; });
+          var { data: items } = await _shop.from('shop_order_items').select('product_id').in('order_id', orderIds);
+          if (!items || !items.length) return [];
+          var productIds = [...new Set(items.map(function(i) { return i.product_id; }))];
+          var { data: products } = await _shop.from('shop_products').select('slug').in('id', productIds);
+          return (products || []).map(function(p) { return p.slug; });
+        } catch(e) { return []; }
+      }
+
       async function loadProducts() {
         try {
           const products = await getProducts();
@@ -54,15 +68,24 @@
             container.innerHTML = '<div class="empty-state"><h3>No products yet</h3></div>';
             return;
           }
-          container.innerHTML = `<div class="product-grid">${products.map(p => `
-            <div class="product-card">
+
+          const purchasedSlugs = await fetchPurchasedSlugs();
+
+          container.innerHTML = `<div class="product-grid">${products.map(p => {
+            const owned = purchasedSlugs.includes(p.slug);
+            const isAngular = p.slug === 'angular-tutorial';
+            const price = isAngular ? 'Free' : formatPrice(p.price);
+            return `
+            <div class="product-card" id="product-${p.slug}">
               ${p.cover_image ? `<img src="${p.cover_image}" alt="${escapeHtml(p.title)}" style="max-height:120px;object-fit:contain;margin-bottom:12px;">` : ''}
               <h3>${escapeHtml(p.title)}</h3>
               <p>${escapeHtml(p.description)}</p>
-              <div class="price">${formatPrice(p.price)}</div>
-              <button class="btn btn-primary btn-sm add-cart-btn" data-product-id="${p.id}">Add to Cart</button>
-            </div>
-          `).join('')}</div>`;
+              <div class="price">${isAngular ? '<span style="color:#16a34a;font-weight:600;">Free</span>' : price}</div>
+              ${owned ? '<span style="display:inline-block;background:#dcfce7;color:#166534;padding:6px 16px;border-radius:6px;font-size:.85rem;font-weight:600;">&#10003; Owned</span>' :
+                (isAngular ? '<a href="../tutorials/angular/" class="btn btn-primary btn-sm" style="display:inline-block;text-decoration:none;">Read Free</a>' :
+                `<button class="btn btn-primary btn-sm add-cart-btn" data-product-id="${p.id}">Add to Cart</button>`)}
+            </div>`;
+          }).join('')}</div>`;
 
           document.querySelectorAll('.add-cart-btn').forEach(btn => {
             btn.addEventListener('click', async function() {
@@ -80,6 +103,16 @@
               this.textContent = 'Add to Cart';
             });
           });
+
+          var buyParam = new URLSearchParams(window.location.search).get('buy');
+          if (buyParam) {
+            var target = document.getElementById('product-' + buyParam);
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              target.style.boxShadow = '0 0 0 3px #2563eb';
+              setTimeout(function() { target.style.boxShadow = ''; }, 3000);
+            }
+          }
         } catch (err) {
           document.getElementById('products-container').innerHTML = `<div class="alert alert-error">${escapeHtml(err.message)}</div>`;
         }
