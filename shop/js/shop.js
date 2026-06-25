@@ -101,7 +101,11 @@ async function createRazorpayOrder() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
   });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.details || e.error || 'Failed to create Razorpay order'); }
+  if (!res.ok) {
+    let msg = 'Failed to create Razorpay order';
+    try { const e = await res.json(); msg = e.details || e.error || msg; } catch (_) { try { msg = await res.text(); } catch (_2) {} }
+    throw new Error(msg);
+  }
   return res.json();
 }
 
@@ -113,7 +117,11 @@ async function verifyRazorpayPayment(payload) {
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
     body: JSON.stringify(payload)
   });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Payment verification failed'); }
+  if (!res.ok) {
+    let msg = 'Payment verification failed';
+    try { const e = await res.json(); msg = e.error || msg; } catch (_) { try { msg = await res.text(); } catch (_2) {} }
+    throw new Error(msg);
+  }
   return res.json();
 }
 
