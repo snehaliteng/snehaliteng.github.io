@@ -49,7 +49,7 @@
     try { var c = getPurchasedCache(); c[slug] = val; localStorage.setItem(PURCHASED_CACHE_KEY, JSON.stringify(c)); } catch(e) {}
   }
 
-  var isFreePage = (parts[3] || '').replace(/\.html$/,'');
+  var isFreePage = (parts[4] || parts[3] || '').replace(/\.html$/,'');
 
   function isPreviewPage() {
     var pageNum = parseInt(isFreePage.match(/^\d+/)?.[0] || '99', 10);
