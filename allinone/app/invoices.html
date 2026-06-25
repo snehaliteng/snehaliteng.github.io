@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoices — All-in-One ERP</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;}</style>
+</head>
+<body>
+  <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+      <a href="dashboard.html" class="text-blue-600 font-bold text-lg">&larr; Dashboard</a>
+      <span class="text-gray-400">|</span>
+      <span class="font-semibold">Invoices</span>
+    </div>
+    <div>
+      <button onclick="signOut()" class="text-sm text-red-500 hover:underline">Logout</button>
+    </div>
+  </nav>
+  <div class="max-w-6xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Invoices</h1>
+      <a href="invoice-create.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700">+ New Invoice</a>
+    </div>
+    <div id="alert"></div>
+    <div id="loading" class="text-gray-500 mb-4">Loading...</div>
+    <div id="invoices-section" class="hidden bg-white rounded-xl shadow-sm border overflow-x-auto"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/erp.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const user = await requireLogin();
+      if (!user) return;
+      await loadInvoices();
+    });
+
+    async function loadInvoices() {
+      const orgId = await getOrgId();
+      if (!orgId) return;
+      const { data, error } = await erp.from('invoices').select('*, parties(name)').eq('org_id', orgId).order('created_at', { ascending: false }).limit(100);
+      if (error) { document.getElementById('loading').textContent = 'Error: ' + error.message; return; }
+      document.getElementById('loading').classList.add('hidden');
+      const div = document.getElementById('invoices-section'); div.classList.remove('hidden');
+      if (!data || !data.length) { div.innerHTML = '<div class="p-6 text-gray-500 text-center">No invoices yet.</div>'; return; }
+
+      const sb = s => {
+        if (s === 'paid') return '<span class="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded">Paid</span>';
+        if (s === 'draft') return '<span class="inline-block bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-0.5 rounded">Draft</span>';
+        if (s === 'sent') return '<span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded">Sent</span>';
+        if (s === 'overdue') return '<span class="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded">Overdue</span>';
+        return '<span class="inline-block bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-0.5 rounded">' + s + '</span>';
+      };
+
+      div.innerHTML = `<table class="w-full text-sm"><thead><tr class="bg-gray-50 border-b text-left"><th class="p-3 font-semibold">Invoice</th><th class="p-3 font-semibold">Date</th><th class="p-3 font-semibold">Customer</th><th class="p-3 font-semibold">Amount</th><th class="p-3 font-semibold">Status</th><th class="p-3 font-semibold">Actions</th></tr></thead><tbody>${data.map(inv => `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-mono text-xs font-semibold">${escapeHtml(inv.invoice_no)}</td><td class="p-3 text-xs">${formatDate(inv.invoice_date)}</td><td class="p-3">${escapeHtml(inv.parties?.name || '-')}</td><td class="p-3 font-medium">${formatCurrency(inv.total)}</td><td class="p-3">${sb(inv.status)}</td><td class="p-3"><a href="invoice-view.html?id=${inv.id}" class="text-blue-600 hover:underline text-xs mr-2">View</a><a href="invoice-create.html?id=${inv.id}" class="text-gray-600 hover:underline text-xs">Edit</a></td></tr>`).join('')}</tbody></table>
+      <div class="p-3 text-xs text-gray-400 border-t">Total: ${data.length} invoice${data.length !== 1 ? 's' : ''}</div>`;
+    }
+  </script>
+</body>
+</html>

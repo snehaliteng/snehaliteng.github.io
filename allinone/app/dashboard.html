@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — All-in-One ERP</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+    .kpi-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border: 1px solid #e2e8f0; }
+    .module-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border: 1px solid #e2e8f0; transition: all .15s; }
+    .module-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); border-color: #3b82f6; transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+  <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+      <a href="../../" class="text-blue-600 font-bold text-lg">SnehalITEng</a>
+      <span class="text-gray-400">|</span>
+      <span class="font-semibold">ERP</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <span id="org-name" class="text-sm text-gray-500"></span>
+      <span id="user-info" class="text-sm text-gray-500"></span>
+      <button onclick="signOut()" class="text-sm text-red-500 hover:underline">Logout</button>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto p-6">
+    <div id="alert"></div>
+    <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+
+    <!-- KPI Cards -->
+    <div id="kpi-section" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="kpi-card"><div class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Invoices</div><div id="kpi-invoices" class="text-2xl font-bold mt-1">--</div></div>
+      <div class="kpi-card"><div class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Revenue</div><div id="kpi-revenue" class="text-2xl font-bold mt-1">--</div></div>
+      <div class="kpi-card"><div class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Parties</div><div id="kpi-parties" class="text-2xl font-bold mt-1">--</div></div>
+      <div class="kpi-card"><div class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Products</div><div id="kpi-products" class="text-2xl font-bold mt-1">--</div></div>
+    </div>
+
+    <!-- Module Grid -->
+    <h2 class="text-xl font-bold mb-4">Modules</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <a href="organization.html" class="module-card"><div class="text-3xl mb-2">&#127970;</div><div class="font-semibold">Organization</div><div class="text-xs text-gray-500">Profile &amp; settings</div></a>
+      <a href="chart-of-accounts.html" class="module-card"><div class="text-3xl mb-2">&#128202;</div><div class="font-semibold">Chart of Accounts</div><div class="text-xs text-gray-500">Ledger management</div></a>
+      <a href="journal-entries.html" class="module-card"><div class="text-3xl mb-2">&#128221;</div><div class="font-semibold">Journal Entries</div><div class="text-xs text-gray-500">General ledger entries</div></a>
+      <a href="parties.html" class="module-card"><div class="text-3xl mb-2">&#128101;</div><div class="font-semibold">Parties</div><div class="text-xs text-gray-500">Customers &amp; suppliers</div></a>
+      <a href="products.html" class="module-card"><div class="text-3xl mb-2">&#128230;</div><div class="font-semibold">Products</div><div class="text-xs text-gray-500">Catalog &amp; pricing</div></a>
+      <a href="inventory.html" class="module-card"><div class="text-3xl mb-2">&#128230;</div><div class="font-semibold">Inventory</div><div class="text-xs text-gray-500">Batches &amp; stock</div></a>
+      <a href="invoices.html" class="module-card"><div class="text-3xl mb-2">&#128196;</div><div class="font-semibold">Invoices</div><div class="text-xs text-gray-500">Billing &amp; invoicing</div></a>
+      <a href="payments.html" class="module-card"><div class="text-3xl mb-2">&#128176;</div><div class="font-semibold">Payments</div><div class="text-xs text-gray-500">Receive &amp; track</div></a>
+      <a href="reports.html" class="module-card"><div class="text-3xl mb-2">&#128200;</div><div class="font-semibold">Reports</div><div class="text-xs text-gray-500">Sales, purchase, GST</div></a>
+      <a href="gst.html" class="module-card"><div class="text-3xl mb-2">&#9878;</div><div class="font-semibold">GST Compliance</div><div class="text-xs text-gray-500">Returns, e-invoice</div></a>
+      <a href="users.html" class="module-card"><div class="text-3xl mb-2">&#128101;</div><div class="font-semibold">Users</div><div class="text-xs text-gray-500">Role management</div></a>
+      <a href="../index.html" class="module-card"><div class="text-3xl mb-2">&#128214;</div><div class="font-semibold">Design Doc</div><div class="text-xs text-gray-500">System architecture</div></a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/erp.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const user = await requireLogin();
+      if (!user) return;
+      const profile = await getUserProfile();
+      if (profile) {
+        document.getElementById('org-name').textContent = profile.organizations?.name || '';
+        document.getElementById('user-info').textContent = profile.full_name || user.email;
+      }
+      await loadKpis();
+    });
+
+    async function loadKpis() {
+      try {
+        const orgId = await getOrgId();
+        if (!orgId) return;
+
+        const { data: invCount } = await erp.from('invoices').select('id', { count: 'exact', head: true }).eq('org_id', orgId);
+        document.getElementById('kpi-invoices').textContent = invCount?.count || 0;
+
+        const { data: revenue } = await erp.from('invoices').select('total').eq('org_id', orgId).eq('status', 'paid');
+        const totalRev = (revenue || []).reduce((s, r) => s + Number(r.total || 0), 0);
+        document.getElementById('kpi-revenue').textContent = formatCurrency(totalRev);
+
+        const { data: pCount } = await erp.from('parties').select('id', { count: 'exact', head: true }).eq('org_id', orgId);
+        document.getElementById('kpi-parties').textContent = pCount?.count || 0;
+
+        const { data: prCount } = await erp.from('products').select('id', { count: 'exact', head: true }).eq('org_id', orgId);
+        document.getElementById('kpi-products').textContent = prCount?.count || 0;
+      } catch (err) {
+        console.warn('KPI load failed:', err);
+      }
+    }
+  </script>
+</body>
+</html>

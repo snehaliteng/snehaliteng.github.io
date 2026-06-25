@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GST Compliance — All-in-One ERP</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;}</style>
+</head>
+<body>
+  <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+      <a href="dashboard.html" class="text-blue-600 font-bold text-lg">&larr; Dashboard</a>
+      <span class="text-gray-400">|</span>
+      <span class="font-semibold">GST Compliance</span>
+    </div>
+    <div>
+      <button onclick="signOut()" class="text-sm text-red-500 hover:underline">Logout</button>
+    </div>
+  </nav>
+  <div class="max-w-6xl mx-auto p-6">
+    <div id="alert"></div>
+    <h1 class="text-2xl font-bold mb-6">GST Compliance</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-white rounded-xl shadow-sm border p-6">
+        <h2 class="font-bold text-lg mb-2">GST Rates</h2>
+        <p class="text-sm text-gray-500 mb-4">HSN/SAC wise tax rates</p>
+        <div id="gst-rates-summary" class="text-gray-500 text-sm">Loading...</div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border p-6">
+        <h2 class="font-bold text-lg mb-2">GST Records</h2>
+        <p class="text-sm text-gray-500 mb-4">Return type reconciliation</p>
+        <div id="gst-records-summary" class="text-gray-500 text-sm">Loading...</div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border p-6">
+        <h2 class="font-bold text-lg mb-2">Tax Summary</h2>
+        <p class="text-sm text-gray-500 mb-4">From invoices</p>
+        <div id="tax-summary" class="text-gray-500 text-sm">Loading...</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border p-6 mb-6">
+      <h2 class="font-bold text-lg mb-4">GST Rates Reference</h2>
+      <div id="gst-rates-table" class="text-sm overflow-x-auto"></div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border p-6">
+      <h2 class="font-bold text-lg mb-4">Industry Configurations</h2>
+      <div id="industry-table" class="text-sm overflow-x-auto"></div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/erp.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const user = await requireLogin();
+      if (!user) return;
+      await loadGstRates();
+      await loadIndustryConfigs();
+      await loadTaxSummary();
+    });
+
+    async function loadGstRates() {
+      const { data } = await erp.from('gst_rates').select('*').order('hsn_code');
+      const div = document.getElementById('gst-rates-table');
+      if (!data || !data.length) { div.innerHTML = '<div class="text-gray-500">No GST rates configured.</div>'; return; }
+      div.innerHTML = `<table class="w-full"><thead><tr class="bg-gray-50 border-b text-left"><th class="p-2 font-semibold">HSN</th><th class="p-2 font-semibold">Description</th><th class="p-2 font-semibold">CGST</th><th class="p-2 font-semibold">SGST</th><th class="p-2 font-semibold">IGST</th><th class="p-2 font-semibold">Cess</th></tr></thead><tbody>${data.map(r => `<tr class="border-b"><td class="p-2 font-mono text-xs">${escapeHtml(r.hsn_code)}</td><td class="p-2">${escapeHtml(r.description || '-')}</td><td class="p-2">${r.cgst != null ? r.cgst + '%' : 'Exempt'}</td><td class="p-2">${r.sgst != null ? r.sgst + '%' : 'Exempt'}</td><td class="p-2">${r.igst != null ? r.igst + '%' : 'Exempt'}</td><td class="p-2">${r.cess || '0'}%</td></tr>`).join('')}</tbody></table>`;
+      document.getElementById('gst-rates-summary').innerHTML = `<div class="text-2xl font-bold">${data.length}</div><div class="text-xs text-gray-500">GST rate entries</div>`;
+    }
+
+    async function loadIndustryConfigs() {
+      const { data } = await erp.from('industry_configs').select('*').order('label');
+      const div = document.getElementById('industry-table');
+      if (!data || !data.length) { div.innerHTML = '<div class="text-gray-500">No industry configs.</div>'; return; }
+      div.innerHTML = `<table class="w-full"><thead><tr class="bg-gray-50 border-b text-left"><th class="p-2 font-semibold">Industry</th><th class="p-2 font-semibold">Features</th><th class="p-2 font-semibold">GST Required</th></tr></thead><tbody>${data.map(c => `<tr class="border-b"><td class="p-2 font-medium">${escapeHtml(c.label)}</td><td class="p-2 text-xs">${(c.features || []).map(f => '<span class="inline-block bg-gray-100 px-2 py-0.5 rounded text-xs mr-1">' + f + '</span>').join('')}</td><td class="p-2">${c.gst_required ? '<span class="text-green-600">Yes</span>' : '<span class="text-gray-400">No</span>'}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    async function loadTaxSummary() {
+      const orgId = await getOrgId();
+      if (!orgId) return;
+      const { data: invs } = await erp.from('invoices').select('cgst_amt, sgst_amt, igst_amt, cess_amt, total, status').eq('org_id', orgId).in('status', ['paid','sent']);
+      if (!invs) return;
+      const totalCgst = invs.reduce((s, i) => s + Number(i.cgst_amt || 0), 0);
+      const totalSgst = invs.reduce((s, i) => s + Number(i.sgst_amt || 0), 0);
+      const totalIgst = invs.reduce((s, i) => s + Number(i.igst_amt || 0), 0);
+      document.getElementById('tax-summary').innerHTML = `
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span>CGST:</span><span class="font-medium">${formatCurrency(totalCgst)}</span></div>
+          <div class="flex justify-between"><span>SGST:</span><span class="font-medium">${formatCurrency(totalSgst)}</span></div>
+          <div class="flex justify-between"><span>IGST:</span><span class="font-medium">${formatCurrency(totalIgst)}</span></div>
+          <div class="flex justify-between border-t pt-1 font-bold"><span>Total Tax:</span><span>${formatCurrency(totalCgst + totalSgst + totalIgst)}</span></div>
+        </div>`;
+      const c = document.getElementById('gst-records-summary');
+      const { data: recs } = await erp.from('gst_records').select('id', { count: 'exact', head: true }).eq('org_id', orgId);
+      c.innerHTML = `<div class="text-2xl font-bold">${recs?.count || 0}</div><div class="text-xs text-gray-500">GST records</div>`;
+    }
+  </script>
+</body>
+</html>
