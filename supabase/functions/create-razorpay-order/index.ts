@@ -8,24 +8,29 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return new Response(JSON.stringify({ error: 'No auth' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    )
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const supabaseAnon = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } })
+    const { data: { user }, error: userError } = await supabaseAnon.auth.getUser()
     if (userError || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
-    const { amount, currency = 'INR' } = await req.json()
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+
+    const { data: cart, error: cartError } = await supabase
+      .from('shop_cart')
+      .select('*, shop_products(*)')
+      .eq('user_id', user.id)
+
+    if (cartError || !cart?.length) {
+      return new Response(JSON.stringify({ error: 'Cart is empty' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    const totalAmount = cart.reduce((sum, item) => sum + Number(item.shop_products?.price || 0), 0)
+    const amountPaise = Math.round(totalAmount * 100)
 
     const keyId = Deno.env.get('RAZORPAY_KEY_ID')
     const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')
@@ -35,7 +40,7 @@ serve(async (req) => {
     const rzpRes = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${basicAuth}` },
-      body: JSON.stringify({ amount, currency, receipt: `receipt_${user.id}_${Date.now()}` })
+      body: JSON.stringify({ amount: amountPaise, currency: 'INR', receipt: `receipt_${user.id}_${Date.now()}` })
     })
 
     if (!rzpRes.ok) {
@@ -45,17 +50,27 @@ serve(async (req) => {
 
     const order = await rzpRes.json()
 
-    await supabase.from('shop_orders').insert({
+    const { data: dbOrder, error: orderError } = await supabase.from('shop_orders').insert({
       user_id: user.id,
       email: user.email,
-      total_amount: amount / 100,
+      total_amount: totalAmount,
       razorpay_order_id: order.id,
       payment_status: 'pending'
-    })
+    }).select().single()
 
-    return new Response(JSON.stringify({ id: order.id, amount: order.amount, currency: order.currency }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
+    if (orderError) {
+      return new Response(JSON.stringify({ error: 'Failed to save order', details: orderError.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    return new Response(JSON.stringify({
+      id: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      key_id: keyId,
+      db_order_id: dbOrder.id,
+      user_name: user.email?.split('@')[0] || 'Customer',
+      user_email: user.email
+    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }

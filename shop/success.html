@@ -49,16 +49,21 @@
         return;
       }
 
+      const paymentLabel = { razorpay: 'Razorpay', gpay: 'Google Pay', phonepe: 'PhonePe', paytm: 'Paytm', upi: 'UPI', netbanking: 'Net Banking' };
+      const items = data.items || [];
+      const total = data.total || items.reduce((s, i) => s + Number(i.price || 0), 0);
+
       summary.innerHTML = `
         <strong style="font-size:1.1rem;">Order Summary</strong>
-        <div style="margin-top:12px;">${data.items.map(item => `
+        ${data.payment_method ? '<div style="margin-top:4px;font-size:.85rem;color:#64748b;">Paid via <strong>' + (paymentLabel[data.payment_method] || data.payment_method) + '</strong></div>' : ''}
+        <div style="margin-top:12px;">${items.map(item => `
           <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9;">
-            <span>${item.title}</span>
-            <span style="font-weight:600;">&#8377;${Number(item.price).toFixed(2)}</span>
+            <span>${item.title || 'Item'}</span>
+            <span style="font-weight:600;">&#8377;${Number(item.price || 0).toFixed(2)}</span>
           </div>
         `).join('')}</div>
         <div style="display:flex;justify-content:space-between;padding:12px 0 0;font-weight:700;font-size:1.1rem;">
-          <span>Total</span><span>&#8377;${Number(data.total).toFixed(2)}</span>
+          <span>Total</span><span>&#8377;${Number(total).toFixed(2)}</span>
         </div>
         <div style="margin-top:12px;font-size:.85rem;color:#64748b;">
           ${data.order_id ? 'Order ID: <strong>' + data.order_id + '</strong><br>' : ''}
@@ -66,9 +71,9 @@
         </div>
         <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0;">
           <strong style="font-size:1rem;">Download Your E-Books</strong>
-          <ul class="dl-list">${data.items.filter(item => item.pdf_url).map(item => `
+          <ul class="dl-list">${items.filter(item => item.pdf_url).map(item => `
             <li>
-              <span>${item.title}</span>
+              <span>${item.title || 'E-Book'}</span>
               <a href="${item.pdf_url}" target="_blank" download>&#128229; Download PDF</a>
             </li>
           `).join('')}</ul>

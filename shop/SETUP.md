@@ -4,20 +4,27 @@
 Run `shop/supabase-schema.sql` in Supabase SQL Editor.
 
 ## 2. Edge Functions (deployed)
-The following functions are already deployed:
+| Function | Purpose | Status |
+|---|---|---|
+| `create-order` | Creates order from cart for UPI/Bank payments (uses service_role) | Deployed |
+| `send-pdf-email` | Sends email with PDF links (requires Resend API key) | Deployed |
+| `create-razorpay-order` | Creates Razorpay order, saves pending order record | Deployed |
+| `verify-payment` | Verifies Razorpay HMAC signature, saves order items, clears cart | Deployed |
+| `razorpay-webhook` | Handles Razorpay webhook (for future server-side confirmation) | Deployed |
 
-| Function | Purpose |
-|---|---|
-| `create-order` | Creates order from cart, clears cart (uses service_role) |
-| `send-pdf-email` | Sends email with PDF links (requires Resend API key) |
-
-### Set secrets in Supabase Dashboard → Edge Functions:
+### Set secrets in Supabase Dashboard -> Edge Functions:
+- `RAZORPAY_KEY_ID` = `rzp_test_T5atI8o13oCMmh`
+- `RAZORPAY_KEY_SECRET` = `Jd0GN3EHp0RcWCH1Fu4NY2sV`
 - `RESEND_API_KEY` = your Resend API key (for email delivery)
 - `SITE_URL` = `https://snehaliteng.github.io`
 
-Other deployed functions (`create-razorpay-order`, `verify-payment`, `razorpay-webhook`) are reserved for future Razorpay integration.
+## 3. Payment Methods
 
-## 3. Payment Methods (currently active)
+### Razorpay (Cards / UPI / Wallet / Net Banking)
+- Razorpay key ID is configured in `shop/js/shop.js`
+- Checkout flow: User clicks "Pay via Razorpay" -> Razorpay popup -> Pay -> Auto-verify -> Success page
+- Orders are confirmed instantly (no manual verification needed)
+- Requires `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` secrets to be set
 
 ### UPI (GPay / PhonePe / Paytm)
 - UPI ID: `snehaliteng@okaxis`
@@ -25,16 +32,10 @@ Other deployed functions (`create-razorpay-order`, `verify-payment`, `razorpay-w
 - User pays via any UPI app and enters the transaction ID
 
 ### Net Banking / NEFT / IMPS
-- **Update `shop/cart.html`** — replace `[Your Account Number]` and `[Your IFSC Code]` with your actual bank details (search for `bank-account` and `bank-ifsc` IDs)
+- Update `shop/cart.html` — replace `[Your Account Number]` and `[Your IFSC Code]` (search for `bank-account` and `bank-ifsc` IDs)
 
-## 4. Admin Payment Verification
-Orders are stored with `payment_status = 'pending'`. To verify and confirm orders:
-1. Check your bank/UPI app for the payment
-2. Run in Supabase SQL Editor:
-   ```sql
-   UPDATE shop_orders SET payment_status = 'confirmed' WHERE id = <order_id>;
-   ```
-3. (Optional) Trigger email delivery by calling the `send-pdf-email` function
+## 4. Admin Payment Verification (UPI/Bank only)
+Orders via UPI/Bank are stored with `payment_status = 'confirmed'` (auto-confirmed after user submits transaction ID). Razorpay orders are auto-verified via HMAC signature.
 
 ## 5. Resend (Email)
 1. Sign up at https://resend.com
@@ -45,4 +46,4 @@ Orders are stored with `payment_status = 'pending'`. To verify and confirm order
 All shop pages are at `/shop/`. The site nav links to `/shop/` from all pages.
 
 ## Flow
-Login → Browse products → Add to cart → Checkout → Select UPI/Bank → Pay externally → Enter transaction ID → Order pending → Admin confirms → Email with PDF
+Login -> Browse products -> Add to cart -> Checkout -> Razorpay/UPI/Bank -> Pay -> Success page with download links

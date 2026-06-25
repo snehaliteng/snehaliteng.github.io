@@ -6,6 +6,7 @@ const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1`;
 
 const UPI_ID = 'snehaliteng@okaxis';
 const UPI_PHONE = '+919974031480';
+const RAZORPAY_KEY_ID = 'rzp_test_T5atI8o13oCMmh';
 
 async function getCurrentUser() {
   const { data: { user }, error } = await _shop.auth.getUser();
@@ -91,6 +92,29 @@ async function createOrder(paymentMethod, transactionId) {
 
 function getCartTotal(cartItems) {
   return cartItems.reduce((sum, item) => sum + Number(item.shop_products?.price || 0), 0);
+}
+
+async function createRazorpayOrder() {
+  const session = await _shop.auth.getSession();
+  const token = session.data?.session?.access_token;
+  const res = await fetch(`${EDGE_FUNCTION_URL}/create-razorpay-order`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.details || e.error || 'Failed to create Razorpay order'); }
+  return res.json();
+}
+
+async function verifyRazorpayPayment(payload) {
+  const session = await _shop.auth.getSession();
+  const token = session.data?.session?.access_token;
+  const res = await fetch(`${EDGE_FUNCTION_URL}/verify-payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Payment verification failed'); }
+  return res.json();
 }
 
 function escapeHtml(t) {
