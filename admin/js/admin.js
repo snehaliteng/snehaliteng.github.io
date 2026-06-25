@@ -18,6 +18,16 @@ function escapeHtml(t) {
   return d.innerHTML;
 }
 
+const SITE_URL = 'https://snehaliteng.github.io';
+
+async function socialLogin(provider) {
+  const { data, error } = await _admin.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: `${SITE_URL}/admin/` }
+  });
+  if (error) throw error;
+}
+
 async function signOut() {
   await _admin.auth.signOut();
   window.location.href = '../';

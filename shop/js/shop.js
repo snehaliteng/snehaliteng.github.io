@@ -125,6 +125,16 @@ async function verifyRazorpayPayment(payload) {
   return res.json();
 }
 
+const SITE_URL = 'https://snehaliteng.github.io';
+
+async function socialLogin(provider) {
+  const { data, error } = await _shop.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: `${SITE_URL}/shop/login.html` }
+  });
+  if (error) throw error;
+}
+
 function escapeHtml(t) {
   const d = document.createElement('div');
   d.textContent = t;
