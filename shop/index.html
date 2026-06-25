@@ -26,11 +26,12 @@
   </div>
 
   <footer style="text-align:center;padding:24px;color:#94a3b8;font-size:.85rem;border-top:1px solid #e2e8f0;">
-    &copy; 2026 Snehal IT Eng
+    &copy; 2026 Snehal IT Eng | <span id="site-version"></span>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/shop.js"></script>
+  <script src="../js/version.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async function() {
       const user = await getCurrentUser();
