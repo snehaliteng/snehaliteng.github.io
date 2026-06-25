@@ -32,3 +32,26 @@ async function signOut() {
   await _admin.auth.signOut();
   window.location.href = '../';
 }
+
+// Blog admin helpers
+async function getAllArticles() {
+  const { data, error } = await _admin.from('blog_articles').select('*, blog_topics(name)').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+async function updateArticle(id, fields) {
+  const { error } = await _admin.from('blog_articles').update(fields).eq('id', id);
+  if (error) throw error;
+}
+
+async function deleteArticle(id) {
+  const { error } = await _admin.from('blog_articles').delete().eq('id', id);
+  if (error) throw error;
+}
+
+async function getBlogTopics() {
+  const { data, error } = await _admin.from('blog_topics').select('*').order('name');
+  if (error) throw error;
+  return data;
+}

@@ -30,3 +30,28 @@ GRANT USAGE ON SEQUENCE contact_id_seq TO anon;
 
 -- Grant admin SELECT/DELETE
 GRANT SELECT, DELETE ON contact TO authenticated;
+
+-- =============================================================
+-- Blog admin policies — snehaliteng@gmail.com can manage all content
+-- =============================================================
+
+-- Articles: admin can update/delete any article
+DROP POLICY IF EXISTS "Admin articles update" ON blog_articles;
+CREATE POLICY "Admin articles update" ON blog_articles
+  FOR UPDATE USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+DROP POLICY IF EXISTS "Admin articles delete" ON blog_articles;
+CREATE POLICY "Admin articles delete" ON blog_articles
+  FOR DELETE USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+
+-- Topics: admin can update/delete any topic
+DROP POLICY IF EXISTS "Admin topics update" ON blog_topics;
+CREATE POLICY "Admin topics update" ON blog_topics
+  FOR UPDATE USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+DROP POLICY IF EXISTS "Admin topics delete" ON blog_topics;
+CREATE POLICY "Admin topics delete" ON blog_topics
+  FOR DELETE USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+
+-- Replies: admin can delete any reply
+DROP POLICY IF EXISTS "Admin replies delete" ON blog_replies;
+CREATE POLICY "Admin replies delete" ON blog_replies
+  FOR DELETE USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
