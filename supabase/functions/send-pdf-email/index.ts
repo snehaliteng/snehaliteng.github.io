@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import nodemailer from 'https://esm.sh/nodemailer@6.9.3'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,13 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 }
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || ''
-const FROM_EMAIL = 'Snehal IT Eng <shop@snehaliteng.com>'
-
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
 
   try {
     const authHeader = req.headers.get('Authorization')
@@ -26,41 +22,58 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Missing email or pdf_urls' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const siteUrl = Deno.env.get('SITE_URL') || 'https://snehaliteng.github.io'
-    const links = pdf_urls.map(url => `<li><a href="${siteUrl}${url}">${url.split('/').pop()}</a></li>`).join('')
-    const html = `
-      <h2>Thank you for your purchase!</h2>
-      <p>Order ID: <strong>${order_id}</strong></p>
-      <p>Your tutorial PDFs are ready for download:</p>
-      <ul>${links}</ul>
-      <p style="color:#666;font-size:.85rem;">These links are for personal use only. Please do not share.</p>
-      <p>— Snehal IT Eng</p>
-    `
-
-    if (!RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not set — email not sent')
-      console.log('Would send to:', email, 'PDFs:', pdf_urls)
-      return new Response(JSON.stringify({ status: 'logged', note: 'Resend not configured' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    const gmailUser = Deno.env.get('GMAIL_USER')
+    const gmailPass = Deno.env.get('GMAIL_APP_PASSWORD')
+    if (!gmailUser || !gmailPass) {
+      console.log('GMAIL_USER/GMAIL_APP_PASSWORD not set')
+      return new Response(JSON.stringify({ status: 'logged', note: 'Gmail not configured' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: email,
-        subject: 'Your Tutorial PDFs from Snehal IT Eng',
-        html
-      })
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://snehaliteng.github.io'
+
+    const attachments = []
+    for (const url of pdf_urls) {
+      try {
+        const res = await fetch(`${siteUrl}${url}`)
+        if (!res.ok) continue
+        const buf = await res.arrayBuffer()
+        const ext = url.includes('.pdf') ? '.pdf' : ''
+        const rand = crypto.randomUUID().replace(/-/g, '').slice(0, 8)
+        const filename = `tutorial-${rand}${ext}`
+        attachments.push({ filename, content: new Uint8Array(buf) })
+      } catch (_) {
+        console.error('Failed to fetch PDF:', url)
+      }
+    }
+
+    if (!attachments.length) {
+      return new Response(JSON.stringify({ error: 'No PDFs could be fetched' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: { user: gmailUser, pass: gmailPass },
     })
 
-    if (!res.ok) {
-      const err = await res.text()
-      console.error('Resend error:', err)
-      return new Response(JSON.stringify({ error: 'Email send failed' }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
+    await transporter.sendMail({
+      from: `"Snehal IT Eng" <${gmailUser}>`,
+      to: email,
+      subject: 'Your Tutorial PDFs from Snehal IT Eng',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">
+          <h2 style="color:#1e293b;">Thank you for your purchase!</h2>
+          <p style="color:#475569;">Order ID: <strong>${order_id}</strong></p>
+          <p style="color:#475569;">Your purchased tutorial PDFs are attached to this email.</p>
+          <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;">
+          <p style="color:#94a3b8;font-size:.85rem;">These files are for personal use only. Please do not share.</p>
+          <p style="color:#94a3b8;font-size:.85rem;">— Snehal IT Eng</p>
+        </div>`,
+      attachments,
+    })
 
-    return new Response(JSON.stringify({ status: 'sent' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ status: 'sent', count: attachments.length }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }

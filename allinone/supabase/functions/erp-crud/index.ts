@@ -20,7 +20,7 @@ serve(async (req) => {
 
     const allowedTables = [
       'organizations', 'user_profiles', 'chart_of_accounts', 'journal_entries', 'journal_lines',
-      'parties', 'products', 'inventory_batches', 'inventory_serial_numbers',
+      'parties', 'products', 'product_variants', 'inventory_batches', 'inventory_serial_numbers',
       'invoices', 'invoice_lines', 'payments', 'gst_records', 'gst_rates',
       'industry_configs', 'audit_log'
     ]
