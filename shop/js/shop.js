@@ -6,7 +6,7 @@ const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1`;
 
 const UPI_ID = 'snehaliteng@okaxis';
 const UPI_PHONE = '+919974031480';
-const RAZORPAY_KEY_ID = 'rzp_test_T5atI8o13oCMmh';
+const RAZORPAY_KEY_ID = 'rzp_live_T69SbFfk53qNmY';
 
 async function getCurrentUser() {
   const { data: { user }, error } = await _shop.auth.getUser();

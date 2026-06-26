@@ -13,8 +13,8 @@ Run `shop/supabase-schema.sql` in Supabase SQL Editor.
 | `razorpay-webhook` | Handles Razorpay webhook (for future server-side confirmation) | Deployed |
 
 ### Set secrets in Supabase Dashboard -> Edge Functions:
-- `RAZORPAY_KEY_ID` = `rzp_test_T5atI8o13oCMmh`
-- `RAZORPAY_KEY_SECRET` = `Jd0GN3EHp0RcWCH1Fu4NY2sV`
+- `RAZORPAY_KEY_ID` = `rzp_live_T69SbFfk53qNmY`
+- `RAZORPAY_KEY_SECRET` = `jI0XYcUDAzg6fvEGLspETOI4`
 - `RESEND_API_KEY` = your Resend API key (for email delivery)
 - `SITE_URL` = `https://snehaliteng.github.io`
 
