@@ -353,6 +353,56 @@ CREATE TABLE IF NOT EXISTS org_backups (
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS eway_bills (
+  id                BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  org_id            BIGINT REFERENCES organizations(id),
+  ewb_no            TEXT UNIQUE,
+  ewb_date          DATE NOT NULL DEFAULT CURRENT_DATE,
+  valid_from        TIMESTAMPTZ,
+  valid_until       TIMESTAMPTZ,
+  invoice_id        BIGINT REFERENCES invoices(id),
+  invoice_no        TEXT NOT NULL,
+  invoice_date      DATE NOT NULL,
+  doc_type          TEXT DEFAULT 'INV' CHECK (doc_type IN ('INV','BOS','CHL','OTH')),
+  from_gstin        TEXT NOT NULL,
+  from_name         TEXT,
+  from_address      TEXT,
+  from_pincode      TEXT,
+  from_state_code   INTEGER,
+  to_gstin          TEXT,
+  to_name           TEXT,
+  to_address        TEXT,
+  to_pincode        TEXT,
+  to_state_code     INTEGER,
+  total_value       NUMERIC(14,2) NOT NULL DEFAULT 0,
+  taxable_amt       NUMERIC(14,2) DEFAULT 0,
+  cgst_amt          NUMERIC(14,2) DEFAULT 0,
+  sgst_amt          NUMERIC(14,2) DEFAULT 0,
+  igst_amt          NUMERIC(14,2) DEFAULT 0,
+  cess_amt          NUMERIC(14,2) DEFAULT 0,
+  hsn_code          TEXT,
+  transporter_id    TEXT,
+  transporter_name  TEXT,
+  transporter_doc_no TEXT,
+  transporter_doc_date DATE,
+  vehicle_no        TEXT,
+  distance_km       INTEGER,
+  status            TEXT DEFAULT 'active' CHECK (status IN ('active','expired','cancelled')),
+  part_b_generated  BOOLEAN DEFAULT FALSE,
+  json_response     JSONB,
+  error_msg         TEXT,
+  created_by        UUID REFERENCES auth.users(id),
+  created_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS eway_distance (
+  id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  from_pincode  TEXT NOT NULL,
+  to_pincode    TEXT NOT NULL,
+  distance_km   INTEGER NOT NULL,
+  route_desc    TEXT
+);
+
 -- 2. Enable RLS
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -378,6 +428,7 @@ ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE org_backups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bank_statements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bank_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE eway_bills ENABLE ROW LEVEL SECURITY;
 
 -- Add cost_centre_id to journal_lines
 ALTER TABLE journal_lines ADD COLUMN IF NOT EXISTS cost_centre_id BIGINT REFERENCES cost_centres(id);
@@ -495,6 +546,11 @@ CREATE POLICY org_isolation ON bank_statements
   );
 
 CREATE POLICY org_isolation ON bank_transactions
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON eway_bills
   FOR ALL USING (
     org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
   );
@@ -808,6 +864,8 @@ CREATE INDEX IF NOT EXISTS idx_tds_challans_org ON tds_challans(org_id);
 CREATE INDEX IF NOT EXISTS idx_tds_certs_org ON tds_certificates(org_id, party_id);
 CREATE INDEX IF NOT EXISTS idx_cost_centres_org ON cost_centres(org_id);
 CREATE INDEX IF NOT EXISTS idx_budgets_org ON budgets(org_id, fiscal_year);
-CREATE INDEX IF NOT EXISTS idx_bank_txn_date ON bank_transactions(org_id, txn_date);
-CREATE INDEX IF NOT EXISTS idx_bank_txn_match ON bank_transactions(match_status);
-CREATE INDEX IF NOT EXISTS idx_bank_txn_statement ON bank_transactions(statement_id);
+CREATE INDEX IF NOT EXISTS idx_eway_org ON eway_bills(org_id);
+CREATE INDEX IF NOT EXISTS idx_eway_invoice ON eway_bills(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_eway_status ON eway_bills(org_id, status);
+CREATE INDEX IF NOT EXISTS idx_eway_ewb ON eway_bills(ewb_no);
+CREATE INDEX IF NOT EXISTS idx_eway_dist ON eway_distance(from_pincode, to_pincode);
