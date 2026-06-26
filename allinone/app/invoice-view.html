@@ -3,89 +3,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invoice View — All-in-One ERP</title>
+  <title>Document View — All-in-One ERP</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;}@media print{nav,.no-print{display:none!important}body{background:#fff}.print-card{border:none!important;box-shadow:none!important}}</style>
+  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;}@media print{nav,.no-print{display:none!important}body{background:#fff}.print-card{border:none!important;box-shadow:none!important;padding:0!important}}@media screen{.print-only{display:none!important}}</style>
 </head>
 <body>
   <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center no-print">
     <div class="flex items-center gap-4">
-      <a href="invoices.html" class="text-blue-600 font-bold text-lg">&larr; Invoices</a>
+      <a href="invoices.html" class="text-blue-600 font-bold text-lg">&larr; Documents</a>
       <span class="text-gray-400">|</span>
-      <span class="font-semibold">Invoice View</span>
+      <span id="page-title" class="font-semibold">Document View</span>
     </div>
-    <div class="flex gap-2">
-      <button onclick="window.print()" class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300">Print</button>
+    <div class="flex gap-2 items-center">
+      <button onclick="shareWhatsApp()" class="bg-green-100 text-green-700 px-3 py-1.5 rounded text-sm hover:bg-green-200" title="Share on WhatsApp">&#128172; WhatsApp</button>
+      <button onclick="shareEmail()" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded text-sm hover:bg-blue-200" title="Share via Email">&#9993; Email</button>
+      <button onclick="window.print()" class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300">&#128424; Print</button>
       <button onclick="signOut()" class="text-sm text-red-500 hover:underline ml-2">Logout</button>
     </div>
   </nav>
   <div class="max-w-4xl mx-auto p-6">
     <div id="alert"></div>
-    <div id="loading" class="text-gray-500 mb-4">Loading invoice...</div>
+    <div id="loading" class="text-gray-500 mb-4">Loading document...</div>
     <div id="invoice-content" class="hidden print-card bg-white rounded-xl shadow-sm border p-8"></div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/erp.js"></script>
   <script>
+    const DOC_LABELS = { quotation:'Quotation', order:'Order', challan:'Delivery Challan', proforma:'Proforma Invoice', invoice:'Invoice' };
+    const DOC_COLORS = { quotation:'yellow', order:'blue', challan:'orange', proforma:'purple', invoice:'green' };
+    let invData = null, orgData = null, customer = null;
+
     document.addEventListener('DOMContentLoaded', async function() {
-      const user = await requireLogin();
-      if (!user) return;
+      const user = await requireLogin(); if (!user) return;
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
-      if (!id) { document.getElementById('loading').textContent = 'No invoice ID specified.'; return; }
+      if (!id) { document.getElementById('loading').textContent = 'No document ID specified.'; return; }
 
       const { data: inv, error } = await erp.from('invoices').select('*, parties(*)').eq('id', parseInt(id)).single();
-      if (error || !inv) { document.getElementById('loading').textContent = 'Invoice not found.'; return; }
+      if (error || !inv) { document.getElementById('loading').textContent = 'Document not found.'; return; }
+      invData = inv;
 
       const { data: org } = await erp.from('user_profiles').select('organizations(*)').eq('id', user.id).single();
+      orgData = org?.organizations || {};
+      customer = inv.parties || {};
 
       const { data: lines } = await erp.from('invoice_lines').select('*').eq('invoice_id', inv.id).order('id');
+      renderDocument(inv, orgData, customer, lines || []);
+    });
 
-      const orgData = org?.organizations || {};
-      const customer = inv.parties || {};
+    function statusBadge(s, dt) {
+      if (dt === 'quotation') {
+        if (s==='draft') return '<span class="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded">Draft</span>';
+        if (s==='sent') return '<span class="bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded">Sent</span>';
+        if (s==='accepted') return '<span class="bg-green-100 text-green-700 text-sm px-3 py-1 rounded">Accepted</span>';
+        if (s==='rejected') return '<span class="bg-red-100 text-red-700 text-sm px-3 py-1 rounded">Rejected</span>';
+        if (s==='expired') return '<span class="bg-gray-100 text-gray-500 text-sm px-3 py-1 rounded">Expired</span>';
+      }
+      if (s === 'paid') return '<span class="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded">Paid</span>';
+      if (s === 'sent') return '<span class="bg-blue-100 text-blue-700 text-sm font-semibold px-3 py-1 rounded">Sent</span>';
+      if (s === 'draft') return '<span class="bg-gray-100 text-gray-600 text-sm font-semibold px-3 py-1 rounded">Draft</span>';
+      if (s === 'overdue') return '<span class="bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded">Overdue</span>';
+      if (s === 'confirmed') return '<span class="bg-indigo-100 text-indigo-700 text-sm px-3 py-1 rounded">Confirmed</span>';
+      if (s === 'converted') return '<span class="bg-teal-100 text-teal-700 text-sm px-3 py-1 rounded">Converted</span>';
+      return '<span class="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded">' + s + '</span>';
+    }
 
-      const statusBadge = s => {
-        if (s === 'paid') return '<span class="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded">Paid</span>';
-        if (s === 'sent') return '<span class="bg-blue-100 text-blue-700 text-sm font-semibold px-3 py-1 rounded">Sent</span>';
-        if (s === 'draft') return '<span class="bg-gray-100 text-gray-600 text-sm font-semibold px-3 py-1 rounded">Draft</span>';
-        if (s === 'overdue') return '<span class="bg-red-100 text-red-700 text-sm font-semibold px-3 py-1 rounded">Overdue</span>';
-        return '<span class="bg-gray-100 text-gray-600 text-sm font-semibold px-3 py-1 rounded">' + s + '</span>';
-      };
+    function renderDocument(inv, org, cust, lines) {
+      const docType = inv.doc_type || 'invoice';
+      const docLabel = DOC_LABELS[docType] || 'Invoice';
+      document.getElementById('page-title').textContent = docLabel + ' View';
+      const color = DOC_COLORS[docType] || 'green';
+      const docBadge = `<span class="bg-${color}-100 text-${color}-700 text-xs font-bold px-2 py-0.5 rounded uppercase">${docLabel}</span>`;
 
       document.getElementById('loading').classList.add('hidden');
       const div = document.getElementById('invoice-content');
       div.classList.remove('hidden');
 
-      div.innerHTML = `
+      let html = `
         <div class="flex justify-between items-start mb-8">
           <div>
-            <h1 class="text-2xl font-bold">${escapeHtml(orgData.name || 'Organization')}</h1>
-            ${orgData.gstin ? '<p class="text-sm text-gray-500 mt-1">GSTIN: ' + escapeHtml(orgData.gstin) + '</p>' : ''}
-            ${orgData.address?.street ? '<p class="text-sm text-gray-500">' + escapeHtml(orgData.address.street) + '</p>' : ''}
-            <p class="text-sm text-gray-500">${escapeHtml(orgData.address?.city || '')} ${escapeHtml(orgData.address?.state || '')} ${escapeHtml(orgData.address?.pincode || '')}</p>
+            <h1 class="text-2xl font-bold">${escapeHtml(org.name || 'Organization')}</h1>
+            ${org.gstin ? '<p class="text-sm text-gray-500 mt-1">GSTIN: ' + escapeHtml(org.gstin) + '</p>' : ''}
+            ${org.address?.street ? '<p class="text-sm text-gray-500">' + escapeHtml(org.address.street) + '</p>' : ''}
+            <p class="text-sm text-gray-500">${escapeHtml(org.address?.city||'')} ${escapeHtml(org.address?.state||'')} ${escapeHtml(org.address?.pincode||'')}</p>
+            ${org.phone ? '<p class="text-sm text-gray-500">' + escapeHtml(org.phone) + '</p>' : ''}
           </div>
           <div class="text-right">
-            <h2 class="text-xl font-bold">INVOICE</h2>
+            ${docBadge}
+            <h2 class="text-xl font-bold mt-1">${docLabel.toUpperCase()}</h2>
             <p class="text-sm font-mono mt-1">#${escapeHtml(inv.invoice_no)}</p>
-            <div class="mt-2">${statusBadge(inv.status)}</div>
+            <div class="mt-2">${statusBadge(inv.status, docType)}</div>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-8 mb-8">
           <div>
             <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide">Bill To</h3>
-            <p class="font-semibold mt-1">${escapeHtml(customer.name || '')}</p>
-            ${customer.gstin ? '<p class="text-sm text-gray-500">GSTIN: ' + escapeHtml(customer.gstin) + '</p>' : ''}
-            ${customer.address?.city ? '<p class="text-sm text-gray-500">' + escapeHtml(customer.address.city) + '</p>' : ''}
-            ${customer.phone ? '<p class="text-sm text-gray-500">' + escapeHtml(customer.phone) + '</p>' : ''}
-            ${customer.email ? '<p class="text-sm text-gray-500">' + escapeHtml(customer.email) + '</p>' : ''}
+            <p class="font-semibold mt-1">${escapeHtml(cust.name||'')}</p>
+            ${cust.gstin ? '<p class="text-sm text-gray-500">GSTIN: ' + escapeHtml(cust.gstin) + '</p>' : ''}
+            ${cust.address?.city ? '<p class="text-sm text-gray-500">' + escapeHtml(cust.address.city) + '</p>' : ''}
+            ${cust.phone ? '<p class="text-sm text-gray-500">' + escapeHtml(cust.phone) + '</p>' : ''}
+            ${cust.email ? '<p class="text-sm text-gray-500">' + escapeHtml(cust.email) + '</p>' : ''}
           </div>
           <div class="text-right">
-            <p class="text-sm"><span class="text-gray-500">Invoice Date:</span> ${formatDate(inv.invoice_date)}</p>
+            <p class="text-sm"><span class="text-gray-500">Date:</span> ${formatDate(inv.invoice_date)}</p>
             ${inv.due_date ? '<p class="text-sm"><span class="text-gray-500">Due Date:</span> ' + formatDate(inv.due_date) + '</p>' : ''}
+            ${inv.valid_until ? '<p class="text-sm"><span class="text-gray-500">Valid Until:</span> ' + formatDate(inv.valid_until) + '</p>' : ''}
             ${inv.place_of_supply ? '<p class="text-sm"><span class="text-gray-500">Place of Supply:</span> ' + escapeHtml(inv.place_of_supply) + '</p>' : ''}
             ${inv.invoice_type !== 'regular' ? '<p class="text-sm"><span class="text-gray-500">Type:</span> ' + inv.invoice_type + '</p>' : ''}
+            ${inv.ref_number ? '<p class="text-sm"><span class="text-gray-500">Ref:</span> ' + escapeHtml(inv.ref_number) + '</p>' : ''}
           </div>
         </div>
 
@@ -95,14 +122,14 @@
             <th class="p-2 text-left font-semibold">Description</th>
             <th class="p-2 text-right font-semibold">Qty</th>
             <th class="p-2 text-right font-semibold">Rate</th>
-            <th class="p-2 text-right font-semibold">Discount</th>
+            <th class="p-2 text-right font-semibold">Disc</th>
             <th class="p-2 text-right font-semibold">Taxable</th>
             <th class="p-2 text-right font-semibold">GST</th>
             <th class="p-2 text-right font-semibold">Total</th>
           </tr></thead>
-          <tbody>${(lines || []).map((l, i) => `
+          <tbody>${lines.map((l, i) => `
             <tr class="border-b">
-              <td class="p-2 text-xs">${i + 1}</td>
+              <td class="p-2 text-xs">${i+1}</td>
               <td class="p-2">${escapeHtml(l.description)}</td>
               <td class="p-2 text-right">${l.quantity}</td>
               <td class="p-2 text-right">${formatCurrency(l.rate)}</td>
@@ -110,26 +137,66 @@
               <td class="p-2 text-right">${formatCurrency(l.taxable_amt)}</td>
               <td class="p-2 text-right">${l.gst_rate}%</td>
               <td class="p-2 text-right font-medium">${formatCurrency(l.total)}</td>
-            </tr>
-          `).join('')}</tbody>
+            </tr>`).join('')}</tbody>
         </table>
 
-        <div class="flex justify-end">
+        <div class="flex justify-between items-start">
+          <div class="text-xs text-gray-500 max-w-xs">
+            ${inv.notes ? '<p class="mb-1"><span class="font-semibold">Notes:</span> ' + escapeHtml(inv.notes) + '</p>' : ''}
+            ${inv.terms_conditions ? '<p><span class="font-semibold">Terms:</span> ' + escapeHtml(inv.terms_conditions) + '</p>' : ''}
+          </div>
           <div class="w-64 space-y-1 text-sm">
             <div class="flex justify-between"><span class="text-gray-500">Subtotal:</span><span>${formatCurrency(inv.subtotal)}</span></div>
             ${inv.discount_pct > 0 ? `<div class="flex justify-between"><span class="text-gray-500">Discount (${inv.discount_pct}%):</span><span>-${formatCurrency(inv.discount_amt)}</span></div>` : ''}
-            <div class="flex justify-between"><span class="text-gray-500">Taxable Amount:</span><span>${formatCurrency(inv.taxable_amt)}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Taxable:</span><span>${formatCurrency(inv.taxable_amt)}</span></div>
             ${inv.cgst_amt > 0 ? `<div class="flex justify-between"><span class="text-gray-500">CGST:</span><span>${formatCurrency(inv.cgst_amt)}</span></div>` : ''}
             ${inv.sgst_amt > 0 ? `<div class="flex justify-between"><span class="text-gray-500">SGST:</span><span>${formatCurrency(inv.sgst_amt)}</span></div>` : ''}
             ${inv.igst_amt > 0 ? `<div class="flex justify-between"><span class="text-gray-500">IGST:</span><span>${formatCurrency(inv.igst_amt)}</span></div>` : ''}
+            ${inv.tds_amt > 0 ? `<div class="flex justify-between text-red-600"><span>TDS (${inv.tds_rate}%):</span><span>-${formatCurrency(inv.tds_amt)}</span></div>` : ''}
+            ${inv.tcs_amt > 0 ? `<div class="flex justify-between text-orange-600"><span>TCS (${inv.tcs_rate}%):</span><span>${formatCurrency(inv.tcs_amt)}</span></div>` : ''}
             <div class="flex justify-between font-bold text-lg border-t pt-2 mt-2"><span>Total:</span><span>${formatCurrency(inv.total)}</span></div>
           </div>
         </div>
 
-        ${inv.irn ? '<div class="mt-6 text-xs text-gray-400 border-t pt-4"><p>IRN: ' + escapeHtml(inv.irn) + '</p></div>' : ''}
-        ${inv.eway_bill_no ? '<div class="text-xs text-gray-400"><p>E-Way Bill: ' + escapeHtml(inv.eway_bill_no) + '</p></div>' : ''}
-      `;
-    });
+        <div class="flex justify-between items-start mt-6 border-t pt-4">
+          <div class="text-xs text-gray-400 space-y-1">
+            ${inv.irn ? '<p>IRN: ' + escapeHtml(inv.irn) + '</p>' : ''}
+            ${inv.eway_bill_no ? '<p>E-Way Bill: ' + escapeHtml(inv.eway_bill_no) + '</p>' : ''}
+          </div>
+          <div id="upi-qr-area" class="no-print text-right"></div>
+        </div>`;
+
+      div.innerHTML = html;
+      renderUPIQR(inv);
+    }
+
+    function renderUPIQR(inv) {
+      const area = document.getElementById('upi-qr-area');
+      if (!area) return;
+      const upiId = 'snehaliteng@okaxis';
+      const upiLink = 'upi://pay?pa=' + upiId + '&am=' + inv.total + '&tn=' + encodeURIComponent('Payment for ' + inv.invoice_no) + '&cu=INR';
+      area.innerHTML = `
+        <div class="inline-block text-center border rounded-lg p-3 bg-gray-50">
+          <p class="text-xs font-semibold mb-1">Pay via UPI</p>
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(upiLink)}" alt="UPI QR" class="mx-auto" width="120" height="120">
+          <p class="text-xs text-gray-500 mt-1">${escapeHtml(upiId)}</p>
+        </div>`;
+    }
+
+    function shareWhatsApp() {
+      if (!invData) return;
+      const text = encodeURIComponent(`*${DOC_LABELS[invData.doc_type]||'Invoice'} #${invData.invoice_no}*\nDate: ${invData.invoice_date}\nCustomer: ${customer.name||''}\nTotal: ${formatCurrency(invData.total)}\nStatus: ${invData.status}`);
+      window.open('https://wa.me/?text=' + text, '_blank');
+    }
+
+    function shareEmail() {
+      if (!invData || !customer.email) {
+        showAlert('Customer has no email on record.', 'error'); return;
+      }
+      const subject = encodeURIComponent((DOC_LABELS[invData.doc_type]||'Invoice') + ' #' + invData.invoice_no);
+      const body = encodeURIComponent('Dear ' + (customer.name||'Customer') + ',\n\nPlease find attached the ' + (DOC_LABELS[invData.doc_type]||'invoice').toLowerCase() + ' #' + invData.invoice_no + ' dated ' + invData.invoice_date + '.\n\nTotal Amount: ' + formatCurrency(invData.total) + '\n\nThank you for your business!');
+      window.open('mailto:' + customer.email + '?subject=' + subject + '&body=' + body, '_blank');
+    }
   </script>
 </body>
 </html>

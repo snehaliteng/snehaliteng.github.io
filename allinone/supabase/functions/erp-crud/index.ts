@@ -22,7 +22,7 @@ serve(async (req) => {
       'organizations', 'user_profiles', 'chart_of_accounts', 'journal_entries', 'journal_lines',
       'parties', 'products', 'product_variants', 'inventory_batches', 'inventory_serial_numbers',
       'invoices', 'invoice_lines', 'payments',       'gst_records', 'gst_rates', 'gst_itc', 'gst_payments',
-      'industry_configs', 'audit_log'
+      'industry_configs', 'audit_log', 'godowns', 'payment_reminders', 'tds_rates'
     ]
     if (!allowedTables.includes(table)) {
       return new Response(JSON.stringify({ error: 'Table not allowed' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
