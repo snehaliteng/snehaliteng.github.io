@@ -66,6 +66,7 @@ serve(async (req) => {
           <h2 style="color:#1e293b;">Thank you for your purchase!</h2>
           <p style="color:#475569;">Order ID: <strong>${order_id}</strong></p>
           <p style="color:#475569;">Your purchased tutorial PDFs are attached to this email.</p>
+          <p style="color:#ef4444;font-weight:600;font-size:.85rem;">&#9888; If you don't see this email in your inbox, please check your Spam / Junk folder.</p>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;">
           <p style="color:#94a3b8;font-size:.85rem;">These files are for personal use only. Please do not share.</p>
           <p style="color:#94a3b8;font-size:.85rem;">— Snehal IT Eng</p>

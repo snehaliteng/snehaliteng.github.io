@@ -69,15 +69,6 @@
           ${data.order_id ? 'Order ID: <strong>' + data.order_id + '</strong><br>' : ''}
           ${data.transaction_id ? 'Transaction ID: <strong>' + data.transaction_id + '</strong>' : ''}
         </div>
-        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0;">
-          <strong style="font-size:1rem;">Download Your E-Books</strong>
-          <ul class="dl-list">${items.filter(item => item.pdf_url).map(item => `
-            <li>
-              <span>${item.title || 'E-Book'}</span>
-              <a href="${item.pdf_url}" target="_blank" download>&#128229; Download PDF</a>
-            </li>
-          `).join('')}</ul>
-        </div>
       `;
 
       if (data.email_sent) {
