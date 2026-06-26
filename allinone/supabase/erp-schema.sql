@@ -97,6 +97,21 @@ CREATE TABLE IF NOT EXISTS products (
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS product_variants (
+  id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  org_id        BIGINT REFERENCES organizations(id),
+  product_id    BIGINT REFERENCES products(id) ON DELETE CASCADE,
+  name          TEXT NOT NULL,
+  sku_suffix    TEXT,
+  description   TEXT,
+  features      JSONB DEFAULT '[]',
+  mrp           NUMERIC(12,2),
+  selling_price NUMERIC(12,2),
+  is_active     BOOLEAN DEFAULT TRUE,
+  sort_order    INT DEFAULT 0,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS inventory_batches (
   id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   org_id        BIGINT REFERENCES organizations(id),
@@ -246,6 +261,7 @@ ALTER TABLE journal_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE journal_lines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE parties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_variants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE inventory_batches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE inventory_serial_numbers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
@@ -297,6 +313,11 @@ CREATE POLICY org_isolation ON journal_lines
   );
 
 CREATE POLICY org_isolation ON payments
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON product_variants
   FOR ALL USING (
     org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
   );
@@ -480,6 +501,7 @@ CREATE INDEX IF NOT EXISTS idx_invoices_org ON invoices(org_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id);
 CREATE INDEX IF NOT EXISTS idx_parties_org ON parties(org_id);
 CREATE INDEX IF NOT EXISTS idx_journal_entries_org ON journal_entries(org_id);
+CREATE INDEX IF NOT EXISTS idx_product_variants_product ON product_variants(product_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_batches_product ON inventory_batches(product_id);
 CREATE INDEX IF NOT EXISTS idx_inventory_batches_expiry ON inventory_batches(expiry_date);
 CREATE INDEX IF NOT EXISTS idx_gst_records_period ON gst_records(org_id, return_period);
