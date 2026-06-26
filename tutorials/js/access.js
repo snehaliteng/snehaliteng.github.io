@@ -10,7 +10,7 @@
   if (!slug) return;
 
   var FREE_SLUGS = {
-    'html':1,'css':1,'Javascript':1,'nodejs':1,'pwa':1,'react':1,
+    'html':1,'css':1,'nodejs':1,'pwa':1,'react':1,
     'angular':1,'android':1,'dotnetcore':1,'python':1,'ios':1,
     'fastapi-tutorial':1,'playwright-tutorial':1,'c#':1,'c%23':1
   };
