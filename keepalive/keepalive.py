@@ -1,5 +1,6 @@
 import urllib.request
 import urllib.error
+import json
 import sys
 from datetime import datetime
 
@@ -23,6 +24,27 @@ def keepalive():
         print(f'[{datetime.now()}] Supabase keepalive FAILED — {e.reason}', file=sys.stderr)
         return False
 
+def trigger_reminders():
+    url = f'{SUPABASE_URL}/functions/v1/send-payment-reminders'
+    data = json.dumps({}).encode()
+    req = urllib.request.Request(url, data=data, method='POST')
+    req.add_header('Content-Type', 'application/json')
+    req.add_header('apikey', ANON_KEY)
+    req.add_header('Authorization', f'Bearer {ANON_KEY}')
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            body = resp.read().decode()
+            result = json.loads(body)
+            print(f'[{datetime.now()}] Payment reminders: sent {result.get("sent",0)} of {result.get("total",0)}')
+            return True
+    except urllib.error.HTTPError as e:
+        print(f'[{datetime.now()}] Reminder trigger FAILED — HTTP {e.code}', file=sys.stderr)
+        return False
+    except Exception as e:
+        print(f'[{datetime.now()}] Reminder trigger FAILED — {e}', file=sys.stderr)
+        return False
+
 if __name__ == '__main__':
     ok = keepalive()
+    trigger_reminders()
     sys.exit(0 if ok else 1)
