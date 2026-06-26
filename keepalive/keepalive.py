@@ -2,6 +2,7 @@ import urllib.request
 import urllib.error
 import json
 import sys
+import os
 from datetime import datetime
 
 SUPABASE_URL = 'https://vgipghqejzbcoighktij.supabase.co'
@@ -22,6 +23,28 @@ def keepalive():
         return False
     except urllib.error.URLError as e:
         print(f'[{datetime.now()}] Supabase keepalive FAILED — {e.reason}', file=sys.stderr)
+        return False
+
+def trigger_backup():
+    """Trigger backup for org 12 (SnehalIT Engineering Solutions) via Edge Function."""
+    url = f'{SUPABASE_URL}/functions/v1/create-backup'
+    data = json.dumps({"org_id": 12}).encode()
+    req = urllib.request.Request(url, data=data, method='POST')
+    req.add_header('Content-Type', 'application/json')
+    if os.environ.get('SUPABASE_SERVICE_ROLE_KEY'):
+        req.add_header('Authorization', f'Bearer {os.environ["SUPABASE_SERVICE_ROLE_KEY"]}')
+        req.add_header('apikey', os.environ['SUPABASE_SERVICE_ROLE_KEY'])
+    else:
+        req.add_header('apikey', ANON_KEY)
+        req.add_header('Authorization', f'Bearer {ANON_KEY}')
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            body = resp.read().decode()
+            result = json.loads(body)
+            print(f'[{datetime.now()}] Backup: {result.get("tables",0)} tables, {result.get("records",0)} records, {(result.get("size_bytes",0)/1024):.1f} KB')
+            return True
+    except Exception as e:
+        print(f'[{datetime.now()}] Backup trigger FAILED — {e}', file=sys.stderr)
         return False
 
 def trigger_reminders():
@@ -47,4 +70,5 @@ def trigger_reminders():
 if __name__ == '__main__':
     ok = keepalive()
     trigger_reminders()
+    trigger_backup()
     sys.exit(0 if ok else 1)

@@ -283,6 +283,76 @@ CREATE TABLE IF NOT EXISTS keepalive (
   pinged_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS tds_challans (
+  id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  org_id        BIGINT REFERENCES organizations(id),
+  challan_no    TEXT NOT NULL,
+  section       TEXT,
+  tds_type      TEXT NOT NULL CHECK (tds_type IN ('tds','tcs')),
+  amount        NUMERIC(14,2) NOT NULL,
+  deposit_date  DATE NOT NULL DEFAULT CURRENT_DATE,
+  bsr_code      TEXT,
+  mode          TEXT DEFAULT 'online' CHECK (mode IN ('online','bank','cash')),
+  status        TEXT DEFAULT 'paid' CHECK (status IN ('paid','pending','bounced')),
+  remarks       TEXT,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS tds_certificates (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  org_id          BIGINT REFERENCES organizations(id),
+  party_id        BIGINT REFERENCES parties(id),
+  certificate_type TEXT NOT NULL CHECK (certificate_type IN ('form16','form16a','form27d','form16e')),
+  financial_year  TEXT NOT NULL,
+  quarter         TEXT CHECK (quarter IN ('Q1','Q2','Q3','Q4','Annual')),
+  section         TEXT,
+  total_amount    NUMERIC(14,2) DEFAULT 0,
+  tds_amount      NUMERIC(14,2) DEFAULT 0,
+  certificate_no  TEXT,
+  issue_date      DATE,
+  status          TEXT DEFAULT 'pending' CHECK (status IN ('pending','issued','received')),
+  file_url        TEXT,
+  notes           TEXT,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS cost_centres (
+  id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  org_id        BIGINT REFERENCES organizations(id),
+  name          TEXT NOT NULL,
+  code          TEXT,
+  description   TEXT,
+  parent_id     BIGINT REFERENCES cost_centres(id),
+  is_active     BOOLEAN DEFAULT TRUE,
+  UNIQUE(org_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS budgets (
+  id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  org_id          BIGINT REFERENCES organizations(id),
+  fiscal_year     TEXT NOT NULL,
+  account_id      BIGINT REFERENCES chart_of_accounts(id),
+  cost_centre_id  BIGINT REFERENCES cost_centres(id),
+  budget_amount   NUMERIC(14,2) NOT NULL DEFAULT 0,
+  spent_amount    NUMERIC(14,2) DEFAULT 0,
+  notes           TEXT,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS org_backups (
+  id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  org_id        BIGINT REFERENCES organizations(id),
+  file_name     TEXT NOT NULL,
+  file_url      TEXT,
+  file_size     BIGINT,
+  table_count   INTEGER,
+  record_count  INTEGER,
+  status        TEXT DEFAULT 'pending' CHECK (status IN ('pending','completed','failed')),
+  error_msg     TEXT,
+  created_by    UUID REFERENCES auth.users(id),
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 2. Enable RLS
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -301,6 +371,16 @@ ALTER TABLE gst_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gst_itc ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gst_payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tds_challans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tds_certificates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cost_centres ENABLE ROW LEVEL SECURITY;
+ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE org_backups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bank_statements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bank_transactions ENABLE ROW LEVEL SECURITY;
+
+-- Add cost_centre_id to journal_lines
+ALTER TABLE journal_lines ADD COLUMN IF NOT EXISTS cost_centre_id BIGINT REFERENCES cost_centres(id);
 
 -- 3. RLS Policies
 -- Org isolation: user sees only their org's data
@@ -380,6 +460,41 @@ CREATE POLICY org_isolation ON gst_payments
   );
 
 CREATE POLICY org_isolation ON audit_log
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON tds_challans
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON tds_certificates
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON cost_centres
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON budgets
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON org_backups
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON bank_statements
+  FOR ALL USING (
+    org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
+  );
+
+CREATE POLICY org_isolation ON bank_transactions
   FOR ALL USING (
     org_id IN (SELECT org_id FROM user_profiles WHERE id = auth.uid())
   );
@@ -674,17 +789,14 @@ CREATE INDEX IF NOT EXISTS idx_bank_txn_match ON bank_transactions(match_status)
 CREATE INDEX IF NOT EXISTS idx_bank_txn_statement ON bank_transactions(statement_id);
 
 -- 7e. Indexes
+CREATE INDEX IF NOT EXISTS idx_chart_of_accounts_org ON chart_of_accounts(org_id);
+CREATE INDEX IF NOT EXISTS idx_parties_org ON parties(org_id);
 CREATE INDEX IF NOT EXISTS idx_products_org ON products(org_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_org ON invoices(org_id);
-CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id);
-CREATE INDEX IF NOT EXISTS idx_parties_org ON parties(org_id);
-CREATE INDEX IF NOT EXISTS idx_journal_entries_org ON journal_entries(org_id);
-CREATE INDEX IF NOT EXISTS idx_product_variants_product ON product_variants(product_id);
-CREATE INDEX IF NOT EXISTS idx_inventory_batches_product ON inventory_batches(product_id);
-CREATE INDEX IF NOT EXISTS idx_inventory_batches_expiry ON inventory_batches(expiry_date);
-CREATE INDEX IF NOT EXISTS idx_gst_records_period ON gst_records(org_id, return_period);
-CREATE INDEX IF NOT EXISTS idx_invoices_irn ON invoices(irn);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_org ON user_profiles(org_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_party ON invoices(customer_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(org_id, invoice_date);
+CREATE INDEX IF NOT EXISTS idx_invoices_doc_type ON invoices(org_id, doc_type);
+CREATE INDEX IF NOT EXISTS idx_payments_org ON payments(org_id);
 CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_gst_itc_org ON gst_itc(org_id);
 CREATE INDEX IF NOT EXISTS idx_gst_itc_period ON gst_itc(org_id, period);
@@ -692,3 +804,10 @@ CREATE INDEX IF NOT EXISTS idx_gst_payments_org ON gst_payments(org_id);
 CREATE INDEX IF NOT EXISTS idx_gst_payments_period ON gst_payments(org_id, period);
 CREATE INDEX IF NOT EXISTS idx_audit_log_org ON audit_log(org_id);
 CREATE INDEX IF NOT EXISTS idx_invoice_lines_invoice ON invoice_lines(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_tds_challans_org ON tds_challans(org_id);
+CREATE INDEX IF NOT EXISTS idx_tds_certs_org ON tds_certificates(org_id, party_id);
+CREATE INDEX IF NOT EXISTS idx_cost_centres_org ON cost_centres(org_id);
+CREATE INDEX IF NOT EXISTS idx_budgets_org ON budgets(org_id, fiscal_year);
+CREATE INDEX IF NOT EXISTS idx_bank_txn_date ON bank_transactions(org_id, txn_date);
+CREATE INDEX IF NOT EXISTS idx_bank_txn_match ON bank_transactions(match_status);
+CREATE INDEX IF NOT EXISTS idx_bank_txn_statement ON bank_transactions(statement_id);
