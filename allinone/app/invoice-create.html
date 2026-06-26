@@ -346,10 +346,12 @@
     }
 
     async function getNextDocNo(orgId, docType) {
-      const prefix = DOC_PREFIXES[docType] || 'INV';
+      const { data: series } = await erp.from('voucher_series').select('*').eq('org_id', orgId).eq('doc_type', docType).maybeSingle();
+      const prefix = (series?.prefix || DOC_PREFIXES[docType] || 'INV');
+      const pad = series?.pad_length || 5;
       const { data: last } = await erp.from('invoices').select('invoice_no').eq('org_id', orgId).ilike('invoice_no', prefix + '-%').order('id', { ascending: false }).limit(1);
-      const lastNum = last && last.length ? parseInt((last[0].invoice_no||'').split('-')[1])||0 : 0;
-      return prefix + '-' + String(lastNum + 1).padStart(5, '0');
+      const lastNum = last?.length ? parseInt((last[0].invoice_no||'').split('-')[1])||0 : 0;
+      return prefix + '-' + String(lastNum + 1).padStart(pad, '0');
     }
   </script>
 </body>

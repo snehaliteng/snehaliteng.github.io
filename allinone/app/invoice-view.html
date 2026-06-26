@@ -18,6 +18,7 @@
     <div class="flex gap-2 items-center">
       <button onclick="shareWhatsApp()" class="bg-green-100 text-green-700 px-3 py-1.5 rounded text-sm hover:bg-green-200" title="Share on WhatsApp">&#128172; WhatsApp</button>
       <button onclick="shareEmail()" class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded text-sm hover:bg-blue-200" title="Share via Email">&#9993; Email</button>
+      <button onclick="cloneDocument()" class="bg-purple-100 text-purple-700 px-3 py-1.5 rounded text-sm hover:bg-purple-200" title="Clone this document">&#128203; Clone</button>
       <button onclick="window.print()" class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-300">&#128424; Print</button>
       <button onclick="signOut()" class="text-sm text-red-500 hover:underline ml-2">Logout</button>
     </div>
@@ -181,6 +182,41 @@
           <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(upiLink)}" alt="UPI QR" class="mx-auto" width="120" height="120">
           <p class="text-xs text-gray-500 mt-1">${escapeHtml(upiId)}</p>
         </div>`;
+    }
+
+    async function cloneDocument() {
+      if (!invData) return;
+      if (!confirm('Create a draft copy of this ' + (DOC_LABELS[invData.doc_type]||'document') + '?')) return;
+      const orgId = await getOrgId();
+      if (!orgId) return;
+      const cl = invData;
+      const { data: newInv, error: ie } = await erp.from('invoices').insert({
+        org_id: orgId, party_id: cl.party_id, invoice_date: new Date().toISOString().split('T')[0],
+        due_date: cl.due_date, doc_type: cl.doc_type, status: 'draft', invoice_type: cl.invoice_type||'regular',
+        place_of_supply: cl.place_of_supply, party_name: cl.party_name||cl.parties?.name||'',
+        party_gstin: cl.party_gstin||'', party_address: cl.party_address||'',
+        ref_number: '', notes: cl.notes||'', terms_conditions: cl.terms_conditions||'',
+        discount_pct: cl.discount_pct||0,
+        subtotal: cl.subtotal, discount_amt: cl.discount_amt||0,
+        taxable_amt: cl.taxable_amt, cgst_amt: cl.cgst_amt, sgst_amt: cl.sgst_amt,
+        igst_amt: cl.igst_amt, tds_rate: cl.tds_rate||0, tds_amt: cl.tds_amt||0,
+        tcs_rate: cl.tcs_rate||0, tcs_amt: cl.tcs_amt||0,
+        total: cl.total, round_off: cl.round_off||0
+      }).select().single();
+      if (ie) return showAlert('Clone failed: ' + ie.message, 'error');
+      const { data: lines } = await erp.from('invoice_lines').select('*').eq('invoice_id', invData.id);
+      if (lines?.length) {
+        await erp.from('invoice_lines').insert(lines.map(l => ({
+          invoice_id: newInv.id, product_id: l.product_id,
+          description: l.description, quantity: l.quantity, rate: l.rate,
+          unit: l.unit||'', discount_pct: l.discount_pct||0,
+          taxable_amt: l.taxable_amt, gst_rate: l.gst_rate||0,
+          cgst_rate: l.cgst_rate||0, sgst_rate: l.sgst_rate||0, igst_rate: l.igst_rate||0,
+          cgst_amt: l.cgst_amt||0, sgst_amt: l.sgst_amt||0, igst_amt: l.igst_amt||0,
+          total: l.total
+        })));
+      }
+      showAlert((DOC_LABELS[invData.doc_type]||'Document') + ' cloned as draft! <a href="invoice-view.html?id='+newInv.id+'" class="underline">View Clone</a>', 'success');
     }
 
     function shareWhatsApp() {
