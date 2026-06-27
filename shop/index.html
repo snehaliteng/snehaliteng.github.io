@@ -14,6 +14,7 @@
       <a href="../">Home</a>
       <a href="../tutorials/">Tutorials</a>
       <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+      <span id="nav-user" class="text-sm text-gray-500 hidden"></span>
       <a href="login.html" id="nav-auth">Login</a>
     </div>
   </nav>
@@ -41,6 +42,9 @@
         navAuth.textContent = 'Logout';
         navAuth.href = '#';
         navAuth.addEventListener('click', async (e) => { e.preventDefault(); await signOut(); window.location.reload(); });
+        const navUser = document.getElementById('nav-user');
+        navUser.textContent = user.email;
+        navUser.classList.remove('hidden');
       } else {
         navAuth.textContent = 'Login';
         navAuth.href = 'login.html';
