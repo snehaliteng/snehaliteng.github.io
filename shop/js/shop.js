@@ -130,7 +130,7 @@ const SITE_URL = 'https://snehaliteng.github.io';
 async function socialLogin(provider) {
   const { data, error } = await _shop.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: `${SITE_URL}/shop/login.html` }
+    options: { redirectTo: `${SITE_URL}/shop/index.html` }
   });
   if (error) throw error;
 }
