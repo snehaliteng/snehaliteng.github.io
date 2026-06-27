@@ -11,6 +11,135 @@ let qPage = 1;
 let qTotal = 0;
 const Q_PAGE_SIZE = 25;
 
+const EDGE_FUNCTION_URL = 'https://vgipghqejzbcoighktij.supabase.co/functions/v1';
+const RAZORPAY_KEY_ID = 'rzp_live_T69SbFfk53qNmY';
+
+let userPlan = null;
+let planLimits = { max_categories: 5, max_questions: 25, max_tags: 5, max_jobs: 3 };
+
+async function loadPlan() {
+  if (!currentUser) return;
+  const { data: up } = await sb.from('qna_user_plans').select('plan_id,status').eq('user_id', currentUser.id).maybeSingle();
+  if (up && up.status === 'active') {
+    const { data: p } = await sb.from('qna_plans').select('*').eq('id', up.plan_id).maybeSingle();
+    if (p && p.active) {
+      planLimits = { max_categories: p.max_categories, max_questions: p.max_questions, max_tags: p.max_tags, max_jobs: p.max_jobs };
+      userPlan = p;
+      return;
+    }
+  }
+  userPlan = { id: 0, name: 'Free', max_categories: 5, max_questions: 25, max_tags: 5, max_jobs: 3, price: 0 };
+  planLimits = { max_categories: 5, max_questions: 25, max_tags: 5, max_jobs: 3 };
+}
+
+async function checkLimit(type) {
+  if (!currentUser) return true;
+  let count;
+  if (type === 'categories') {
+    const { count: c } = await sb.from('qna_categories').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+    count = c;
+    if (count < planLimits.max_categories) return true;
+  } else if (type === 'questions') {
+    const { count: c } = await sb.from('qna_questions').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+    count = c;
+    if (count < planLimits.max_questions) return true;
+  } else if (type === 'tags') {
+    const { count: c } = await sb.from('qna_tags').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+    count = c;
+    if (count < planLimits.max_tags) return true;
+  } else if (type === 'jobs') {
+    const { count: c } = await sb.from('qna_job_applications').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id);
+    count = c;
+    if (count < planLimits.max_jobs) return true;
+  }
+  await showUpsell(type, count);
+  return false;
+}
+
+async function showUpsell(type, current) {
+  const { data: plans } = await sb.from('qna_plans').select('*').eq('active', true).order('price');
+  const limitKey = 'max_' + type;
+  const labels = { categories: 'Categories', questions: 'Questions', tags: 'Tags', jobs: 'Job Applications' };
+  let html = '<h3 style="margin-bottom:12px;">Plan Limit Reached</h3>';
+  html += '<p style="font-size:14px;color:#666;margin-bottom:16px;">You\'ve used ' + current + ' of ' + planLimits[limitKey] + ' ' + labels[type] + ' on your current plan. Upgrade to continue adding.</p>';
+  html += '<div style="display:flex;flex-direction:column;gap:12px;">';
+  if (plans) {
+    for (const p of plans) {
+      if (p.price === 0) continue;
+      const canUpgrade = p[limitKey] > planLimits[limitKey];
+      html += '<div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px;' + (canUpgrade ? 'cursor:pointer;' : 'opacity:0.5;') + '"' + (canUpgrade ? ' onclick="purchasePlan(' + p.id + ')"' : '') + '>';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+      html += '<div><strong style="font-size:16px;">' + escHtml(p.name) + '</strong>';
+      html += '<div style="font-size:12px;color:#666;margin-top:4px;">';
+      const parts = [];
+      if (p.max_categories >= 999999) parts.push('&#8734; Categories'); else parts.push(p.max_categories + ' Categories');
+      if (p.max_questions >= 999999) parts.push('&#8734; Questions'); else parts.push(p.max_questions + ' Questions');
+      if (p.max_tags >= 999999) parts.push('&#8734; Tags'); else parts.push(p.max_tags + ' Tags');
+      if (p.max_jobs >= 999999) parts.push('&#8734; Jobs'); else parts.push(p.max_jobs + ' Jobs');
+      html += parts.join(' &middot; ');
+      html += '</div></div>';
+      html += '<div style="font-size:18px;font-weight:700;color:#1a73e8;">&#8377;' + (p.price / 100).toFixed(2) + '</div>';
+      html += '</div></div>';
+    }
+  }
+  html += '</div>';
+  html += '<div class="modal-actions" style="margin-top:16px;"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button></div>';
+  showModal(html);
+}
+
+async function purchasePlan(planId) {
+  closeModal();
+  const { data: sessionData } = await sb.auth.getSession();
+  const token = sessionData?.session?.access_token;
+  if (!token) return alert('Please login again');
+  try {
+    const res = await fetch(EDGE_FUNCTION_URL + '/qna-create-order', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ plan_id: planId })
+    });
+    if (!res.ok) {
+      let msg = 'Failed to create order';
+      try { const e = await res.json(); msg = e.details || e.error || msg; } catch (_) { try { msg = await res.text(); } catch (_2) {} }
+      return alert(msg);
+    }
+    const order = await res.json();
+    const rzp = new Razorpay({
+      key: order.key_id,
+      amount: order.amount,
+      currency: order.currency || 'INR',
+      name: 'SnehalIT Engineering',
+      description: order.plan_name + ' Plan',
+      order_id: order.id,
+      prefill: { name: order.user_name, email: order.user_email, contact: '919974031480' },
+      theme: { color: '#2563eb' },
+      handler: async function(response) {
+        try {
+          const vRes = await fetch(EDGE_FUNCTION_URL + '/qna-verify-purchase', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              plan_id: planId
+            })
+          });
+          if (!vRes.ok) {
+            let msg = 'Verification failed';
+            try { const e = await vRes.json(); msg = e.error || msg; } catch (_) { try { msg = await vRes.text(); } catch (_2) {} }
+            return alert(msg);
+          }
+          const vData = await vRes.json();
+          alert('Payment successful! ' + vData.plan_name + ' plan activated.');
+          await loadPlan();
+          location.reload();
+        } catch (e) { alert('Verification error: ' + e.message); }
+      },
+      modal: { ondismiss: function() { } }
+    });
+    rzp.open();
+  } catch (e) { alert('Payment failed: ' + e.message); }
+}
+
 // Auth
 async function checkAuth() {
   const { data: { user } } = await sb.auth.getUser();
@@ -19,6 +148,9 @@ async function checkAuth() {
     document.getElementById('login-overlay').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
     document.getElementById('user-email').textContent = user.email;
+    await loadPlan();
+    const badge = document.getElementById('plan-badge');
+    if (badge && userPlan) badge.textContent = userPlan.name;
     await loadCatFilter();
     await loadCategories();
     await loadTags();
@@ -326,6 +458,7 @@ async function saveQuestion(id) {
     created_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
   };
   if (!data.title) return alert('Title is required');
+  if (!id && !(await checkLimit('questions'))) return;
   if (id) {
     const { error } = await sb.from('qna_questions').update(data).eq('id', id);
     if (error) return alert('Error: ' + error.message);
@@ -470,6 +603,7 @@ async function saveCategory(id) {
   };
   if (!data.name) return alert('Name is required');
   if (data.parent_id === 0) data.parent_id = null;
+  if (!id && !(await checkLimit('categories'))) return;
   if (id) {
     const { error } = await sb.from('qna_categories').update(data).eq('id', id);
     if (error) return alert('Error: ' + error.message);
@@ -535,6 +669,7 @@ function showTagModal() {
 async function saveTag() {
   const name = document.getElementById('mt-name').value.trim();
   if (!name) return alert('Name is required');
+  if (!(await checkLimit('tags'))) return;
   const { data: existing } = await sb.from('qna_tags').select('id').order('id', { ascending: false }).limit(1);
   const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
   const { error } = await sb.from('qna_tags').insert({ id: newId, name, user_id: currentUser.id });
@@ -616,6 +751,7 @@ async function saveJob(id) {
     notes: document.getElementById('mj-notes').value || null
   };
   if (!data.company || !data.role) return alert('Company and Role are required');
+  if (!id && !(await checkLimit('jobs'))) return;
   if (id) {
     const { error } = await sb.from('qna_job_applications').update(data).eq('id', id);
     if (error) return alert('Error: ' + error.message);

@@ -213,7 +213,7 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
       <div class="nav-item" data-view="tags"><span>&#127991;</span> <span>Tags</span></div>
       <div class="nav-item" data-view="jobs"><span>&#128188;</span> <span>Job Tracker</span></div>
     </nav>
-    <div class="user-info"><span id="user-email"></span> <a id="logout-link">Logout</a></div>
+    <div class="user-info"><span id="user-email"></span> <span id="plan-badge" style="font-size:11px;background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:10px;"></span> <a id="logout-link">Logout</a></div>
   </div>
   <div id="main">
     <!-- Dashboard -->
@@ -289,6 +289,7 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
 </div>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="js/qna.js"></script>
 </body>
 </html>

@@ -86,3 +86,34 @@ CREATE TABLE IF NOT EXISTS qna_job_applications (
 );
 ALTER TABLE qna_job_applications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "users own jobs" ON qna_job_applications FOR ALL USING (user_id = auth.uid());
+
+-- Plans defined by admin (snehaliteng@gmail.com)
+CREATE TABLE IF NOT EXISTS qna_plans (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  max_categories INTEGER NOT NULL DEFAULT 5,
+  max_questions INTEGER NOT NULL DEFAULT 25,
+  max_tags INTEGER NOT NULL DEFAULT 5,
+  max_jobs INTEGER NOT NULL DEFAULT 3,
+  price INTEGER NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT true,
+  created_at TEXT NOT NULL
+);
+ALTER TABLE qna_plans ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin manage plans" ON qna_plans FOR ALL USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+CREATE POLICY "users read active plans" ON qna_plans FOR SELECT USING (active = true);
+
+-- User plan assignments
+CREATE TABLE IF NOT EXISTS qna_user_plans (
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  plan_id INTEGER NOT NULL REFERENCES qna_plans(id) ON DELETE RESTRICT,
+  start_date TEXT NOT NULL,
+  end_date TEXT,
+  payment_id TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  PRIMARY KEY (user_id)
+);
+ALTER TABLE qna_user_plans ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users own plan" ON qna_user_plans FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "users insert own plan" ON qna_user_plans FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "users update own plan" ON qna_user_plans FOR UPDATE USING (user_id = auth.uid());
