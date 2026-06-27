@@ -115,12 +115,28 @@ async function loadDashboard() {
 }
 
 // Questions
+function catOptionsHtml(cats, excludeId, includeAll, selectedId) {
+  const children = {};
+  cats.forEach(c => { const p = c.parent_id || 0; if (!children[p]) children[p] = []; children[p].push(c); });
+  let html = includeAll ? '<option value="">All Categories</option>' : '';
+  function walk(parentId, depth) {
+    const items = (children[parentId] || []).sort((a, b) => a.order_index - b.order_index);
+    for (const c of items) {
+      if (c.id === excludeId) continue;
+      html += `<option value="${c.id}"${c.id == selectedId ? ' selected' : ''}>${'&nbsp;'.repeat(depth * 4)}${escHtml(c.name)}</option>`;
+      walk(c.id, depth + 1);
+    }
+  }
+  walk(0, 0);
+  return html;
+}
+
 async function loadCatFilter() {
-  const { data } = await sb.from('qna_categories').select('id,name').order('name');
+  const { data } = await sb.from('qna_categories').select('id,name,parent_id,order_index').order('order_index');
   if (!data) return;
   catCache = data;
   const sel = document.getElementById('q-cat-filter');
-  sel.innerHTML = '<option value="">All Categories</option>' + data.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('');
+  sel.innerHTML = catOptionsHtml(data, null, true);
   // Also rebuild cat tree
   buildCatTree();
 }
@@ -161,6 +177,8 @@ async function loadQuestions() {
   const prefMap = {};
   if (prefs) prefs.forEach(p => { prefMap[p.question_id] = p; });
 
+  // Store page questions for reorder context
+  window._qPageData = data;
   renderQuestionList(data, prefMap);
 }
 
@@ -168,11 +186,11 @@ function renderQuestionList(questions, prefMap) {
   const container = document.getElementById('q-list');
   if (!questions.length) { container.innerHTML = '<p style="color:#666;padding:16px;">No questions found.</p>'; renderPagination(); return; }
 
-  container.innerHTML = questions.map(q => {
+  container.innerHTML = questions.map((q, i) => {
     const p = prefMap[q.id];
     const read = p && p.is_read;
     const cat = catCache.find(c => c.id === q.category_id);
-    return `<div class="q-item" onclick="toggleQDetail(${q.id}, this)">
+    return `<div class="q-item" draggable="true" data-qid="${q.id}" data-idx="${i}" ondragstart="onDragStart(event)" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragend="onDragEnd(event)" onclick="toggleQDetail(${q.id}, this)">
       <span class="q-title">${escHtml(q.title)}${read ? '<span class="read-badge">Read</span>' : ''}</span>
       <span class="q-meta">${cat ? escHtml(cat.name) : ''}${q.is_hidden ? ' <span style="color:#d93025;">Hidden</span>' : ''}</span>
       <span class="q-actions">
@@ -184,6 +202,47 @@ function renderQuestionList(questions, prefMap) {
     <div class="q-detail hidden" id="qdetail-${q.id}"></div>`;
   }).join('');
   renderPagination();
+}
+
+let _dragSrcId = null;
+
+function onDragStart(e) {
+  _dragSrcId = parseInt(e.target.closest('.q-item').dataset.qid);
+  e.dataTransfer.effectAllowed = 'move';
+  e.target.closest('.q-item').classList.add('dragging');
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const item = e.target.closest('.q-item');
+  if (item) item.classList.add('drag-over');
+}
+
+function onDragEnd(e) {
+  e.target.closest('.q-item').classList.remove('dragging');
+  document.querySelectorAll('.q-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+  _dragSrcId = null;
+}
+
+async function onDrop(e) {
+  e.preventDefault();
+  const target = e.target.closest('.q-item');
+  if (!target) return;
+  target.classList.remove('drag-over');
+  const targetId = parseInt(target.dataset.qid);
+  if (!_dragSrcId || _dragSrcId === targetId) return;
+  const data = window._qPageData;
+  if (!data) return;
+  const src = data.find(q => q.id === _dragSrcId);
+  const dst = data.find(q => q.id === targetId);
+  if (!src || !dst) return;
+  const srcOrder = src.order_index;
+  const dstOrder = dst.order_index;
+  const { error: e1 } = await sb.from('qna_questions').update({ order_index: dstOrder }).eq('id', _dragSrcId);
+  const { error: e2 } = await sb.from('qna_questions').update({ order_index: srcOrder }).eq('id', targetId);
+  if (e1 || e2) return alert('Reorder failed: ' + ((e1 || e2).message));
+  loadQuestions();
 }
 
 function renderPagination() {
@@ -247,7 +306,7 @@ async function showQModal(id) {
   const html = `<h3>${id ? 'Edit' : 'New'} Question</h3>
     <label>Title</label><input id="mq-title" value="${escHtml(q.title)}">
     <label>Description</label><textarea id="mq-desc">${escHtml(q.description)}</textarea>
-    <label>Category</label><select id="mq-cat">${cats.map(c => `<option value="${c.id}" ${c.id == q.category_id ? 'selected' : ''}>${escHtml(c.name)}</option>`).join('')}</select>
+    <label>Category</label><select id="mq-cat">${catOptionsHtml(cats, null, false, q.category_id)}</select>
     <label>Order Index</label><input id="mq-order" type="number" value="${q.order_index || 0}">
     <label><input type="checkbox" id="mq-hidden" ${q.is_hidden ? 'checked' : ''}> Hidden</label>
     <div class="modal-actions">
@@ -391,7 +450,7 @@ async function showCatModal(id) {
     if (data) cat = data;
   }
   const cats = await loadAllCategories();
-  const catOpts = `<option value="0">None (root)</option>` + cats.filter(c => c.id !== id).map(c => `<option value="${c.id}" ${c.id == cat.parent_id ? 'selected' : ''}>${escHtml(c.name)}</option>`).join('');
+  const catOpts = `<option value="0">None (root)</option>` + catOptionsHtml(cats.filter(c => c.id !== id), id, false, cat.parent_id);
   const html = `<h3>${id ? 'Edit' : 'New'} Category</h3>
     <label>Name</label><input id="mc-name" value="${escHtml(cat.name)}">
     <label>Parent Category</label><select id="mc-parent">${catOpts}</select>
