@@ -28,6 +28,13 @@ async function socialLogin(provider) {
   if (error) throw error;
 }
 
+function showAlert(msg, type) {
+  const el = document.getElementById('alert');
+  if (!el) return;
+  el.innerHTML = '<div class="bg-' + (type==='error' ? 'red' : 'green') + '-100 text-' + (type==='error' ? 'red' : 'green') + '-700 p-3 rounded text-sm">' + msg + '</div>';
+  setTimeout(() => el.innerHTML = '', 5000);
+}
+
 async function signOut() {
   await _admin.auth.signOut();
   window.location.href = '../';

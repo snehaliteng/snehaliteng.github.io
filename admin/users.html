@@ -23,7 +23,7 @@
     </div>
   </nav>
 
-  <div class="max-w-5xl mx-auto p-6">
+  <div class="max-w-6xl mx-auto p-6">
     <h1 class="text-2xl font-bold mb-6">Registered Users</h1>
     <div id="alert"></div>
     <div id="loading" class="text-gray-500">Loading users...</div>
@@ -36,10 +36,16 @@
     document.addEventListener('DOMContentLoaded', async function() {
       const user = await requireAdmin();
       if (!user) return;
+      await loadUsers();
+    });
 
+    function getToken() {
+      return _admin.auth.getSession().then(s => s.data?.session?.access_token);
+    }
+
+    async function loadUsers() {
       try {
-        const session = await _admin.auth.getSession();
-        const token = session.data?.session?.access_token;
+        const token = await getToken();
         const res = await fetch('https://vgipghqejzbcoighktij.supabase.co/functions/v1/admin-list-users', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -61,26 +67,67 @@
               <th class="p-3 font-semibold">Email</th>
               <th class="p-3 font-semibold">Username</th>
               <th class="p-3 font-semibold">Full Name</th>
+              <th class="p-3 font-semibold">Status</th>
               <th class="p-3 font-semibold">Joined</th>
               <th class="p-3 font-semibold">Last Login</th>
+              <th class="p-3 font-semibold"></th>
             </tr></thead>
-            <tbody>${users.map(u => `
+            <tbody>${users.map(u => {
+              const isBanned = u.banned_until && new Date(u.banned_until) > new Date();
+              return `
               <tr class="border-b hover:bg-gray-50">
                 <td class="p-3">${escapeHtml(u.email)}</td>
                 <td class="p-3">${escapeHtml(u.username || '-')}</td>
                 <td class="p-3">${escapeHtml(u.full_name || '-')}</td>
+                <td class="p-3">${isBanned ? '<span class="bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded">Inactive</span>' : '<span class="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded">Active</span>'}</td>
                 <td class="p-3 text-gray-500">${u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}</td>
                 <td class="p-3 text-gray-500">${u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString() : '-'}</td>
-              </tr>
-            `).join('')}</tbody>
+                <td class="p-3 whitespace-nowrap">
+                  <button onclick="toggleUserStatus('${u.id}')" class="text-xs ${isBanned ? 'text-green-600 hover:underline' : 'text-orange-600 hover:underline'} mr-2">${isBanned ? 'Activate' : 'Deactivate'}</button>
+                  <button onclick="deleteUser('${u.id}', '${escapeHtml(u.email)}')" class="text-xs text-red-600 hover:underline">Delete</button>
+                </td>
+              </tr>`;}).join('')}</tbody>
           </table>
-          <div class="p-3 text-xs text-gray-400 border-t">Total: ${users.length} user${users.length !== 1 ? 's' : ''}</div>
-        `;
+          <div class="p-3 text-xs text-gray-400 border-t">Total: ${users.length} user${users.length !== 1 ? 's' : ''}</div>`;
       } catch (err) {
         document.getElementById('loading').textContent = '';
         document.getElementById('alert').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded text-sm">' + err.message + '</div>';
       }
-    });
+    }
+
+    async function manageUser(action, userId) {
+      const token = await getToken();
+      const res = await fetch('https://vgipghqejzbcoighktij.supabase.co/functions/v1/admin-manage-users', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, user_id: userId })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    async function toggleUserStatus(userId) {
+      try {
+        await manageUser('toggle_status', userId);
+        showAlert('User status updated', 'success');
+        loadUsers();
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
+
+    async function deleteUser(userId, email) {
+      if (!confirm('Permanently delete user ' + email + '?\n\nThis cannot be undone. Their blog/profile data will remain but the auth account will be removed.')) return;
+      if (!confirm('Are you absolutely sure? Type the email to confirm.\n\nEmail: ' + email)) return;
+      try {
+        await manageUser('delete', userId);
+        showAlert('User deleted: ' + email, 'success');
+        loadUsers();
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
   </script>
 </body>
 </html>

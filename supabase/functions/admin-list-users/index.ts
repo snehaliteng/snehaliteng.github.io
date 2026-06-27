@@ -35,6 +35,7 @@ serve(async (req) => {
       email: u.email,
       created_at: u.created_at,
       last_sign_in_at: u.last_sign_in_at,
+      banned_until: u.banned_until,
       username: profileMap[u.id]?.username || '',
       full_name: profileMap[u.id]?.full_name || ''
     }))
