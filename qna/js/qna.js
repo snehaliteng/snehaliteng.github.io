@@ -268,11 +268,13 @@ async function saveQuestion(id) {
   };
   if (!data.title) return alert('Title is required');
   if (id) {
-    await sb.from('qna_questions').update(data).eq('id', id);
+    const { error } = await sb.from('qna_questions').update(data).eq('id', id);
+    if (error) return alert('Error: ' + error.message);
   } else {
     const { data: existing } = await sb.from('qna_questions').select('id').order('id', { ascending: false }).limit(1);
     const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    await sb.from('qna_questions').insert({ ...data, id: newId });
+    const { error } = await sb.from('qna_questions').insert({ ...data, id: newId, user_id: currentUser.id });
+    if (error) return alert('Error: ' + error.message);
   }
   closeModal();
   loadQuestions();
@@ -319,11 +321,13 @@ async function saveAnswer(questionId, answerId) {
     created_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
   };
   if (answerId) {
-    await sb.from('qna_answers').update(data).eq('id', answerId);
+    const { error } = await sb.from('qna_answers').update(data).eq('id', answerId);
+    if (error) return alert('Error: ' + error.message);
   } else {
     const { data: existing } = await sb.from('qna_answers').select('id').order('id', { ascending: false }).limit(1);
     const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    await sb.from('qna_answers').insert({ ...data, id: newId, question_id: questionId });
+    const { error } = await sb.from('qna_answers').insert({ ...data, id: newId, question_id: questionId, user_id: currentUser.id });
+    if (error) return alert('Error: ' + error.message);
   }
   closeModal();
   const el = document.getElementById('qdetail-' + questionId);
@@ -408,11 +412,13 @@ async function saveCategory(id) {
   if (!data.name) return alert('Name is required');
   if (data.parent_id === 0) data.parent_id = null;
   if (id) {
-    await sb.from('qna_categories').update(data).eq('id', id);
+    const { error } = await sb.from('qna_categories').update(data).eq('id', id);
+    if (error) return alert('Error: ' + error.message);
   } else {
     const { data: existing } = await sb.from('qna_categories').select('id').order('id', { ascending: false }).limit(1);
     const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    await sb.from('qna_categories').insert({ ...data, id: newId });
+    const { error } = await sb.from('qna_categories').insert({ ...data, id: newId, user_id: currentUser.id });
+    if (error) return alert('Error: ' + error.message);
   }
   closeModal();
   await loadCatFilter();
@@ -472,7 +478,8 @@ async function saveTag() {
   if (!name) return alert('Name is required');
   const { data: existing } = await sb.from('qna_tags').select('id').order('id', { ascending: false }).limit(1);
   const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-  await sb.from('qna_tags').insert({ id: newId, name });
+  const { error } = await sb.from('qna_tags').insert({ id: newId, name, user_id: currentUser.id });
+  if (error) return alert('Error: ' + error.message);
   closeModal();
   loadTags();
 }
@@ -551,11 +558,13 @@ async function saveJob(id) {
   };
   if (!data.company || !data.role) return alert('Company and Role are required');
   if (id) {
-    await sb.from('qna_job_applications').update(data).eq('id', id);
+    const { error } = await sb.from('qna_job_applications').update(data).eq('id', id);
+    if (error) return alert('Error: ' + error.message);
   } else {
     const { data: existing } = await sb.from('qna_job_applications').select('id').order('id', { ascending: false }).limit(1);
     const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    await sb.from('qna_job_applications').insert({ ...data, id: newId });
+    const { error } = await sb.from('qna_job_applications').insert({ ...data, id: newId, user_id: currentUser.id });
+    if (error) return alert('Error: ' + error.message);
   }
   closeModal();
   loadJobs();
