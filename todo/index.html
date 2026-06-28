@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Todo - SnehalIT Engineering</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
+.hidden { display: none !important; }
+
+#login-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+#login-box { background: #fff; border-radius: 12px; padding: 32px; width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+#login-box h2 { margin-bottom: 20px; text-align: center; color: #1a73e8; }
+#login-box input { width: 100%; padding: 10px 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+#login-box input:focus { outline: none; border-color: #1a73e8; }
+.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.btn-primary { background: #1a73e8; color: #fff; }
+.btn-primary:hover { background: #1557b0; }
+.btn-secondary { background: #e8eaed; color: #333; }
+.btn-secondary:hover { background: #d2d5d9; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-danger { background: #d93025; color: #fff; }
+.btn-danger:hover { background: #b3261e; }
+.btn-success { background: #188038; color: #fff; }
+.btn-success:hover { background: #146c2e; }
+
+#app { display: flex; min-height: 100vh; }
+#sidebar { width: 220px; background: #1a73e8; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+#sidebar .brand { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.15); }
+#sidebar .brand span { font-size: 18px; font-weight: 700; }
+#sidebar .brand small { display: block; font-size: 11px; opacity: 0.8; margin-top: 2px; }
+#sidebar nav { flex: 1; padding: 8px 0; }
+.nav-item { padding: 12px 20px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+.nav-item:hover { background: rgba(255,255,255,0.1); }
+.nav-item.active { background: rgba(255,255,255,0.15); border-left-color: #fff; font-weight: 600; }
+#sidebar .user-info { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
+#sidebar .user-info a { color: rgba(255,255,255,0.7); text-decoration: underline; cursor: pointer; }
+
+#main { flex: 1; padding: 24px; overflow-y: auto; }
+.panel { display: none; }
+.panel.active { display: block; }
+.panel h1 { font-size: 22px; margin-bottom: 4px; }
+.panel .subtitle { color: #666; font-size: 14px; margin-bottom: 20px; }
+
+.card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.card-header { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+
+.top-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 180px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.search-input:focus { outline: none; border-color: #1a73e8; }
+.filter-select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: #fff; }
+
+.template-item, .task-item { display: flex; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0; gap: 10px; }
+.template-item:last-child, .task-item:last-child { border-bottom: none; }
+.template-name { flex: 1; font-weight: 500; cursor: pointer; }
+.template-name:hover { color: #1a73e8; }
+.template-count { font-size: 12px; color: #999; }
+
+.task-check { width: 18px; height: 18px; cursor: pointer; accent-color: #188038; }
+.task-time { font-size: 12px; color: #666; min-width: 80px; }
+.task-title { flex: 1; font-size: 14px; }
+.task-title.done { text-decoration: line-through; color: #999; }
+.task-status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.task-status-dot.done { background: #188038; }
+.task-status-dot.pending { background: #f9ab00; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 24px; width: 520px; max-width: 90vw; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.modal h3 { margin-bottom: 16px; }
+.modal label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; margin-top: 12px; }
+.modal input[type="text"], .modal input[type="time"], .modal select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.modal input:focus, .modal select:focus { outline: none; border-color: #1a73e8; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+/* Monthly Summary Table */
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th, .summary-table td { border: 1px solid #e0e0e0; padding: 6px 4px; text-align: center; }
+.summary-table th { background: #f8f9fa; font-weight: 600; position: sticky; top: 0; }
+.summary-table .task-row { text-align: left; position: sticky; left: 0; background: #fff; min-width: 160px; }
+.summary-table .cell-done { color: #188038; font-size: 14px; }
+.summary-table .cell-miss { color: #d93025; font-size: 14px; }
+.summary-table .cell-none { color: #ddd; font-size: 12px; }
+.summary-wrap { overflow-x: auto; max-height: 70vh; }
+
+/* Tab bar for summary */
+.summary-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
+.summary-tab { padding: 8px 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: #666; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.summary-tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+.summary-tab:hover { color: #333; }
+
+/* Task list in template modal */
+.ttask-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.ttask-row input[type="time"] { width: 100px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+.ttask-row input[type="text"] { flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+.ttask-row .btn-sm { flex-shrink: 0; }
+/* Yearly Summary */
+.yearly-cell { font-weight: 700; font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="login-overlay">
+  <div id="login-box">
+    <h2>Todo Login</h2>
+    <div id="login-error" style="color:#d93025;font-size:13px;margin-bottom:8px;"></div>
+    <input type="email" id="login-email" placeholder="Email" autocomplete="email">
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+    <button class="btn btn-primary" id="login-btn">Sign In</button>
+    <div id="login-toggle" style="text-align:center;margin-top:10px;font-size:13px;color:#666;">Don't have an account? <a id="show-signup" style="color:#1a73e8;cursor:pointer;">Sign Up</a></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div id="sidebar">
+    <div class="brand"><span>SnehalIT</span><small>Todo Planner</small></div>
+    <nav>
+      <div class="nav-item active" data-view="templates"><span>&#128203;</span> <span>Templates</span></div>
+      <div class="nav-item" data-view="daily"><span>&#128197;</span> <span>Daily Schedule</span></div>
+      <div class="nav-item" data-view="monthly"><span>&#128200;</span> <span>Monthly</span></div>
+      <div class="nav-item" data-view="yearly"><span>&#128202;</span> <span>Yearly</span></div>
+    </nav>
+    <div class="user-info"><span id="user-email"></span> <span id="plan-badge" style="background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:10px;font-size:11px;display:inline-block;"></span> <a id="logout-link">Logout</a></div>
+  </div>
+
+  <div id="main">
+    <!-- Templates Panel -->
+    <div class="panel active" id="panel-templates">
+      <div class="top-bar">
+        <h1>Templates</h1>
+        <button class="btn btn-primary btn-sm" onclick="showTemplateModal()">+ New Template</button>
+      </div>
+      <p class="subtitle">Create and manage your 24-hour schedule templates</p>
+      <div id="template-list"></div>
+    </div>
+
+    <!-- Daily Schedule Panel -->
+    <div class="panel" id="panel-daily">
+      <h1>Daily Schedule</h1>
+      <p class="subtitle">Select a date and template to plan your day</p>
+      <div class="card">
+        <div class="top-bar">
+          <input type="date" id="daily-date" class="search-input" style="max-width:200px;">
+          <select id="daily-template" class="filter-select" style="min-width:200px;"><option value="">Select template...</option></select>
+          <button class="btn btn-primary btn-sm" onclick="applyTemplate()">Apply Template</button>
+          <button class="btn btn-danger btn-sm" onclick="clearDailySchedule()">Clear Day</button>
+        </div>
+        <div id="daily-tasks"></div>
+      </div>
+    </div>
+
+    <!-- Monthly Summary Panel -->
+    <div class="panel" id="panel-monthly">
+      <h1>Monthly Summary</h1>
+      <p class="subtitle">Track your daily task completion</p>
+      <div class="summary-tabs" id="summary-tabs"></div>
+      <div class="card">
+        <div class="top-bar">
+          <input type="month" id="summary-month" class="search-input" style="max-width:200px;">
+        </div>
+        <div id="summary-content" class="summary-wrap"></div>
+      </div>
+    </div>
+
+    <!-- Yearly Summary Panel -->
+    <div class="panel" id="panel-yearly">
+      <h1>Yearly Summary</h1>
+      <p class="subtitle">Completed task count by month</p>
+      <div class="card">
+        <div class="top-bar">
+          <input type="number" id="yearly-year" class="search-input" style="max-width:200px;">
+        </div>
+        <div id="yearly-content" class="summary-wrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="js/todo.js"></script>
+</body>
+</html>

@@ -66,11 +66,29 @@
         <div class="text-lg font-semibold">QNA Plans</div>
         <div class="text-sm text-gray-500">Manage subscription plans</div>
       </a>
+      <a href="todo-plans.html" class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition block">
+        <div class="text-3xl mb-2">&#128203;</div>
+        <div class="text-lg font-semibold">Todo Plans</div>
+        <div class="text-sm text-gray-500">Manage todo subscription plans</div>
+      </a>
+      <a href="user-plans.html" class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition block">
+        <div class="text-3xl mb-2">&#128100;</div>
+        <div class="text-lg font-semibold">User Plans</div>
+        <div class="text-sm text-gray-500">View &amp; manage user plans</div>
+      </a>
+      <a href="../todo/index.html" class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition block">
+        <div class="text-3xl mb-2">&#128203;</div>
+        <div class="text-lg font-semibold">Todo</div>
+        <div class="text-sm text-gray-500">Daily planner &amp; tracker</div>
+      </a>
     </div>
 
-    <h2 class="text-xl font-bold mb-4">Recent Orders</h2>
+    <div class="flex items-center gap-4 mb-4">
+      <h2 class="text-xl font-bold">Recent Orders</h2>
+      <button id="load-orders-btn" onclick="loadOrders()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Load Orders</button>
+    </div>
     <div id="orders-alert"></div>
-    <div id="orders-loading" class="text-gray-500 mb-4">Loading orders...</div>
+    <div id="orders-loading" class="text-gray-500 mb-4 hidden">Loading orders...</div>
     <div id="orders-section" class="hidden overflow-x-auto bg-white rounded-xl shadow-sm border"></div>
   </div>
 
@@ -92,10 +110,12 @@
       const user = await requireAdmin();
       if (!user) return;
       document.getElementById('user-email').textContent = user.email;
-      await loadOrders();
     });
 
     async function loadOrders() {
+      document.getElementById('orders-loading').classList.remove('hidden');
+      document.getElementById('orders-loading').textContent = 'Loading orders...';
+      document.getElementById('load-orders-btn').disabled = true;
       try {
         const session = await _admin.auth.getSession();
         const token = session.data?.session?.access_token;
@@ -108,6 +128,7 @@
         const { orders } = await res.json();
 
         document.getElementById('orders-loading').classList.add('hidden');
+        document.getElementById('load-orders-btn').disabled = false;
         const div = document.getElementById('orders-section');
         div.classList.remove('hidden');
 
@@ -195,7 +216,8 @@
           });
         });
       } catch (err) {
-        document.getElementById('orders-loading').textContent = '';
+        document.getElementById('orders-loading').classList.add('hidden');
+        document.getElementById('load-orders-btn').disabled = false;
         document.getElementById('orders-alert').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded text-sm">' + err.message + '</div>';
       }
     }

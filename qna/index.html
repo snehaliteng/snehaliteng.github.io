@@ -115,6 +115,12 @@ select.filter-select { padding: 8px 12px; border: 1px solid #ddd; border-radius:
 .cat-children { margin-left: 24px; }
 .q-item.dragging { opacity: 0.4; }
 .q-item.drag-over { border: 2px dashed #1a73e8 !important; background: #e8f0fe; }
+.q-item .q-checkbox, .cat-item .cat-checkbox { margin-right: 8px; flex-shrink: 0; }
+.q-item .q-checkbox { width: 16px; height: 16px; cursor: pointer; }
+.cat-item .cat-checkbox { width: 16px; height: 16px; cursor: pointer; }
+.q-item.selected, .cat-item.selected { background: #e8f0fe !important; }
+.btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
+#q-select-bar, #cat-select-bar { display: flex; gap: 8px; align-items: center; font-size: 13px; color: #555; }
 
 /* Tags */
 .tag-badge {
@@ -241,6 +247,10 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
           <option value="unread">Unread</option>
         </select>
         <button class="btn btn-primary" onclick="showQModal()">+ New</button>
+        <span id="q-select-bar" class="hidden">
+          <input type="checkbox" id="q-select-all" onchange="toggleAllQuestions(this.checked)" title="Select all">
+          <button class="btn btn-sm btn-danger" id="q-delete-selected" onclick="deleteSelectedQuestions()" disabled>Delete Selected</button>
+        </span>
       </div>
       <div id="q-list"></div>
       <div class="pagination" id="q-pagination"></div>
@@ -252,6 +262,10 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
       <p class="subtitle">Organize questions by topic</p>
       <div class="top-bar">
         <button class="btn btn-primary" onclick="showCatModal()">+ New Category</button>
+        <span id="cat-select-bar" class="hidden">
+          <input type="checkbox" id="cat-select-all" onchange="toggleAllCategories(this.checked)" title="Select all">
+          <button class="btn btn-sm btn-danger" id="cat-delete-selected" onclick="deleteSelectedCategories()" disabled>Delete Selected</button>
+        </span>
       </div>
       <div class="card" id="cat-tree"></div>
     </div>

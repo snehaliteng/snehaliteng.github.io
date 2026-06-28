@@ -279,6 +279,8 @@ function debounceSearchQuestions() {
 }
 
 async function loadQuestions() {
+  window._qChecked = {};
+  updateQSelectBar();
   const search = document.getElementById('q-search').value.trim();
   const catId = document.getElementById('q-cat-filter').value;
   const hideFilter = document.getElementById('q-hide-filter').value;
@@ -323,6 +325,7 @@ function renderQuestionList(questions, prefMap) {
     const read = p && p.is_read;
     const cat = catCache.find(c => c.id === q.category_id);
     return `<div class="q-item" draggable="true" data-qid="${q.id}" data-idx="${i}" ondragstart="onDragStart(event)" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragend="onDragEnd(event)" onclick="toggleQDetail(${q.id}, this)">
+      <input type="checkbox" class="q-checkbox" data-qid="${q.id}" onclick="event.stopPropagation();onQCheckChange()" ${window._qChecked && window._qChecked[q.id] ? 'checked' : ''}>
       <span class="q-title">${escHtml(q.title)}${read ? '<span class="read-badge">Read</span>' : ''}</span>
       <span class="q-meta">${cat ? escHtml(cat.name) : ''}${q.is_hidden ? ' <span style="color:#d93025;">Hidden</span>' : ''}</span>
       <span class="q-actions">
@@ -334,6 +337,7 @@ function renderQuestionList(questions, prefMap) {
     <div class="q-detail hidden" id="qdetail-${q.id}"></div>`;
   }).join('');
   renderPagination();
+  updateQSelectBar();
 }
 
 let _dragSrcId = null;
@@ -463,9 +467,7 @@ async function saveQuestion(id) {
     const { error } = await sb.from('qna_questions').update(data).eq('id', id);
     if (error) return alert('Error: ' + error.message);
   } else {
-    const { data: existing } = await sb.from('qna_questions').select('id').order('id', { ascending: false }).limit(1);
-    const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    const { error } = await sb.from('qna_questions').insert({ ...data, id: newId, user_id: currentUser.id });
+    const { error } = await sb.from('qna_questions').insert({ ...data, user_id: currentUser.id });
     if (error) return alert('Error: ' + error.message);
   }
   closeModal();
@@ -516,9 +518,7 @@ async function saveAnswer(questionId, answerId) {
     const { error } = await sb.from('qna_answers').update(data).eq('id', answerId);
     if (error) return alert('Error: ' + error.message);
   } else {
-    const { data: existing } = await sb.from('qna_answers').select('id').order('id', { ascending: false }).limit(1);
-    const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    const { error } = await sb.from('qna_answers').insert({ ...data, id: newId, question_id: questionId, user_id: currentUser.id });
+    const { error } = await sb.from('qna_answers').insert({ ...data, question_id: questionId, user_id: currentUser.id });
     if (error) return alert('Error: ' + error.message);
   }
   closeModal();
@@ -559,7 +559,8 @@ function renderCatChildren(children, parentId, depth) {
   items.sort((a, b) => a.order_index - b.order_index);
   for (const c of items) {
     const qCount = catCache._qCounts ? (catCache._qCounts[c.id] || 0) : '';
-    html += `<div class="cat-item">
+    html += `<div class="cat-item" data-cid="${c.id}">
+      <input type="checkbox" class="cat-checkbox" data-cid="${c.id}" onclick="onCatCheckChange()" ${window._catChecked && window._catChecked[c.id] ? 'checked' : ''}>
       <span class="cat-name" onclick="showCatQuestions(${c.id})">${escHtml(c.name)}</span>
       <span class="cat-count">${qCount ? qCount + ' Q' : ''}</span>
       <button class="btn btn-sm btn-secondary" onclick="showCatModal(${c.id})">Edit</button>
@@ -608,9 +609,7 @@ async function saveCategory(id) {
     const { error } = await sb.from('qna_categories').update(data).eq('id', id);
     if (error) return alert('Error: ' + error.message);
   } else {
-    const { data: existing } = await sb.from('qna_categories').select('id').order('id', { ascending: false }).limit(1);
-    const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    const { error } = await sb.from('qna_categories').insert({ ...data, id: newId, user_id: currentUser.id });
+    const { error } = await sb.from('qna_categories').insert({ ...data, user_id: currentUser.id });
     if (error) return alert('Error: ' + error.message);
   }
   closeModal();
@@ -619,6 +618,8 @@ async function saveCategory(id) {
 }
 
 async function loadCategories() {
+  window._catChecked = {};
+  updateCatSelectBar();
   catCache = await loadAllCategories();
   // Get question counts
   const { data: counts } = await sb.from('qna_questions').select('category_id');
@@ -670,9 +671,7 @@ async function saveTag() {
   const name = document.getElementById('mt-name').value.trim();
   if (!name) return alert('Name is required');
   if (!(await checkLimit('tags'))) return;
-  const { data: existing } = await sb.from('qna_tags').select('id').order('id', { ascending: false }).limit(1);
-  const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-  const { error } = await sb.from('qna_tags').insert({ id: newId, name, user_id: currentUser.id });
+  const { error } = await sb.from('qna_tags').insert({ name, user_id: currentUser.id });
   if (error) return alert('Error: ' + error.message);
   closeModal();
   loadTags();
@@ -756,9 +755,7 @@ async function saveJob(id) {
     const { error } = await sb.from('qna_job_applications').update(data).eq('id', id);
     if (error) return alert('Error: ' + error.message);
   } else {
-    const { data: existing } = await sb.from('qna_job_applications').select('id').order('id', { ascending: false }).limit(1);
-    const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    const { error } = await sb.from('qna_job_applications').insert({ ...data, id: newId, user_id: currentUser.id });
+    const { error } = await sb.from('qna_job_applications').insert({ ...data, user_id: currentUser.id });
     if (error) return alert('Error: ' + error.message);
   }
   closeModal();
@@ -769,6 +766,123 @@ async function deleteJob(id) {
   if (!confirm('Delete this application?')) return;
   await sb.from('qna_job_applications').delete().eq('id', id);
   loadJobs();
+}
+
+// Multi-select delete
+function onQCheckChange() {
+  if (!window._qChecked) window._qChecked = {};
+  document.querySelectorAll('.q-checkbox').forEach(cb => {
+    if (cb.checked) window._qChecked[parseInt(cb.dataset.qid)] = true;
+    else delete window._qChecked[parseInt(cb.dataset.qid)];
+    cb.closest('.q-item').classList.toggle('selected', cb.checked);
+  });
+  updateQSelectBar();
+}
+
+function updateQSelectBar() {
+  const bar = document.getElementById('q-select-bar');
+  const btn = document.getElementById('q-delete-selected');
+  const count = window._qChecked ? Object.keys(window._qChecked).length : 0;
+  bar.classList.toggle('hidden', count === 0);
+  btn.disabled = count === 0;
+  btn.textContent = 'Delete Selected' + (count ? ' (' + count + ')' : '');
+}
+
+function toggleAllQuestions(checked) {
+  window._qChecked = window._qChecked || {};
+  document.querySelectorAll('.q-checkbox').forEach(cb => {
+    cb.checked = checked;
+    const qid = parseInt(cb.dataset.qid);
+    if (checked) window._qChecked[qid] = true;
+    else delete window._qChecked[qid];
+    cb.closest('.q-item').classList.toggle('selected', checked);
+  });
+  updateQSelectBar();
+}
+
+async function deleteSelectedQuestions() {
+  const ids = Object.keys(window._qChecked || {}).map(Number);
+  if (!ids.length) return;
+  if (!confirm('Delete ' + ids.length + ' selected question' + (ids.length > 1 ? 's' : '') + ' and all their answers?')) return;
+  const btn = document.getElementById('q-delete-selected');
+  btn.disabled = true;
+  btn.textContent = 'Deleting...';
+  for (const id of ids) {
+    await sb.from('qna_answers').delete().eq('question_id', id);
+    await sb.from('qna_question_tags').delete().eq('question_id', id);
+    await sb.from('qna_user_question_preferences').delete().eq('question_id', id);
+    await sb.from('qna_questions').delete().eq('id', id);
+  }
+  window._qChecked = {};
+  loadQuestions();
+}
+
+function onCatCheckChange() {
+  if (!window._catChecked) window._catChecked = {};
+  document.querySelectorAll('.cat-checkbox').forEach(cb => {
+    if (cb.checked) window._catChecked[parseInt(cb.dataset.cid)] = true;
+    else delete window._catChecked[parseInt(cb.dataset.cid)];
+    cb.closest('.cat-item').classList.toggle('selected', cb.checked);
+  });
+  updateCatSelectBar();
+}
+
+function updateCatSelectBar() {
+  const bar = document.getElementById('cat-select-bar');
+  const btn = document.getElementById('cat-delete-selected');
+  const count = window._catChecked ? Object.keys(window._catChecked).length : 0;
+  bar.classList.toggle('hidden', count === 0);
+  btn.disabled = count === 0;
+  btn.textContent = 'Delete Selected' + (count ? ' (' + count + ')' : '');
+}
+
+function toggleAllCategories(checked) {
+  window._catChecked = window._catChecked || {};
+  document.querySelectorAll('.cat-checkbox').forEach(cb => {
+    cb.checked = checked;
+    const cid = parseInt(cb.dataset.cid);
+    if (checked) window._catChecked[cid] = true;
+    else delete window._catChecked[cid];
+    cb.closest('.cat-item').classList.toggle('selected', checked);
+  });
+  updateCatSelectBar();
+}
+
+async function deleteSelectedCategories() {
+  const ids = Object.keys(window._catChecked || {}).map(Number);
+  if (!ids.length) return;
+  if (!confirm('Delete ' + ids.length + ' selected categor' + (ids.length > 1 ? 'ies' : 'y') + '?')) return;
+  const btn = document.getElementById('cat-delete-selected');
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+  // Load all categories for dependency check
+  const allCats = await loadAllCategories();
+  const childMap = {};
+  allCats.forEach(c => { const p = c.parent_id || 0; if (!childMap[p]) childMap[p] = []; childMap[p].push(c.id); });
+  // Check children and questions for each selected category
+  const blocked = [];
+  const toDelete = [];
+  for (const id of ids) {
+    const children = childMap[id] || [];
+    if (children.length) { blocked.push('Category #' + id + ' has child categories'); continue; }
+    const { data: questions } = await sb.from('qna_questions').select('id').eq('category_id', id).limit(1);
+    if (questions && questions.length) { blocked.push('Category #' + id + ' has questions'); continue; }
+    toDelete.push(id);
+  }
+  if (blocked.length) {
+    alert('Cannot delete:\n' + blocked.join('\n'));
+    btn.textContent = 'Delete Selected (' + ids.length + ')';
+    btn.disabled = false;
+    // Uncheck blocked items
+    blocked.forEach(msg => { /* just inform user */ });
+    return;
+  }
+  btn.textContent = 'Deleting...';
+  for (const id of toDelete) {
+    await sb.from('qna_categories').delete().eq('id', id);
+    delete window._catChecked[id];
+  }
+  loadCategories();
 }
 
 // Modal helpers
