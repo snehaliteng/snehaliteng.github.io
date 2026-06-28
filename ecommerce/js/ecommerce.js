@@ -24,11 +24,12 @@ let ecCurrentUser = null;
 // ============================================================
 
 async function ecCheckAuth() {
-  const { data, error } = await ec.auth.getUser();
-  if (data && data.user) {
-    ecCurrentUser = data.user;
+  var sessionRes = await ec.auth.getSession();
+  if (sessionRes.data?.session) {
+    ecCurrentUser = sessionRes.data.session.user;
   } else {
-    ecCurrentUser = null;
+    var userRes = await ec.auth.getUser();
+    ecCurrentUser = userRes.data?.user || null;
   }
   return ecCurrentUser;
 }
@@ -55,7 +56,7 @@ async function ecLogout() {
 async function ecSocialLogin(provider) {
   const { data, error } = await ec.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: window.location.origin + window.location.pathname }
+    options: { redirectTo: window.location.href }
   });
   if (error) throw error;
   return data;
