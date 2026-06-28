@@ -28,7 +28,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'action, user_id, and plan_type required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const table = plan_type === 'todo' ? 'todo_user_plans' : 'qna_user_plans'
+    const table = plan_type === 'todo' ? 'todo_user_plans' : plan_type === 'ec' ? 'user_ec_plans' : 'qna_user_plans'
 
     switch (action) {
       case 'assign': {

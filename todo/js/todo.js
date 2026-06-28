@@ -69,6 +69,14 @@ document.getElementById('login-password').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('login-btn').click();
 });
 
+document.getElementById('google-login-btn').addEventListener('click', async () => {
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: 'https://snehaliteng.github.io/todo/index.html' }
+  });
+  if (error) document.getElementById('login-error').textContent = error.message;
+});
+
 document.getElementById('logout-link').addEventListener('click', async () => {
   await sb.auth.signOut();
   currentUser = null;

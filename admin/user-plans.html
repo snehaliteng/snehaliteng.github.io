@@ -64,6 +64,7 @@
     let assignType = null;
     let qnaPlanOptions = [];
     let todoPlanOptions = [];
+    let ecPlanOptions = [];
 
     document.addEventListener('DOMContentLoaded', async function() {
       const user = await requireAdmin();
@@ -78,6 +79,8 @@
       qnaPlanOptions = (qna || []).filter(p => p.active).map(p => ({ id: p.id, name: p.name, price: p.price }));
       const { data: todo } = await _admin.from('todo_plans').select('id,name,price,active').order('id');
       todoPlanOptions = (todo || []).filter(p => p.active).map(p => ({ id: p.id, name: p.name, price: p.price }));
+      const { data: ec } = await _admin.from('ec_plans').select('id,name,price,active').order('sort_order');
+      ecPlanOptions = (ec || []).filter(p => p.active).map(p => ({ id: p.id, name: p.name, price: p.price }));
     }
 
     function getToken() {
@@ -120,6 +123,8 @@
               <th class="p-3 font-semibold">QNA Actions</th>
               <th class="p-3 font-semibold">Todo Plan</th>
               <th class="p-3 font-semibold">Todo Actions</th>
+              <th class="p-3 font-semibold">EC Plan</th>
+              <th class="p-3 font-semibold">EC Actions</th>
             </tr></thead>
             <tbody>${users.map(u => {
               const isBanned = u.banned_until && new Date(u.banned_until) > new Date();
@@ -131,6 +136,8 @@
                 <td class="p-3 whitespace-nowrap">${planActions(u.id, 'qna', u.qna_plan)}</td>
                 <td class="p-3">${planBadge(u.todo_plan)}</td>
                 <td class="p-3 whitespace-nowrap">${planActions(u.id, 'todo', u.todo_plan)}</td>
+                <td class="p-3">${planBadge(u.ec_plan)}</td>
+                <td class="p-3 whitespace-nowrap">${planActions(u.id, 'ec', u.ec_plan)}</td>
               </tr>`;}).join('')}</tbody>
           </table>
           <div class="p-3 text-xs text-gray-400 border-t">Total: ${users.length} user${users.length !== 1 ? 's' : ''}</div>`;
@@ -152,11 +159,12 @@
     function openAssign(userId, type) {
       assignUserId = userId;
       assignType = type;
-      const options = type === 'todo' ? todoPlanOptions : qnaPlanOptions;
+      const options = type === 'todo' ? todoPlanOptions : type === 'ec' ? ecPlanOptions : qnaPlanOptions;
       const sel = document.getElementById('assign-plan-select');
       sel.innerHTML = '<option value="">Select a plan...</option>' +
         options.map(p => '<option value="' + p.id + '">' + escapeHtml(p.name) + (p.price > 0 ? ' (&#8377;' + (p.price / 100).toFixed(2) + ')' : ' (Free)') + '</option>').join('');
-      document.getElementById('assign-modal-title').textContent = (type === 'todo' ? 'Todo' : 'QNA') + ' Plan for ' + userId.substring(0, 8) + '...';
+      const typeLabel = type === 'todo' ? 'Todo' : type === 'ec' ? 'Ecommerce' : 'QNA';
+      document.getElementById('assign-modal-title').textContent = typeLabel + ' Plan for ' + userId.substring(0, 8) + '...';
       document.getElementById('assign-modal').classList.add('open');
     }
 
