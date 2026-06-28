@@ -14,6 +14,10 @@ const EC_SITE_URL = 'https://snehaliteng.github.io';
 // ============================================================
 // SUPABASE CLIENT
 // ============================================================
+// Clean up empty hash from OAuth redirects (prevents Supabase hanging)
+if (window.location.hash === '#') {
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+}
 const ec = supabase.createClient(EC_SUPABASE_URL, EC_SUPABASE_KEY);
 
 // Global state
@@ -24,12 +28,15 @@ let ecCurrentUser = null;
 // ============================================================
 
 async function ecCheckAuth() {
-  var sessionRes = await ec.auth.getSession();
-  if (sessionRes.data?.session) {
-    ecCurrentUser = sessionRes.data.session.user;
-  } else {
-    var userRes = await ec.auth.getUser();
-    ecCurrentUser = userRes.data?.user || null;
+  try {
+    const { data, error } = await ec.auth.getUser();
+    if (data && data.user) {
+      ecCurrentUser = data.user;
+    } else {
+      ecCurrentUser = null;
+    }
+  } catch (e) {
+    ecCurrentUser = null;
   }
   return ecCurrentUser;
 }

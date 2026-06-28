@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS ec_vendors (
 );
 ALTER TABLE ec_vendors ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "vendor select own" ON ec_vendors FOR SELECT USING (auth.jwt()->>'email' = 'snehaliteng@gmail.com' OR user_id = auth.uid());
+CREATE POLICY "anyone read approved vendors" ON ec_vendors FOR SELECT USING (status = 'approved');
 CREATE POLICY "vendor insert" ON ec_vendors FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "vendor update own" ON ec_vendors FOR UPDATE USING (user_id = auth.uid());
 CREATE POLICY "admin all vendors" ON ec_vendors FOR ALL USING (auth.jwt()->>'email' = 'snehaliteng@gmail.com');
