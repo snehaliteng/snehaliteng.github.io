@@ -118,6 +118,7 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
           <div id="sidebar-logo" class="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center text-2xl font-bold text-blue-600 mb-2">S</div>
           <p id="sidebar-store-name" class="font-semibold text-gray-800 text-sm"></p>
           <p id="sidebar-status" class="text-xs mt-1"></p>
+          <a id="storefront-link" href="#" target="_blank" class="inline-block mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium">View Storefront →</a>
         </div>
         <nav class="space-y-1">
           <div class="sidebar-link active" data-tab="dashboard" onclick="switchTab('dashboard')">
@@ -139,6 +140,10 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
           <div class="sidebar-link" data-tab="orders" onclick="switchTab('orders')">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
             Orders
+          </div>
+          <div class="sidebar-link" data-tab="newsletter" onclick="switchTab('newsletter')">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            Newsletter
           </div>
           <div class="sidebar-link" data-tab="settings" onclick="switchTab('settings')">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -227,6 +232,40 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
           <div id="orders-table" class="overflow-x-auto">
             <div class="text-center text-gray-400 py-8">Loading orders...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== NEWSLETTER TAB ===== -->
+      <div id="tab-newsletter" class="tab-panel hidden">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">Newsletter</h2>
+          <button onclick="showComposeModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Compose</button>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <h3 class="font-semibold text-gray-700 mb-3">Send Newsletter to Your Customers</h3>
+          <p class="text-sm text-gray-500 mb-4">Send promotional emails to customers who have purchased from your store.</p>
+          <form id="newsletter-form" class="space-y-4" onsubmit="sendNewsletter(event)">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+              <input type="text" id="newsletter-subject" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Exciting offers from your store!">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+              <textarea id="newsletter-content" rows="6" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Dear customer,..."></textarea>
+            </div>
+            <div class="flex items-center gap-4">
+              <button type="submit" id="newsletter-send-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Send to Customers</button>
+              <span id="newsletter-customer-count" class="text-sm text-gray-500"></span>
+            </div>
+          </form>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="font-semibold text-gray-700">Sent Campaigns</h3>
+          </div>
+          <div id="newsletter-history" class="overflow-x-auto">
+            <div class="text-center text-gray-400 py-8">Loading...</div>
           </div>
         </div>
       </div>
@@ -422,10 +461,14 @@ function showDashboard() {
   const statusEl = document.getElementById('sidebar-status');
   statusEl.textContent = vendor.status.charAt(0).toUpperCase() + vendor.status.slice(1);
   statusEl.className = 'status-badge status-' + vendor.status + ' mt-1';
+  var sfLink = document.getElementById('storefront-link');
+  sfLink.href = '../store.html?vendor=' + encodeURIComponent(vendor.slug || vendor.id);
+  sfLink.textContent = 'View ' + vendor.store_name + ' →';
   loadDashboard();
   loadProducts();
   loadCategoriesList();
   loadOrders();
+  loadNewsletter();
   populateSettings();
 }
 
@@ -438,9 +481,26 @@ document.getElementById('vendor-reg-form').addEventListener('submit', async func
   btn.disabled = true;
   btn.textContent = 'Registering...';
   try {
+    var { data: planCheck, error: planErr } = await ec
+      .from('user_ec_plans')
+      .select('*, ec_plans!inner(name)')
+      .eq('user_id', ecCurrentUser.id)
+      .eq('status', 'active')
+      .maybeSingle();
+    if (planErr) throw planErr;
+    if (!planCheck) {
+      ecShowAlert('You need an active Ecommerce Plan to register as a vendor. Contact admin.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Register Store';
+      return;
+    }
+    var slug = ecCurrentUser.email.split('@')[0].replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + Date.now().toString(36);
+    var { data: existingSlug } = await ec.from('ec_vendors').select('id').eq('slug', slug).maybeSingle();
+    if (existingSlug) slug = slug + '-' + Math.random().toString(36).slice(2, 6);
     const payload = {
       user_id: ecCurrentUser.id,
       store_name: document.getElementById('reg-store-name').value.trim(),
+      slug: slug,
       description: document.getElementById('reg-description').value.trim(),
       contact_email: document.getElementById('reg-email').value.trim(),
       contact_phone: document.getElementById('reg-phone').value.trim(),
@@ -474,6 +534,7 @@ function switchTab(tab) {
     el.classList.toggle('hidden', el.id !== 'tab-' + tab);
   });
   if (tab === 'customers') loadCustomers();
+  if (tab === 'newsletter') loadNewsletter();
 }
 
 // ============================================================
@@ -828,6 +889,101 @@ async function loadCustomers() {
 }
 
 // ============================================================
+// NEWSLETTER
+// ============================================================
+async function loadNewsletter() {
+  var countEl = document.getElementById('newsletter-customer-count');
+  try {
+    var { data: orderItems } = await ec
+      .from('ec_order_items')
+      .select('order_id')
+      .eq('vendor_id', vendor.id);
+    var orderIds = [...new Set((orderItems || []).map(function(oi) { return oi.order_id; }))];
+    var { data: orders } = await ec
+      .from('ec_orders')
+      .select('user_id')
+      .in('id', orderIds);
+    var customerCount = [...new Set((orders || []).map(function(o) { return o.user_id; }))].length;
+    countEl.textContent = customerCount + ' customer(s) who purchased from you';
+
+    var { data: campaigns, error } = await ec
+      .from('ec_newsletter_campaigns')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    var histEl = document.getElementById('newsletter-history');
+    if (!campaigns || !campaigns.length) {
+      histEl.innerHTML = '<div class="text-center text-gray-400 py-8">No campaigns sent yet</div>';
+      return;
+    }
+    histEl.innerHTML = '<table class="w-full text-sm"><thead><tr class="bg-gray-50 text-left"><th class="px-4 py-3 font-semibold text-gray-600">Subject</th><th class="px-4 py-3 font-semibold text-gray-600">Sent</th><th class="px-4 py-3 font-semibold text-gray-600">Status</th><th class="px-4 py-3 font-semibold text-gray-600">Date</th></tr></thead><tbody>' +
+      campaigns.map(function(c) {
+        return '<tr class="border-t hover:bg-gray-50"><td class="px-4 py-3">' + ecEscape(c.subject) + '</td><td class="px-4 py-3">' + c.sent_count + '</td><td class="px-4 py-3"><span class="px-2 py-1 text-xs rounded-full ' + (c.status === 'sent' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700') + '">' + c.status + '</span></td><td class="px-4 py-3 text-gray-500">' + new Date(c.created_at).toLocaleDateString('en-IN') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  } catch (e) {
+    countEl.textContent = '';
+    document.getElementById('newsletter-history').innerHTML = '<div class="text-center text-red-400 py-8">Error: ' + ecEscape(e.message) + '</div>';
+  }
+}
+
+async function sendNewsletter(e) {
+  e.preventDefault();
+  if (!vendor || vendor.status !== 'approved') {
+    ecShowAlert('Your store must be approved to send newsletters', 'error');
+    return;
+  }
+  var btn = document.getElementById('newsletter-send-btn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  try {
+    var { data: orderItems } = await ec
+      .from('ec_order_items')
+      .select('order_id')
+      .eq('vendor_id', vendor.id);
+    var orderIds = [...new Set((orderItems || []).map(function(oi) { return oi.order_id; }))];
+    var { data: orders } = await ec
+      .from('ec_orders')
+      .select('user_id')
+      .in('id', orderIds);
+    var userIds = [...new Set((orders || []).map(function(o) { return o.user_id; }))];
+    var customerEmails = [];
+    try {
+      var { data: profiles } = await ec.rpc('get_users_by_ids', { user_ids: userIds });
+      if (profiles) customerEmails = profiles.map(function(p) { return p.email; }).filter(Boolean);
+    } catch (_) {}
+    if (!customerEmails.length) {
+      ecShowAlert('No customer emails found', 'warning');
+      btn.disabled = false;
+      btn.textContent = 'Send to Customers';
+      return;
+    }
+    var token = await ec.auth.getSession().then(function(s) { return s.data?.session?.access_token; });
+    if (!token) throw new Error('Not authenticated');
+    var res = await fetch('https://vgipghqejzbcoighktij.supabase.co/functions/v1/send-vendor-newsletter', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject: document.getElementById('newsletter-subject').value.trim(),
+        content: document.getElementById('newsletter-content').value.trim(),
+        vendor_id: vendor.id,
+        store_name: vendor.store_name,
+        customer_emails: customerEmails
+      })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to send');
+    ecShowAlert('Newsletter sent to ' + customerEmails.length + ' customers!', 'success');
+    document.getElementById('newsletter-form').reset();
+    loadNewsletter();
+  } catch (e) {
+    ecShowAlert(e.message || 'Failed to send newsletter', 'error');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Send to Customers';
+}
+
+// ============================================================
 // ORDERS
 // ============================================================
 async function loadOrders() {
@@ -864,11 +1020,7 @@ async function loadOrders() {
       html += '<td class="px-4 py-3"><span class="status-badge ' + statusClass + '">' + oi.status.charAt(0).toUpperCase() + oi.status.slice(1) + '</span></td>';
       html += '<td class="px-4 py-3 text-gray-500">' + new Date(oi.created_at).toLocaleDateString('en-IN') + '</td>';
       html += '<td class="px-4 py-3">';
-      if (nextStatus) {
-        html += '<button onclick="updateOrderItemStatus(' + oi.id + ',\'' + nextStatus + '\')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Mark ' + nextStatus.charAt(0).toUpperCase() + nextStatus.slice(1) + '</button>';
-      } else {
-        html += '<span class="text-gray-400 text-sm">Completed</span>';
-      }
+      html += getOrderActions(oi);
       html += '</td></tr>';
     }
     html += '</tbody></table>';
@@ -878,16 +1030,120 @@ async function loadOrders() {
   }
 }
 
+function getOrderActions(oi) {
+  var s = oi.status;
+  var id = oi.id;
+  var actions = [];
+  if (s === 'confirmed') {
+    actions.push('<button onclick="updateOrderItemStatus(' + id + ',\'processing\')" class="text-blue-600 hover:text-blue-800 text-sm font-medium mr-2">Process</button>');
+    actions.push('<button onclick="rejectOrderItem(' + id + ')" class="text-red-500 hover:text-red-700 text-sm font-medium">Reject</button>');
+  } else if (s === 'processing') {
+    actions.push('<button onclick="updateOrderItemStatus(' + id + ',\'shipped\')" class="text-blue-600 hover:text-blue-800 text-sm font-medium mr-2">Ship</button>');
+    actions.push('<button onclick="cancelOrderItem(' + id + ')" class="text-orange-500 hover:text-orange-700 text-sm font-medium">Cancel</button>');
+  } else if (s === 'shipped') {
+    actions.push('<button onclick="updateOrderItemStatus(' + id + ',\'delivered\')" class="text-green-600 hover:text-green-800 text-sm font-medium">Deliver</button>');
+  } else if (s === 'delivered') {
+    actions.push('<button onclick="refundOrderItem(' + id + ')" class="text-red-500 hover:text-red-700 text-sm font-medium">Refund</button>');
+  } else if (s === 'rejected' || s === 'cancelled') {
+    actions.push('<span class="text-gray-400 text-sm">' + s.charAt(0).toUpperCase() + s.slice(1) + '</span>');
+  } else if (s === 'refunded') {
+    actions.push('<span class="text-red-500 text-sm font-medium">Refunded</span>');
+  } else {
+    actions.push('<span class="text-gray-400 text-sm">' + (s ? s.charAt(0).toUpperCase() + s.slice(1) : '') + '</span>');
+  }
+  return actions.join('');
+}
+
+async function rejectOrderItem(itemId) {
+  var reason = prompt('Reason for rejection:');
+  if (reason === null) return;
+  try {
+    var { error } = await ec.from('ec_order_items').update({ status: 'rejected', notes: reason || '', cancelled_at: new Date().toISOString() }).eq('id', itemId);
+    if (error) throw error;
+    ecShowAlert('Order item rejected', 'success');
+    loadOrders(); loadDashboard();
+  } catch (e) {
+    ecShowAlert(e.message, 'error');
+  }
+}
+
+async function cancelOrderItem(itemId) {
+  if (!confirm('Cancel this order item? This cannot be undone.')) return;
+  var reason = prompt('Cancellation reason (optional):');
+  try {
+    var { error } = await ec.from('ec_order_items').update({ status: 'cancelled', notes: reason || '', cancelled_at: new Date().toISOString() }).eq('id', itemId);
+    if (error) throw error;
+    ecShowAlert('Order item cancelled', 'success');
+    loadOrders(); loadDashboard();
+  } catch (e) {
+    ecShowAlert(e.message, 'error');
+  }
+}
+
+async function refundOrderItem(itemId) {
+  if (!confirm('Process refund for this item? The amount will be returned to the customer.')) return;
+  try {
+    var { data: oi, error: fetchErr } = await ec.from('ec_order_items').select('*, ec_orders!inner(id, razorpay_payment_id, payment_status)').eq('id', itemId).single();
+    if (fetchErr) throw fetchErr;
+    if (!oi.ec_orders || !oi.ec_orders.razorpay_payment_id) {
+      ecShowAlert('No Razorpay payment ID found. Marking as refunded manually.', 'warning');
+      await ec.from('ec_order_items').update({ status: 'refunded', refunded_at: new Date().toISOString() }).eq('id', itemId);
+      ecShowAlert('Order item marked as refunded', 'success');
+      loadOrders(); loadDashboard();
+      return;
+    }
+    var token = await ec.auth.getSession().then(function(s) { return s.data?.session?.access_token; });
+    if (!token) throw new Error('Not authenticated');
+    var refRes = await fetch('https://vgipghqejzbcoighktij.supabase.co/functions/v1/process-refund', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        payment_id: oi.ec_orders.razorpay_payment_id,
+        amount: Math.round(parseFloat(oi.total_price) * 100),
+        order_item_id: itemId
+      })
+    });
+    var refData = await refRes.json();
+    if (!refRes.ok) throw new Error(refData.error || 'Refund failed');
+    ecShowAlert('Refund processed! Refund ID: ' + (refData.refund_id || ''), 'success');
+    loadOrders(); loadDashboard();
+  } catch (e) {
+    ecShowAlert(e.message || 'Refund failed', 'error');
+  }
+}
+
 function getNextStatus(current) {
   var flow = { confirmed: 'processing', processing: 'shipped', shipped: 'delivered' };
   return flow[current] || null;
 }
 
 async function updateOrderItemStatus(itemId, newStatus) {
+  if (newStatus === 'cancelled' && !confirm('Cancel this order item? This cannot be undone.')) return;
+  if (newStatus === 'refunded' && !confirm('Refund this order item? The customer will be refunded.')) return;
   try {
+    var { data: oi, error: fetchErr } = await ec.from('ec_order_items').select('*, ec_orders!inner(id, razorpay_payment_id, payment_status)').eq('id', itemId).single();
+    if (fetchErr) throw fetchErr;
+
+    if (newStatus === 'refunded' && oi.ec_orders && oi.ec_orders.razorpay_payment_id) {
+      var token = await ec.auth.getSession().then(function(s) { return s.data?.session?.access_token; });
+      if (!token) throw new Error('Not authenticated');
+      var refRes = await fetch('https://vgipghqejzbcoighktij.supabase.co/functions/v1/process-refund', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payment_id: oi.ec_orders.razorpay_payment_id,
+          amount: Math.round(parseFloat(oi.total_price) * 100),
+          order_item_id: itemId
+        })
+      });
+      var refData = await refRes.json();
+      if (!refRes.ok) throw new Error(refData.error || 'Refund failed');
+    }
+
     var { error } = await ec.from('ec_order_items').update({ status: newStatus }).eq('id', itemId);
     if (error) throw error;
-    ecShowAlert('Order item status updated to ' + newStatus, 'success');
+
+    ecShowAlert('Order item ' + newStatus + ' successfully', 'success');
     loadOrders();
     loadDashboard();
   } catch (e) {

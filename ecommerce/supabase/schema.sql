@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS ec_vendors (
   gstin TEXT,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','suspended')),
   commission_rate NUMERIC(5,2) NOT NULL DEFAULT 5.00,
+  slug TEXT UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(user_id)
@@ -114,7 +115,7 @@ CREATE TABLE IF NOT EXISTS ec_orders (
   total NUMERIC(10,2) NOT NULL,
   payment_method TEXT NOT NULL DEFAULT 'razorpay',
   payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending','paid','failed','refunded')),
-  order_status TEXT NOT NULL DEFAULT 'confirmed' CHECK (order_status IN ('confirmed','processing','shipped','delivered','cancelled','returned')),
+  order_status TEXT NOT NULL DEFAULT 'confirmed' CHECK (order_status IN ('confirmed','processing','shipped','delivered','cancelled','rejected','refunded','returned')),
   razorpay_order_id TEXT,
   razorpay_payment_id TEXT,
   invoice_number TEXT,
@@ -145,7 +146,11 @@ CREATE TABLE IF NOT EXISTS ec_order_items (
   gst_rate NUMERIC(5,2) NOT NULL DEFAULT 18.00,
   gst_amount NUMERIC(10,2) NOT NULL DEFAULT 0,
   total_price NUMERIC(10,2) NOT NULL,
-  status TEXT NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed','processing','shipped','delivered','cancelled','returned')),
+  status TEXT NOT NULL DEFAULT 'confirmed' CHECK (status IN ('confirmed','processing','shipped','delivered','cancelled','rejected','refunded','returned')),
+  notes TEXT,
+  cancelled_at TIMESTAMPTZ,
+  refunded_at TIMESTAMPTZ,
+  refund_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_order_items_order ON ec_order_items(order_id);
@@ -196,6 +201,7 @@ CREATE TABLE IF NOT EXISTS ec_newsletter_campaigns (
 );
 ALTER TABLE ec_newsletter_campaigns ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "admin manage campaigns" ON ec_newsletter_campaigns FOR ALL USING (auth.jwt()->>'email' = 'snehaliteng@gmail.com');
+CREATE POLICY "vendor read campaigns" ON ec_newsletter_campaigns FOR SELECT USING (EXISTS (SELECT 1 FROM ec_vendors WHERE user_id = auth.uid()));
 
 -- Ecommerce Plans (admin-defined tiers)
 CREATE TABLE IF NOT EXISTS ec_plans (
