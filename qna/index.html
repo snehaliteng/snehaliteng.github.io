@@ -164,13 +164,46 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
 .pagination button.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
 .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Mobile hamburger */
+#hamburger { display: none; position: fixed; top: 10px; left: 10px; z-index: 1001; background: #1a1a2e; color: #fff; border: none; border-radius: 6px; width: 40px; height: 40px; font-size: 20px; cursor: pointer; align-items: center; justify-content: center; }
+#sidebar-overlay { display: none; }
+
 /* Responsive */
 @media (max-width: 768px) {
-  #sidebar { width: 56px; }
-  #sidebar .brand span, #sidebar .brand small, #sidebar .user-info span { display: none; }
-  .nav-item span { display: none; }
-  #main { padding: 16px; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  #hamburger { display: flex; }
+  #app { padding-top: 50px; }
+  #sidebar {
+    position: fixed; top: 0; left: -260px; width: 220px; height: 100vh; z-index: 1002;
+    transition: left 0.3s ease;
+  }
+  #sidebar.open { left: 0; }
+  #sidebar-overlay {
+    display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1001;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  #sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+  #main { padding: 12px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .top-bar { gap: 8px; }
+  .search-input { min-width: 120px; font-size: 13px; }
+  select.filter-select { font-size: 13px; padding: 6px 8px; }
+  .top-bar .btn { font-size: 12px; padding: 8px 12px; }
+  #q-select-bar { flex-wrap: wrap; }
+  .q-item { flex-wrap: wrap; padding: 10px 12px; }
+  .q-item .q-title { font-size: 13px; width: 100%; margin-bottom: 4px; }
+  .q-item .q-meta { font-size: 11px; margin-left: 0; white-space: normal; }
+  #login-box { width: 92vw; padding: 20px; }
+  table { display: block; overflow-x: auto; white-space: nowrap; font-size: 13px; }
+  th, td { padding: 8px 10px; }
+  .modal { width: 95vw; padding: 16px; }
+  .panel h1 { font-size: 18px; }
+  .nav-item { padding: 8px 12px; font-size: 13px; }
+  #sidebar .brand { padding: 14px 12px; font-size: 16px; }
+  #sidebar .user-info { flex-wrap: wrap; gap: 4px; }
+  .social-btn { font-size: 12px; padding: 8px; }
+  .stat-card { padding: 14px; }
+  .stat-card .stat-value { font-size: 22px; }
+  .stats-grid .stat-card:nth-child(n+5) { grid-column: span 2; }
 }
 </style>
 </head>
@@ -209,6 +242,8 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
   </div>
 </div>
 
+<button id="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div id="app" class="hidden">
   <div id="sidebar">
     <div class="brand"><span>SnehalIT</span><small>QNA Platform</small></div>

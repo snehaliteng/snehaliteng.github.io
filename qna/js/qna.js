@@ -901,5 +901,24 @@ function escHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Mobile sidebar
+function toggleSidebar() {
+  var s = document.getElementById('sidebar');
+  var o = document.getElementById('sidebar-overlay');
+  s.classList.toggle('open');
+  o.classList.toggle('open');
+}
+
+// Close sidebar on nav click (mobile)
+document.addEventListener('click', function(e) {
+  var navItem = e.target.closest('.nav-item');
+  if (navItem && window.innerWidth <= 768) {
+    var s = document.getElementById('sidebar');
+    var o = document.getElementById('sidebar-overlay');
+    s.classList.remove('open');
+    o.classList.remove('open');
+  }
+});
+
 // Init
 checkAuth();

@@ -668,5 +668,18 @@ async function loadYearlySummary() {
   document.getElementById('yearly-content').innerHTML = html;
 }
 
+// Mobile sidebar
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  var item = e.target.closest('.nav-item');
+  if (item && window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+  }
+});
+
 // Init
 checkAuth();

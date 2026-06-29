@@ -77,7 +77,46 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* Monthly Summary Table */
 .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.summary-table th, .summary-table td { border: 1px solid #e0e0e0; padding: 6px 4px; text-align: center; }
+/* Mobile hamburger */
+#hamburger { display: none; position: fixed; top: 10px; left: 10px; z-index: 1001; background: #1a73e8; color: #fff; border: none; border-radius: 6px; width: 40px; height: 40px; font-size: 20px; cursor: pointer; align-items: center; justify-content: center; }
+#sidebar-overlay { display: none; }
+
+@media (max-width: 768px) {
+  #hamburger { display: flex; }
+  #app { padding-top: 50px; }
+  #sidebar { position: fixed; top: 0; left: -240px; width: 220px; height: 100vh; z-index: 1002; transition: left 0.3s ease; }
+  #sidebar.open { left: 0; }
+  #sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+  #sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+  #main { padding: 12px; }
+  #login-box { width: 92vw; padding: 20px; }
+  .top-bar { gap: 6px; }
+  .top-bar h1 { font-size: 18px; width: 100%; }
+  .search-input { min-width: 100px; font-size: 13px; }
+  .filter-select { font-size: 13px; padding: 6px 8px; }
+  .top-bar .btn, .top-bar .btn-sm { font-size: 12px; padding: 8px 12px; }
+  .template-item, .task-item { flex-wrap: wrap; padding: 8px 10px; gap: 6px; }
+  .task-time { min-width: 60px; font-size: 11px; }
+  .task-title { font-size: 13px; width: 100%; order: -1; }
+  .task-check { width: 16px; height: 16px; }
+  .summary-wrap { max-height: 60vh; }
+  .summary-table { font-size: 11px; }
+  .summary-table th, .summary-table td { padding: 4px 2px; }
+  .summary-table .task-row { min-width: 100px; font-size: 11px; }
+  .summary-tabs { overflow-x: auto; white-space: nowrap; gap: 0; }
+  .summary-tab { padding: 8px 12px; font-size: 13px; }
+  .modal { width: 95vw; padding: 16px; }
+  .panel h1 { font-size: 18px; }
+  .nav-item { padding: 10px 12px; font-size: 13px; }
+  #sidebar .brand { padding: 14px 16px; font-size: 16px; }
+  #sidebar .user-info { padding: 12px 16px; }
+  .ttask-row { flex-wrap: wrap; }
+  .ttask-row input[type="time"] { width: 80px; }
+  #daily-date { max-width: 160px !important; }
+  #daily-template { min-width: 120px !important; }
+}
+
+  .summary-table th, .summary-table td { border: 1px solid #e0e0e0; padding: 6px 4px; text-align: center; }
 .summary-table th { background: #f8f9fa; font-weight: 600; position: sticky; top: 0; }
 .summary-table .task-row { text-align: left; position: sticky; left: 0; background: #fff; min-width: 160px; }
 .summary-table .cell-done { color: #188038; font-size: 14px; }
@@ -121,6 +160,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   </div>
 </div>
 
+<button id="hamburger" onclick="toggleSidebar()">&#9776;</button>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div id="app" class="hidden">
   <div id="sidebar">
     <div class="brand"><span>SnehalIT</span><small>Todo Planner</small></div>
