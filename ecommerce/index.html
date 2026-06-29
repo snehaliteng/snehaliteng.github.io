@@ -407,7 +407,7 @@ function renderProductCard(p) {
   }
   var reviewText = p.review_count ? '(' + p.review_count + ')' : '(0)';
   return '<div class=\"product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition flex flex-col\" data-product-id=\"' + p.id + '\">'
-    + '<img src=\"' + ecEscape(img) + '\" alt=\"' + ecEscape(p.name) + '\" class=\"w-full h-48 object-cover\" onerror=\"this.src=\\'https://placehold.co/300x300?text=No+Image\\'\">'
+    + '<img src=\"' + ecEscape(img) + '\" alt=\"' + ecEscape(p.name) + '\" class=\"w-full h-48 object-cover\" onerror=\"this.src=\'https://placehold.co/300x300?text=No+Image\'\">'
     + '<div class=\"p-4 flex flex-col flex-1\">'
     + (store ? '<p class=\"text-xs text-gray-500 mb-1\">' + ecEscape(store) + '</p>' : '')
     + '<p class=\"text-sm font-semibold text-gray-800 mb-1 line-clamp-2\">' + ecEscape(p.name) + '</p>'
@@ -496,7 +496,7 @@ async function renderCartSidebar() {
       var subtotal = parseFloat(p.price) * item.quantity;
       total += subtotal;
       html += '<div class=\"flex items-center gap-3 p-3 border-b\" data-product-id=\"' + p.id + '\">'
-        + '<img src=\"' + ecEscape(img) + '\" alt=\"\" class=\"w-14 h-14 object-cover rounded\" onerror=\"this.src=\\'https://placehold.co/60x60?text=N\\'\">'
+        + '<img src=\"' + ecEscape(img) + '\" alt=\"\" class=\"w-14 h-14 object-cover rounded\" onerror=\"this.src=\'https://placehold.co/60x60?text=N\'\">'
         + '<div class=\"flex-1 min-w-0\"><p class=\"text-sm font-medium truncate\">' + ecEscape(p.name) + '</p>'
         + '<p class=\"text-xs text-gray-500\">' + ecMoney(p.price) + ' x ' + item.quantity + '</p>'
         + '<div class=\"flex items-center gap-1 mt-1\">'
@@ -564,7 +564,7 @@ async function openProductModal(productId) {
     var imagesHtml = '';
     if (p.images && p.images.length) {
       for (var i = 0; i < p.images.length; i++) {
-        imagesHtml += '<img src=\"' + ecEscape(p.images[i]) + '\" class=\"w-full h-48 object-cover rounded-lg\" onerror=\"this.src=\\'https://placehold.co/400x400?text=No+Image\\'\">';
+        imagesHtml += '<img src=\"' + ecEscape(p.images[i]) + '\" class=\"w-full h-48 object-cover rounded-lg\" onerror=\"this.src=\'https://placehold.co/400x400?text=No+Image\'\">';
       }
     }
     document.getElementById('product-modal-title').textContent = ecEscape(p.name);
@@ -689,7 +689,7 @@ async function loadRelatedProducts(categoryId, excludeId) {
       var p = products[i];
       var img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/150x150?text=N';
       html += '<div class=\"product-card bg-white rounded border p-2\" data-product-id=\"' + p.id + '\" onclick=\"closeProductModal();openProductModal(' + p.id + ')\">'
-        + '<img src=\"' + ecEscape(img) + '\" class=\"w-full h-24 object-cover rounded mb-2\" onerror=\"this.src=\\'https://placehold.co/150x150?text=N\\'\">'
+        + '<img src=\"' + ecEscape(img) + '\" class=\"w-full h-24 object-cover rounded mb-2\" onerror=\"this.src=\'https://placehold.co/150x150?text=N\'\">'
         + '<p class=\"text-xs font-medium line-clamp-2\">' + ecEscape(p.name) + '</p>'
         + '<p class=\"text-sm font-bold text-blue-600 mt-1\">' + ecMoney(p.price) + '</p></div>';
     }
