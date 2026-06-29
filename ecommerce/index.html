@@ -220,6 +220,13 @@ document.addEventListener('DOMContentLoaded', async function() {
       window.location.href = 'vendor/dashboard.html';
       return;
     }
+    if (ecCurrentUser && sessionStorage.getItem('ec_open_checkout')) {
+      sessionStorage.removeItem('ec_open_checkout');
+      await loadCategories();
+      await loadAndRenderProducts(1);
+      openCheckout();
+      return;
+    }
     await loadCategories();
     await loadAndRenderProducts(1);
     await loadAndRenderCartBadge();
@@ -281,6 +288,12 @@ document.getElementById('login-form').addEventListener('submit', async function(
     if (sessionStorage.getItem('ec_pending_vendor')) {
       sessionStorage.removeItem('ec_pending_vendor');
       window.location.href = 'vendor/dashboard.html';
+      return;
+    }
+    if (sessionStorage.getItem('ec_open_checkout')) {
+      sessionStorage.removeItem('ec_open_checkout');
+      closeLoginModal();
+      openCheckout();
       return;
     }
     await loadAndRenderCartBadge();
