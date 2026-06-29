@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <script>if(location.hash==='#')history.replaceState(null,'',location.pathname+location.search)</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
@@ -24,6 +25,7 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
 .modal-content { transform: scale(0.95) translateY(20px); transition: transform 0.3s ease-in-out; }
 .modal-overlay.open .modal-content { transform: scale(1) translateY(0); }
 .product-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+#checkout-map { z-index: 1; }
 .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
 .btn-primary { background: #2563eb; color: white; padding: 0.5rem 1.5rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; display: inline-block; text-align: center; border: none; cursor: pointer; }
 .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
@@ -201,6 +203,7 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
 </div>
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="js/ecommerce.js"></script><script>
 let currentPage = 1;
@@ -225,6 +228,15 @@ document.addEventListener('DOMContentLoaded', async function() {
       await loadCategories();
       await loadAndRenderProducts(1);
       openCheckout();
+      return;
+    }
+    if (sessionStorage.getItem('ec_open_product')) {
+      var pid = parseInt(sessionStorage.getItem('ec_open_product'));
+      sessionStorage.removeItem('ec_open_product');
+      await loadCategories();
+      await loadAndRenderProducts(1);
+      if (!ecCurrentUser) { openLoginModal(); return; }
+      openProductModal(pid);
       return;
     }
     await loadCategories();
@@ -294,6 +306,13 @@ document.getElementById('login-form').addEventListener('submit', async function(
       sessionStorage.removeItem('ec_open_checkout');
       closeLoginModal();
       openCheckout();
+      return;
+    }
+    if (sessionStorage.getItem('ec_open_product')) {
+      var pid = parseInt(sessionStorage.getItem('ec_open_product'));
+      sessionStorage.removeItem('ec_open_product');
+      closeLoginModal();
+      openProductModal(pid);
       return;
     }
     await loadAndRenderCartBadge();
@@ -748,8 +767,11 @@ async function renderCheckoutStep1() {
       + '<div><input type=\"text\" id=\"addr-city\" placeholder=\"City\" required class=\"w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500\"></div>'
       + '<div><input type=\"text\" id=\"addr-state\" placeholder=\"State\" required class=\"w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500\"></div>'
       + '<div class=\"col-span-2\"><input type=\"text\" id=\"addr-pincode\" placeholder=\"Pincode\" required class=\"w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500\"></div>'
-      + '<div class=\"col-span-2\"><button type=\"submit\" class=\"btn-secondary text-sm w-full\">Save & Continue</button></div>'
+      + '<input type=\"hidden\" id=\"addr-lat\" value=\"\"><input type=\"hidden\" id=\"addr-lng\" value=\"\">'
+      + '<div class=\"col-span-2 flex gap-2\"><button type=\"button\" onclick=\"getCurrentLocation()\" class=\"btn-secondary text-sm flex-1\">&#9873; Use My Location</button>'
+      + '<button type=\"submit\" class=\"btn-secondary text-sm flex-1\">Save & Continue</button></div>'
       + '</form>'
+      + '<div id=\"checkout-map-container\" class=\"mt-3\" style=\"display:none;\"><div id=\"checkout-map\" style=\"height:250px;border-radius:8px;border:1px solid #d1d5db;\"></div><p class=\"text-xs text-gray-400 mt-1\">Click on the map to set exact delivery location</p></div>'
       + '<div class=\"mt-4 text-right\"><button onclick=\"proceedCheckoutStep2()\" class=\"btn-primary\">Continue to Summary</button></div>';
     body.innerHTML = html;
     document.getElementById('address-form').addEventListener('submit', async function(e) {
@@ -762,7 +784,9 @@ async function renderCheckoutStep1() {
         line2: document.getElementById('addr-line2').value.trim(),
         city: document.getElementById('addr-city').value.trim(),
         state: document.getElementById('addr-state').value.trim(),
-        pincode: document.getElementById('addr-pincode').value.trim()
+        pincode: document.getElementById('addr-pincode').value.trim(),
+        latitude: document.getElementById('addr-lat').value || null,
+        longitude: document.getElementById('addr-lng').value || null
       };
       if (!data.full_name || !data.phone || !data.line1 || !data.city || !data.state || !data.pincode) {
         ecShowAlert('Please fill all required fields', 'error'); return;
@@ -770,12 +794,55 @@ async function renderCheckoutStep1() {
       try {
         await ecSaveAddress(data);
         ecShowAlert('Address saved!', 'success');
+        if (typeof checkoutMap !== 'undefined' && checkoutMap) checkoutMap.remove();
         renderCheckoutStep1();
       } catch (err) { ecShowAlert(err.message, 'error'); }
     });
   } catch (e) {
     body.innerHTML = '<div class=\"text-center py-8 text-red-400\">Error loading addresses: ' + ecEscape(e.message) + '</div>';
   }
+}
+
+var checkoutMap = null;
+var checkoutMarker = null;
+
+function getCurrentLocation() {
+  if (!navigator.geolocation) { ecShowAlert('Geolocation not supported by your browser', 'error'); return; }
+  document.getElementById('checkout-map-container').style.display = 'block';
+  ecShowAlert('Getting your location...', 'success');
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    initCheckoutMap(pos.coords.latitude, pos.coords.longitude);
+    ecShowAlert('Location found! Drag the marker or click the map to fine-tune.', 'success');
+  }, function(err) {
+    ecShowAlert('Could not get location: ' + err.message + '. You can click on the map to select.', 'error');
+    initCheckoutMap(20.5937, 78.9629);
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function initCheckoutMap(lat, lng) {
+  if (checkoutMap) checkoutMap.remove();
+  checkoutMap = L.map('checkout-map').setView([lat, lng], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(checkoutMap);
+  checkoutMarker = L.marker([lat, lng], { draggable: true }).addTo(checkoutMap);
+  document.getElementById('addr-lat').value = lat.toFixed(6);
+  document.getElementById('addr-lng').value = lng.toFixed(6);
+  checkoutMarker.on('dragend', function() {
+    var p = checkoutMarker.getLatLng();
+    document.getElementById('addr-lat').value = p.lat.toFixed(6);
+    document.getElementById('addr-lng').value = p.lng.toFixed(6);
+  });
+  checkoutMap.on('click', function(e) {
+    if (checkoutMarker) checkoutMap.removeLayer(checkoutMarker);
+    checkoutMarker = L.marker([e.latlng.lat, e.latlng.lng], { draggable: true }).addTo(checkoutMap);
+    document.getElementById('addr-lat').value = e.latlng.lat.toFixed(6);
+    document.getElementById('addr-lng').value = e.latlng.lng.toFixed(6);
+    checkoutMarker.on('dragend', function() {
+      var mPos = checkoutMarker.getLatLng();
+      document.getElementById('addr-lat').value = mPos.lat.toFixed(6);
+      document.getElementById('addr-lng').value = mPos.lng.toFixed(6);
+    });
+  });
+  setTimeout(function() { checkoutMap.invalidateSize(); }, 300);
 }
 
 async function proceedCheckoutStep2() {

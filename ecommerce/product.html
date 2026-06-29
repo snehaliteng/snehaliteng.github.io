@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product - SnehalIT Engineering Store</title>
+<script>
+var params = new URLSearchParams(window.location.search);
+var pid = params.get('id');
+if (pid) sessionStorage.setItem('ec_open_product', pid);
+window.location.replace('index.html');
+</script>
+</head>
+<body>
+<p>Redirecting to product...</p>
+</body>
+</html>

@@ -85,6 +85,8 @@ CREATE TABLE IF NOT EXISTS ec_addresses (
   city TEXT NOT NULL,
   state TEXT NOT NULL,
   pincode TEXT NOT NULL,
+  latitude TEXT,
+  longitude TEXT,
   is_default BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
