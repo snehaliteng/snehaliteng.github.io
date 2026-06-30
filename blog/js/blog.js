@@ -233,3 +233,30 @@ function timeAgo(dateStr) {
   if (days < 30) return `${days}d ago`;
   return date.toLocaleDateString();
 }
+
+const ADMIN_EMAIL = 'snehaliteng@gmail.com';
+
+async function isAdmin() {
+  const user = await getCurrentUser();
+  return user && user.email === ADMIN_EMAIL;
+}
+
+async function updateArticle(id, fields) {
+  const { error } = await _sb.from('blog_articles').update(fields).eq('id', id);
+  if (error) throw error;
+}
+
+async function deleteArticle(id) {
+  const { error } = await _sb.from('blog_articles').delete().eq('id', id);
+  if (error) throw error;
+}
+
+async function updateTopic(id, fields) {
+  const { error } = await _sb.from('blog_topics').update(fields).eq('id', id);
+  if (error) throw error;
+}
+
+async function deleteTopic(id) {
+  const { error } = await _sb.from('blog_topics').delete().eq('id', id);
+  if (error) throw error;
+}

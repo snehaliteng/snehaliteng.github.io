@@ -70,6 +70,7 @@
         navAuth.textContent = 'Login';
         navAuth.href = 'login.html';
       }
+      const isBlogAdmin = user && user.email === ADMIN_EMAIL;
 
       // Load topics
       try {
@@ -83,6 +84,11 @@
               <h3>${escapeHtml(t.name)}</h3>
               <p>${escapeHtml(t.description || '')}</p>
               <div class="count">${t.blog_articles?.[0]?.count || 0} article${(t.blog_articles?.[0]?.count || 0) !== 1 ? 's' : ''}</div>
+              ${isBlogAdmin ? `
+              <div class="admin-actions" style="margin-top:10px;display:flex;gap:6px;justify-content:center;">
+                <button class="btn btn-sm btn-secondary topic-edit-btn" data-id="${t.id}" data-name="${escapeHtml(t.name)}" data-description="${escapeHtml(t.description || '')}" data-slug="${t.slug}" onclick="event.stopPropagation();event.preventDefault();editTopic(this)">Edit</button>
+                <button class="btn btn-sm btn-danger topic-delete-btn" data-id="${t.id}" data-name="${escapeHtml(t.name)}" onclick="event.stopPropagation();event.preventDefault();deleteTopicPrompt(this)">Delete</button>
+              </div>` : ''}
             </a>
           `).join('');
         }
@@ -111,6 +117,11 @@
                 </div>
                 <h3 class="card-title"><a href="article.html?slug=${a.slug}">${escapeHtml(a.title)}</a></h3>
                 <div class="card-text">${escapeHtml(contentPreview)}...</div>
+                ${isBlogAdmin ? `
+                <div class="admin-actions" style="margin-top:10px;display:flex;gap:6px;">
+                  <a href="../admin/blog-edit-article.html?id=${a.id}" class="btn btn-sm btn-secondary" onclick="event.stopPropagation()">Edit</a>
+                  <button class="btn btn-sm btn-danger article-delete-btn" data-id="${a.id}" data-title="${escapeHtml(a.title)}" onclick="event.stopPropagation()">Delete</button>
+                </div>` : ''}
               </div>
             `;
           }).join('');
@@ -125,7 +136,63 @@
         document.querySelector('.page-header p').textContent = 'Browsing articles in topic: ' + topicFilter;
       }
       await loadArticles(topicFilter);
+
+      // Wire article delete buttons via event delegation
+      document.getElementById('articles-list').addEventListener('click', async function(e) {
+        const btn = e.target.closest('.article-delete-btn');
+        if (!btn) return;
+        const id = parseInt(btn.dataset.id);
+        const title = btn.dataset.title;
+        if (!confirm(`Delete article "${title}"?\n\nThis cannot be undone.`)) return;
+        btn.disabled = true;
+        btn.textContent = 'Deleting...';
+        try {
+          await deleteArticle(id);
+          btn.closest('.card').remove();
+          showAlert('alert-container', 'Article deleted.', 'success');
+        } catch (err) {
+          showAlert('alert-container', 'Failed to delete: ' + err.message, 'error');
+          btn.disabled = false;
+          btn.textContent = 'Delete';
+        }
+      });
     });
+
+    window.editTopic = async function(btn) {
+      const id = parseInt(btn.dataset.id);
+      const name = btn.dataset.name;
+      const description = btn.dataset.description;
+      const slug = btn.dataset.slug;
+      const newName = prompt('Topic name:', name);
+      if (!newName) return;
+      const newDesc = prompt('Topic description:', description);
+      if (newDesc === null) return;
+      const newSlug = prompt('Topic slug:', slug);
+      if (!newSlug) return;
+      try {
+        await updateTopic(id, { name: newName, description: newDesc || null, slug: newSlug });
+        window.location.reload();
+      } catch (err) {
+        alert('Failed to update topic: ' + err.message);
+      }
+    };
+
+    window.deleteTopicPrompt = async function(btn) {
+      const id = parseInt(btn.dataset.id);
+      const name = btn.dataset.name;
+      if (!confirm(`Delete topic "${name}"?\n\nThis will also delete all articles in this topic. This cannot be undone.`)) return;
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+      try {
+        await deleteTopic(id);
+        btn.closest('.topic-card')?.remove();
+        showAlert('alert-container', 'Topic deleted.', 'success');
+      } catch (err) {
+        showAlert('alert-container', 'Failed to delete: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+      }
+    };
   </script>
 </body>
 </html>
