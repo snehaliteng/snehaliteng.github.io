@@ -195,6 +195,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           <select id="daily-template" class="filter-select" style="min-width:200px;"><option value="">Select template...</option></select>
           <button class="btn btn-primary btn-sm" onclick="applyTemplate()">Apply Template</button>
           <button class="btn btn-danger btn-sm" onclick="clearDailySchedule()">Clear Day</button>
+          <button class="btn btn-danger btn-sm" id="delete-selected-btn" onclick="deleteSelectedTasks()" style="display:none;">Delete Selected</button>
         </div>
         <div id="daily-tasks"></div>
       </div>

@@ -1,2 +1,5 @@
 keepalive/setup.sql
 keepalive/__pycache__/keepalive.cpython-310.pyc
+LocationHistory/android/LocationTracker/.gradle/*
+LocationHistory/android/LocationTracker/.idea/*
+LocationHistory/android/LocationTracker/app/build/*

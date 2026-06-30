@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Location Tracker"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tracks your location and uploads to cloud"
+        android:textSize="14sp"
+        android:textColor="#888"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:id="@+id/status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Not Tracking"
+        android:textSize="18sp"
+        android:textColor="#888"
+        android:layout_marginBottom="24dp" />
+
+    <EditText
+        android:id="@+id/identifier_input"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Phone number or email"
+        android:inputType="textEmailAddress"
+        android:padding="12dp"
+        android:background="@android:drawable/editbox_background"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/battery_btn"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Disable Battery Optimization"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/start_btn"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Start Tracking"
+        android:enabled="true"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/push_now_btn"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Push Location Now"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/stop_btn"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Stop Tracking"
+        android:enabled="false" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Location is pushed every 5 minutes. Duplicate locations within 1km are automatically skipped."
+        android:textSize="12sp"
+        android:textColor="#aaa"
+        android:gravity="center"
+        android:layout_marginTop="24dp" />
+
+</LinearLayout>

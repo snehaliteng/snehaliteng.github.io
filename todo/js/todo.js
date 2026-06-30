@@ -10,6 +10,7 @@ let currentUser = null;
 let currentView = 'templates';
 let userPlan = null;
 let planLimits = { max_templates: 3, max_schedules_per_month: 30 };
+let selectedTaskIds = new Set();
 
 // Auth
 async function checkAuth() {
@@ -374,7 +375,11 @@ async function loadDailySchedule() {
   let html = '<div style="font-size:13px;color:#666;margin-bottom:12px;">' +
     (templateName ? 'Template: <strong>' + escHtml(templateName) + '</strong>' : '<em>Custom schedule</em>') + '</div>';
   if (tasks && tasks.length) {
-    html += tasks.map(t => '<div class="task-item"><input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
+    selectedTaskIds.clear();
+    document.getElementById('delete-selected-btn').style.display = 'none';
+    html += tasks.map(t => '<div class="task-item">' +
+      '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
+      '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
       '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
       '<span class="task-title' + (t.is_completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
       '<span class="task-status-dot ' + (t.is_completed ? 'done' : 'pending') + '"></span>' +
@@ -431,6 +436,24 @@ async function saveCustomTask(scheduleId) {
   loadSummaryTabs();
 }
 
+function toggleSelect(taskId, checked) {
+  if (checked) selectedTaskIds.add(taskId);
+  else selectedTaskIds.delete(taskId);
+  document.getElementById('delete-selected-btn').style.display = selectedTaskIds.size ? 'inline-block' : 'none';
+}
+
+async function deleteSelectedTasks() {
+  if (!selectedTaskIds.size) return;
+  const count = selectedTaskIds.size;
+  if (!confirm('Delete ' + count + ' selected task' + (count > 1 ? 's' : '') + '?')) return;
+  const ids = Array.from(selectedTaskIds);
+  selectedTaskIds.clear();
+  document.getElementById('delete-selected-btn').style.display = 'none';
+  await sb.from('todo_task_instances').delete().in('id', ids);
+  loadDailySchedule();
+  loadSummaryTabs();
+}
+
 async function deleteTaskInstance(taskId) {
   if (!confirm('Remove this task?')) return;
   await sb.from('todo_task_instances').delete().eq('id', taskId);
@@ -445,8 +468,16 @@ async function applyTemplate() {
 
   if (!(await checkLimit('schedules'))) return;
 
-  const { data: existing } = await sb.from('todo_daily_schedules').select('*').eq('user_id', currentUser.id).eq('schedule_date', date);
-  if (existing && existing.length) return alert('Schedule already exists for this date. Clear it first.');
+  let { data: existing } = await sb.from('todo_daily_schedules').select('*').eq('user_id', currentUser.id).eq('schedule_date', date);
+  if (existing && existing.length) {
+    const { count } = await sb.from('todo_task_instances').select('*', { count: 'exact', head: true }).eq('schedule_id', existing[0].id);
+    if (count === 0) {
+      await sb.from('todo_daily_schedules').delete().eq('id', existing[0].id);
+      existing = null;
+    } else {
+      return alert('Schedule already exists for this date. Clear it first.');
+    }
+  }
 
   const { data: tasks } = await sb.from('todo_template_tasks').select('*').eq('template_id', templateId).order('order_index');
   if (!tasks || !tasks.length) return alert('Template has no tasks');
