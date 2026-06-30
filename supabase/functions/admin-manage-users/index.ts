@@ -30,16 +30,21 @@ serve(async (req) => {
 
     switch (action) {
       case 'delete': {
-        const { error } = await supabase.auth.admin.deleteUser(user_id)
-        if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        const { error: delErr } = await supabase.auth.admin.deleteUser(user_id)
+        if (delErr) return new Response(JSON.stringify({ error: delErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
       case 'toggle_status': {
         const { data: u } = await supabase.auth.admin.getUserById(user_id)
         if (!u?.user) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         const isBanned = u.user.banned_until && new Date(u.user.banned_until) > new Date()
-        const { error } = await supabase.auth.admin.updateUserById(user_id, { ban_duration: isBanned ? '0' : '36500d' })
-        if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        if (isBanned) {
+          const { error: updErr } = await supabase.auth.admin.updateUserById(user_id, { ban_duration: 'none' })
+          if (updErr) return new Response(JSON.stringify({ error: updErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        } else {
+          const { error: updErr } = await supabase.auth.admin.updateUserById(user_id, { ban_duration: '36500d' })
+          if (updErr) return new Response(JSON.stringify({ error: updErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
         return new Response(JSON.stringify({ success: true, new_status: isBanned ? 'active' : 'inactive' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
       default:

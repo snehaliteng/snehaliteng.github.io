@@ -41,8 +41,14 @@
       await loadUsers();
     });
 
-    function getToken() {
-      return _admin.auth.getSession().then(s => s.data?.session?.access_token);
+    async function getToken() {
+      const s = await _admin.auth.getSession();
+      if (!s.data?.session?.access_token) {
+        await _admin.auth.refreshSession();
+        const s2 = await _admin.auth.getSession();
+        return s2.data?.session?.access_token;
+      }
+      return s.data.session.access_token;
     }
 
     async function loadUsers() {
