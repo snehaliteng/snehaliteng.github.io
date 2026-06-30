@@ -327,6 +327,7 @@ function renderQuestionList(questions, prefMap) {
     return `<div class="q-item ${read ? 'q-read' : ''}" data-qid="${q.id}" data-idx="${i}" onclick="toggleQDetail(${q.id}, this)">
       <span class="drag-handle" draggable="true" ondragstart="onDragStart(event)" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragend="onDragEnd(event)" title="Drag to reorder">⠿</span>
       <input type="checkbox" class="q-checkbox" data-qid="${q.id}" onclick="event.stopPropagation();onQCheckChange()" ${window._qChecked && window._qChecked[q.id] ? 'checked' : ''}>
+      <span class="q-seq">${i + 1}.</span>
       <span class="q-title">${escHtml(q.title)}${read ? '<span class="read-badge">Read</span>' : ''}</span>
       <span class="q-meta">${cat ? escHtml(cat.name) : ''}${q.is_hidden ? ' <span style="color:#d93025;">Hidden</span>' : ''}</span>
       <span class="q-actions">
