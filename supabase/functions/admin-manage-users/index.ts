@@ -30,6 +30,18 @@ serve(async (req) => {
 
     switch (action) {
       case 'delete': {
+        const { data: vendor } = await supabase.from('ec_vendors').select('id').eq('user_id', user_id).maybeSingle()
+        if (vendor) {
+          const { data: items } = await supabase.from('ec_order_items').select('id').eq('vendor_id', vendor.id)
+          if (items && items.length) {
+            await supabase.from('ec_order_items').delete().in('id', items.map(i => i.id))
+          }
+          const { data: products } = await supabase.from('ec_products').select('id').eq('vendor_id', vendor.id)
+          if (products && products.length) {
+            await supabase.from('ec_reviews').delete().in('product_id', products.map(p => p.id))
+            await supabase.from('ec_cart_items').delete().in('product_id', products.map(p => p.id))
+          }
+        }
         const { error: delErr } = await supabase.auth.admin.deleteUser(user_id)
         if (delErr) return new Response(JSON.stringify({ error: delErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -39,10 +51,10 @@ serve(async (req) => {
         if (!u?.user) return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         const isBanned = u.user.banned_until && new Date(u.user.banned_until) > new Date()
         if (isBanned) {
-          const { error: updErr } = await supabase.auth.admin.updateUserById(user_id, { ban_duration: 'none' })
+          const { error: updErr } = await supabase.auth.admin.updateUserById(user_id, { ban_duration: '0s' })
           if (updErr) return new Response(JSON.stringify({ error: updErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         } else {
-          const { error: updErr } = await supabase.auth.admin.updateUserById(user_id, { ban_duration: '36500d' })
+          const { error: updErr } = await supabase.auth.admin.updateUserById(user_id, { ban_duration: '876000h' })
           if (updErr) return new Response(JSON.stringify({ error: updErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         }
         return new Response(JSON.stringify({ success: true, new_status: isBanned ? 'active' : 'inactive' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -51,6 +63,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: 'Unknown action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    const msg = err?.message || err?.toString() || 'Unknown error'
+    return new Response(JSON.stringify({ error: msg }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })

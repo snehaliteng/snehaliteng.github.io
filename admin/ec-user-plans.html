@@ -80,8 +80,13 @@
       ecPlanOptions = (data || []).filter(p => p.active).map(p => ({ id: p.id, name: p.name, price: p.price }));
     }
 
-    function getToken() {
-      return _admin.auth.getSession().then(s => s.data?.session?.access_token);
+    async function getToken() {
+      let s = await _admin.auth.getSession();
+      if (!s.data?.session?.access_token) {
+        await _admin.auth.refreshSession();
+        s = await _admin.auth.getSession();
+      }
+      return s.data?.session?.access_token;
     }
 
     async function loadUserPlans() {
