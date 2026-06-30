@@ -70,7 +70,7 @@ async function createTopic(name, description, slug) {
 async function getRecentArticles(limit = 10) {
   const { data, error } = await _sb
     .from('blog_articles')
-    .select('*, blog_topics(name, slug), blog_profiles(username, full_name)')
+    .select('*, blog_topics(name, slug), blog_profiles!created_by(username, full_name)')
     .order('created_at', { ascending: false })
     .limit(limit);
   if (error) throw error;
@@ -80,7 +80,7 @@ async function getRecentArticles(limit = 10) {
 async function getArticlesByTopic(topicSlug) {
   const { data, error } = await _sb
     .from('blog_articles')
-    .select('*, blog_topics!inner(name, slug), blog_profiles(username, full_name)')
+    .select('*, blog_topics!inner(name, slug), blog_profiles!created_by(username, full_name)')
     .eq('blog_topics.slug', topicSlug)
     .order('created_at', { ascending: false });
   if (error) throw error;
@@ -90,7 +90,7 @@ async function getArticlesByTopic(topicSlug) {
 async function getArticleBySlug(slug) {
   const { data, error } = await _sb
     .from('blog_articles')
-    .select('*, blog_topics(name, slug), blog_profiles(username, full_name)')
+    .select('*, blog_topics(name, slug), blog_profiles!created_by(username, full_name)')
     .eq('slug', slug)
     .single();
   if (error) throw error;
@@ -116,7 +116,7 @@ async function createArticle(topicId, title, slug, content, featuredImage) {
 async function getReplies(articleId) {
   const { data, error } = await _sb
     .from('blog_replies')
-    .select('*, blog_profiles(username, full_name)')
+    .select('*, blog_profiles!created_by(username, full_name)')
     .eq('article_id', articleId)
     .order('created_at', { ascending: true });
   if (error) throw error;
