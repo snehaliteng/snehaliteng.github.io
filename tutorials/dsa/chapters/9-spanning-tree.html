@@ -27,7 +27,7 @@
     <p>A <strong>spanning tree</strong> of an undirected graph is a subgraph that includes all vertices but only enough edges to keep the graph connected (exactly <code>|V| - 1</code> edges). When edges have weights, the <strong>Minimum Spanning Tree (MST)</strong> is the spanning tree with the smallest total edge weight.</p>
 
     <div class="info">
-      MSTs are the backbone of network design Ã¢â‚¬â€ building roads, laying cables, or connecting computer networks at the lowest possible cost.
+      MSTs are the backbone of network design — building roads, laying cables, or connecting computer networks at the lowest possible cost.
     </div>
 
     <img src="../images/dsa-graph.svg" alt="Minimum spanning tree diagram">
@@ -35,7 +35,7 @@
     <h2>Properties of an MST</h2>
     <ul>
       <li>Contains exactly <code>V - 1</code> edges for <code>V</code> vertices.</li>
-      <li>No cycles Ã¢â‚¬â€ it is a tree by definition.</li>
+      <li>No cycles — it is a tree by definition.</li>
       <li>The total weight is minimal among all possible spanning trees.</li>
       <li>If all edge weights are distinct, the MST is unique.</li>
     </ul>
@@ -76,7 +76,7 @@
     <p>Time complexity: <code>O(VÃ‚Â²)</code> with an adjacency matrix, or <code>O(E log V)</code> with a binary heap.</p>
 
     <h2>Kruskal's Algorithm (Edge-Based, Union-Find DSU)</h2>
-    <p>Kruskal's algorithm sorts all edges by weight, then adds them one by one Ã¢â‚¬â€ skipping any edge that would create a cycle. It uses a <strong>Disjoint Set Union (DSU)</strong> or <strong>Union-Find</strong> data structure to detect cycles efficiently.</p>
+    <p>Kruskal's algorithm sorts all edges by weight, then adds them one by one — skipping any edge that would create a cycle. It uses a <strong>Disjoint Set Union (DSU)</strong> or <strong>Union-Find</strong> data structure to detect cycles efficiently.</p>
 
     <h3>How it works</h3>
     <ol>
@@ -135,7 +135,7 @@ def kruskal(vertices, edges):
       <tr><td>Approach</td><td>Vertex-based (grows like BFS)</td><td>Edge-based (processes sorted edges)</td></tr>
       <tr><td>Data Structure</td><td>Priority queue / heap</td><td>Union-Find (DSU)</td></tr>
       <tr><td>Best for</td><td>Dense graphs (many edges)</td><td>Sparse graphs (few edges)</td></tr>
-      <tr><td>Time Complexity</td><td>O(E log V) with heap</td><td>O(E log E) Ã¢â‚¬â€ dominated by sorting</td></tr>
+      <tr><td>Time Complexity</td><td>O(E log V) with heap</td><td>O(E log E) — dominated by sorting</td></tr>
       <tr><td>Graph Requirement</td><td>Connected graph</td><td>Connected or disconnected (finds forest)</td></tr>
     </table>
 
@@ -145,11 +145,11 @@ def kruskal(vertices, edges):
 
     <h2>Applications of MST</h2>
     <ul>
-      <li><strong>Network design</strong> Ã¢â‚¬â€ laying fiber-optic cables, electrical grids, pipelines.</li>
-      <li><strong>Approximation algorithms</strong> Ã¢â‚¬â€ the MST is used as a building block for approximate solutions to NP-hard problems like the Traveling Salesman Problem.</li>
-      <li><strong>Clustering</strong> Ã¢â‚¬â€ single-linkage clustering is essentially Kruskal's algorithm stopped early.</li>
-      <li><strong>Image segmentation</strong> Ã¢â‚¬â€ graph-based segmentation uses MST concepts.</li>
-      <li><strong>Broadcast routing</strong> Ã¢â‚¬â€ MST minimizes total cost of broadcasting in a network.</li>
+      <li><strong>Network design</strong> — laying fiber-optic cables, electrical grids, pipelines.</li>
+      <li><strong>Approximation algorithms</strong> — the MST is used as a building block for approximate solutions to NP-hard problems like the Traveling Salesman Problem.</li>
+      <li><strong>Clustering</strong> — single-linkage clustering is essentially Kruskal's algorithm stopped early.</li>
+      <li><strong>Image segmentation</strong> — graph-based segmentation uses MST concepts.</li>
+      <li><strong>Broadcast routing</strong> — MST minimizes total cost of broadcasting in a network.</li>
     </ul>
 
     <div class="exercise">

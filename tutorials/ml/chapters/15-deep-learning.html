@@ -57,7 +57,7 @@ class DQNAgent:
             self.epsilon *= self.epsilon_decay</code></pre>
 
     <h2>Policy Gradient Methods</h2>
-    <p>Unlike value-based methods (DQN), policy gradient methods directly optimize the policy Ã¢â‚¬â€ the mapping from states to actions. They work well in continuous action spaces and learn stochastic policies, which are often better for exploration.</p>
+    <p>Unlike value-based methods (DQN), policy gradient methods directly optimize the policy — the mapping from states to actions. They work well in continuous action spaces and learn stochastic policies, which are often better for exploration.</p>
     <pre><code>import numpy as np
 
 def policy_gradient_update(states, actions, rewards, policy_probs, lr=0.01):

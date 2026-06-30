@@ -33,7 +33,7 @@
     <pre><code>import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'  // Singleton Ã¢â‚¬â€ one instance for the entire app
+  providedIn: 'root'  // Singleton — one instance for the entire app
 })
 export class DataService {
   constructor(private http: HttpClient) { }
@@ -43,7 +43,7 @@ export class DataService {
   }
 }</code></pre>
 
-    <div class="note"><code>providedIn: 'root'</code> creates a tree-shakeable singleton service available application-wide. If the service is never injected, it is tree-shaken from the bundle Ã¢â‚¬â€ reducing the final build size.</div>
+    <div class="note"><code>providedIn: 'root'</code> creates a tree-shakeable singleton service available application-wide. If the service is never injected, it is tree-shaken from the bundle — reducing the final build size.</div>
 
     <h2>DI Patterns</h2>
 
@@ -93,7 +93,7 @@ export class DataService {
     <pre><code>constructor(@Optional() private logger?: LoggerService) { }</code></pre>
 
     <h3>@Self</h3>
-    <p>Restricts resolution to the current component's injector only Ã¢â‚¬â€ does not check parent injectors:</p>
+    <p>Restricts resolution to the current component's injector only — does not check parent injectors:</p>
     <pre><code>constructor(@Self() private localService: LocalService) { }</code></pre>
 
     <h3>@SkipSelf</h3>

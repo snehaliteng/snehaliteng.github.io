@@ -52,10 +52,10 @@ No single point of failure; higher availability</code></pre>
 <p>Systems like Google File System (GFS) and Hadoop HDFS split files into chunks (e.g., 64MB or 128MB) and replicate chunks across machines. A metadata server tracks chunk locations. Optimized for sequential reads/writes on large files.</p>
 <h2>Big Data Storage</h2>
 <ul>
-<li><strong>Columnar storage:</strong> Parquet, ORC Ã¢â‚¬â€ efficient for analytics on specific columns.</li>
-<li><strong>Data warehouses:</strong> Snowflake, Redshift, BigQuery Ã¢â‚¬â€ optimized for analytical queries on large datasets.</li>
+<li><strong>Columnar storage:</strong> Parquet, ORC — efficient for analytics on specific columns.</li>
+<li><strong>Data warehouses:</strong> Snowflake, Redshift, BigQuery — optimized for analytical queries on large datasets.</li>
 <li><strong>Data lakes:</strong> Store raw data in native format; schema applied at read time.</li>
-<li><strong>Time-series databases:</strong> InfluxDB, TimescaleDB Ã¢â‚¬â€ optimized for time-stamped data (metrics, logs).</li>
+<li><strong>Time-series databases:</strong> InfluxDB, TimescaleDB — optimized for time-stamped data (metrics, logs).</li>
 </ul>
 <div class="exercise"><strong>Exercise:</strong> Design a storage layer for a photo-sharing app with 500M users. Each user uploads 10 photos/month (5MB average). Consider: metadata storage (user profiles, albums), photo storage (blob), serving photos quickly (CDN), and handling peak upload traffic (e.g., New Year's Eve).</div>
 <nav><a href="6-scalability.html">&larr; Previous</a><a href="../index.html">Index</a><a href="8-performance.html">Next: Performance &rarr;</a></nav>

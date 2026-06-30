@@ -19,7 +19,7 @@
 <p>The first step in any AI system design is to clearly define the problem. Without this, you risk building a system that solves the wrong thing or fails to meet real-world constraints.</p>
 <p>Ask these questions before designing:</p>
 <ul>
-<li><strong>What is the business problem?</strong> "Fraud detection" vs "reduce chargeback rate by 30%" Ã¢â‚¬â€ the second is measurable.</li>
+<li><strong>What is the business problem?</strong> "Fraud detection" vs "reduce chargeback rate by 30%" — the second is measurable.</li>
 <li><strong>Who are the users?</strong> Internal analysts? External customers? Automated systems?</li>
 <li><strong>What is the input and output?</strong> Raw transaction data Ã¢â€ â€™ fraud probability score. Free-text query Ã¢â€ â€™ answer with citations.</li>
 <li><strong>What is the decision boundary?</strong> At what confidence threshold do we act?</li>
@@ -32,7 +32,7 @@
 <tr><td>Latency</td><td>API must respond within 200ms p99</td></tr>
 <tr><td>Throughput</td><td>Handle 10,000 requests/second</td></tr>
 <tr><td>Cost</td><td>Inference budget &lt;$0.001 per request</td></tr>
-<tr><td>Data Governance</td><td>Must comply with GDPR Ã¢â‚¬â€ data cannot leave EU region</td></tr>
+<tr><td>Data Governance</td><td>Must comply with GDPR — data cannot leave EU region</td></tr>
 <tr><td>Hardware</td><td>Must run on CPU (no GPU), 4GB RAM</td></tr>
 <tr><td>Model Size</td><td>Model must fit in 500MB for edge deployment</td></tr>
 </table>
@@ -52,7 +52,7 @@
 <div class="note"><strong>Key insight:</strong> Non-functional requirements drive most architectural decisions. Latency determines caching and model size. Uptime determines redundancy and failover. Cost determines whether you use GPU or CPU, on-prem or cloud.</div>
 <h2>Avoiding Common Pitfalls</h2>
 <ul>
-<li><strong>Scope creep:</strong> "Let's also add sentiment analysis" Ã¢â‚¬â€ stick to the primary problem.</li>
+<li><strong>Scope creep:</strong> "Let's also add sentiment analysis" — stick to the primary problem.</li>
 <li><strong>Over-engineering:</strong> Don't design for 100M users if you have 10K.</li>
 <li><strong>Ignoring data pipelines:</strong> Most AI failures are data failures, not model failures.</li>
 <li><strong>Starting with the model:</strong> Start with the problem, not the solution.</li>

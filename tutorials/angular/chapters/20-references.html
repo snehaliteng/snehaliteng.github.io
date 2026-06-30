@@ -30,27 +30,27 @@
 
     <h3>Decorators</h3>
     <ul>
-      <li><strong>@Component</strong> Ã¢â‚¬â€ Declares a component with selector, template, styles, and change detection</li>
-      <li><strong>@Directive</strong> Ã¢â‚¬â€ Creates a structural or attribute directive</li>
-      <li><strong>@Pipe</strong> Ã¢â‚¬â€ Transforms template values</li>
-      <li><strong>@Injectable</strong> Ã¢â‚¬â€ Marks a class as available for dependency injection</li>
-      <li><strong>@NgModule</strong> Ã¢â‚¬â€ Groups related components, directives, pipes, and services</li>
-      <li><strong>@Input</strong> Ã¢â‚¬â€ Binds a property to a parent template expression</li>
-      <li><strong>@Output</strong> Ã¢â‚¬â€ Emits custom events to the parent</li>
-      <li><strong>@HostBinding</strong> Ã¢â‚¬â€ Binds a property to the host element</li>
-      <li><strong>@HostListener</strong> Ã¢â‚¬â€ Listens to events on the host element</li>
-      <li><strong>@ViewChild / @ViewChildren</strong> Ã¢â‚¬â€ Queries child elements or components</li>
-      <li><strong>@ContentChild / @ContentChildren</strong> Ã¢â‚¬â€ Queries projected content</li>
+      <li><strong>@Component</strong> — Declares a component with selector, template, styles, and change detection</li>
+      <li><strong>@Directive</strong> — Creates a structural or attribute directive</li>
+      <li><strong>@Pipe</strong> — Transforms template values</li>
+      <li><strong>@Injectable</strong> — Marks a class as available for dependency injection</li>
+      <li><strong>@NgModule</strong> — Groups related components, directives, pipes, and services</li>
+      <li><strong>@Input</strong> — Binds a property to a parent template expression</li>
+      <li><strong>@Output</strong> — Emits custom events to the parent</li>
+      <li><strong>@HostBinding</strong> — Binds a property to the host element</li>
+      <li><strong>@HostListener</strong> — Listens to events on the host element</li>
+      <li><strong>@ViewChild / @ViewChildren</strong> — Queries child elements or components</li>
+      <li><strong>@ContentChild / @ContentChildren</strong> — Queries projected content</li>
     </ul>
 
     <h3>Core Classes</h3>
     <ul>
-      <li><strong>Renderer2</strong> Ã¢â‚¬â€ Safe DOM manipulation abstraction</li>
-      <li><strong>ElementRef</strong> Ã¢â‚¬â€ Reference to the host element</li>
-      <li><strong>ViewContainerRef</strong> Ã¢â‚¬â€ Container for dynamically created views</li>
-      <li><strong>ComponentFactoryResolver</strong> Ã¢â‚¬â€ Resolves component factories for dynamic creation</li>
-      <li><strong>ChangeDetectorRef</strong> Ã¢â‚¬â€ Controls change detection for a view</li>
-      <li><strong>NgZone</strong> Ã¢â‚¬â€ Manages execution outside Angular's zone</li>
+      <li><strong>Renderer2</strong> — Safe DOM manipulation abstraction</li>
+      <li><strong>ElementRef</strong> — Reference to the host element</li>
+      <li><strong>ViewContainerRef</strong> — Container for dynamically created views</li>
+      <li><strong>ComponentFactoryResolver</strong> — Resolves component factories for dynamic creation</li>
+      <li><strong>ChangeDetectorRef</strong> — Controls change detection for a view</li>
+      <li><strong>NgZone</strong> — Manages execution outside Angular's zone</li>
     </ul>
 
     <h2>DOM Reference (Renderer2)</h2>
@@ -79,59 +79,59 @@ export class HighlightDirective {
 
     <h3>Router (@angular/router)</h3>
     <ul>
-      <li><code>RouterModule.forRoot(routes)</code> Ã¢â‚¬â€ Configures root routes</li>
-      <li><code>RouterLink</code> / <code>RouterLinkActive</code> Ã¢â‚¬â€ Template navigation directives</li>
-      <li><code>RouterOutlet</code> Ã¢â‚¬â€ Renders matched route component</li>
-      <li><code>ActivatedRoute</code> Ã¢â‚¬â€ Access route parameters, query params, data</li>
-      <li><code>CanActivate</code>, <code>CanDeactivate</code>, <code>Resolve</code> Ã¢â‚¬â€ Route guards</li>
+      <li><code>RouterModule.forRoot(routes)</code> — Configures root routes</li>
+      <li><code>RouterLink</code> / <code>RouterLinkActive</code> — Template navigation directives</li>
+      <li><code>RouterOutlet</code> — Renders matched route component</li>
+      <li><code>ActivatedRoute</code> — Access route parameters, query params, data</li>
+      <li><code>CanActivate</code>, <code>CanDeactivate</code>, <code>Resolve</code> — Route guards</li>
     </ul>
 
     <h3>Forms (@angular/forms)</h3>
     <ul>
-      <li><code>FormGroup</code>, <code>FormControl</code>, <code>FormArray</code> Ã¢â‚¬â€ Reactive form classes</li>
-      <li><code>Validators</code> Ã¢â‚¬â€ Built-in validation (required, email, minLength, etc.)</li>
-      <li><code>FormsModule</code> Ã¢â‚¬â€ Template-driven forms</li>
-      <li><code>ReactiveFormsModule</code> Ã¢â‚¬â€ Reactive forms</li>
+      <li><code>FormGroup</code>, <code>FormControl</code>, <code>FormArray</code> — Reactive form classes</li>
+      <li><code>Validators</code> — Built-in validation (required, email, minLength, etc.)</li>
+      <li><code>FormsModule</code> — Template-driven forms</li>
+      <li><code>ReactiveFormsModule</code> — Reactive forms</li>
     </ul>
 
     <h3>HTTP (@angular/common/http)</h3>
     <ul>
-      <li><code>HttpClient</code> Ã¢â‚¬â€ HTTP request methods (get, post, put, delete)</li>
-      <li><code>HttpInterceptor</code> Ã¢â‚¬â€ Intercept and modify requests/responses</li>
-      <li><code>HttpParams</code> Ã¢â‚¬â€ Build URL query parameters</li>
-      <li><code>HttpHeaders</code> Ã¢â‚¬â€ Build HTTP headers</li>
+      <li><code>HttpClient</code> — HTTP request methods (get, post, put, delete)</li>
+      <li><code>HttpInterceptor</code> — Intercept and modify requests/responses</li>
+      <li><code>HttpParams</code> — Build URL query parameters</li>
+      <li><code>HttpHeaders</code> — Build HTTP headers</li>
     </ul>
 
     <h3>Compiler (@angular/compiler)</h3>
     <ul>
-      <li><code>compileComponent</code>, <code>compileNgModule</code> Ã¢â‚¬â€ JIT compilation API</li>
-      <li><code>Compiler</code> Ã¢â‚¬â€ Programmatic access to the Angular compiler</li>
+      <li><code>compileComponent</code>, <code>compileNgModule</code> — JIT compilation API</li>
+      <li><code>Compiler</code> — Programmatic access to the Angular compiler</li>
     </ul>
 
     <h3>Animations (@angular/animations)</h3>
     <ul>
       <li><code>trigger</code>, <code>state</code>, <code>style</code>, <code>transition</code>, <code>animate</code>, <code>keyframes</code></li>
-      <li><code>group</code>, <code>sequence</code>, <code>query</code>, <code>stagger</code> Ã¢â‚¬â€ Complex animation helpers</li>
+      <li><code>group</code>, <code>sequence</code>, <code>query</code>, <code>stagger</code> — Complex animation helpers</li>
     </ul>
 
     <h3>Common (@angular/common)</h3>
     <ul>
-      <li><code>NgIf</code>, <code>NgFor</code>, <code>NgSwitch</code>, <code>NgClass</code>, <code>NgStyle</code> Ã¢â‚¬â€ Built-in directives</li>
-      <li><code>AsyncPipe</code>, <code>DatePipe</code>, <code>UpperCasePipe</code>, <code>JsonPipe</code> Ã¢â‚¬â€ Built-in pipes</li>
-      <li><code>Location</code>, <code>PlatformLocation</code> Ã¢â‚¬â€ URL and platform utilities</li>
+      <li><code>NgIf</code>, <code>NgFor</code>, <code>NgSwitch</code>, <code>NgClass</code>, <code>NgStyle</code> — Built-in directives</li>
+      <li><code>AsyncPipe</code>, <code>DatePipe</code>, <code>UpperCasePipe</code>, <code>JsonPipe</code> — Built-in pipes</li>
+      <li><code>Location</code>, <code>PlatformLocation</code> — URL and platform utilities</li>
     </ul>
 
     <h3>Platform Browser (@angular/platform-browser)</h3>
     <ul>
-      <li><code>BrowserModule</code> Ã¢â‚¬â€ Core module for browser applications</li>
-      <li><code>DomSanitizer</code> Ã¢â‚¬â€ Sanitizes HTML, URLs, and styles for safe binding</li>
-      <li><code>TransferState</code> Ã¢â‚¬â€ Passes data from server to client</li>
+      <li><code>BrowserModule</code> — Core module for browser applications</li>
+      <li><code>DomSanitizer</code> — Sanitizes HTML, URLs, and styles for safe binding</li>
+      <li><code>TransferState</code> — Passes data from server to client</li>
     </ul>
 
     <h3>Platform Browser Dynamic (@angular/platform-browser-dynamic)</h3>
     <ul>
-      <li><code>platformBrowserDynamic</code> Ã¢â‚¬â€ JIT bootstrapping for development</li>
-      <li><code>JitCompilerFactory</code> Ã¢â‚¬â€ JIT compiler configuration</li>
+      <li><code>platformBrowserDynamic</code> — JIT bootstrapping for development</li>
+      <li><code>JitCompilerFactory</code> — JIT compiler configuration</li>
     </ul>
 
     <img src="../images/angular-routing-flow.svg" alt="Angular API reference">

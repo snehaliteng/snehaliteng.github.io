@@ -29,13 +29,13 @@ Products per recommendation: 20
 Features per user: ~200, per product: ~100
 Feature vector size: ~300 Ãƒâ€” 8 bytes = 2.4KB</code></pre>
 <h2>Architecture: Two-Stage Retrieval + Ranking</h2>
-<p><strong>Stage 1: Retrieval (candidate generation)</strong> Ã¢â‚¬â€ Retrieve 500 candidate products per user from multiple sources:</p>
+<p><strong>Stage 1: Retrieval (candidate generation)</strong> — Retrieve 500 candidate products per user from multiple sources:</p>
 <ul>
 <li>Collaborative filtering (Matrix Factorization embeddings)</li>
 <li>Content-based (product category similarity)</li>
 <li>Trending / popular (cold-start for new users)</li>
 </ul>
-<p><strong>Stage 2: Ranking</strong> Ã¢â‚¬â€ Score 500 candidates with a deep neural network:</p>
+<p><strong>Stage 2: Ranking</strong> — Score 500 candidates with a deep neural network:</p>
 <ul>
 <li>User embedding (128-dim, stored in Redis)</li>
 <li>Product embedding (128-dim, stored in Redis)</li>
@@ -43,7 +43,7 @@ Feature vector size: ~300 Ãƒâ€” 8 bytes = 2.4KB</code></pre>
 <li>Context features (time of day, device type)</li>
 <li>Output: top-20 ranked products</li>
 </ul>
-<p><strong>Stage 3: Post-processing</strong> Ã¢â‚¬â€ Business rules, diversity, personalization boost.</p>
+<p><strong>Stage 3: Post-processing</strong> — Business rules, diversity, personalization boost.</p>
 <h2>Caching Strategy</h2>
 <table>
 <tr><th>Cache</th><th>Key</th><th>TTL</th><th>Store</th></tr>
@@ -70,7 +70,7 @@ Popularity scores, "frequently bought together" pairs, price elasticity</code></
 <ul>
 <li><strong>Personalization vs cold-start:</strong> Blend trending items for new users, increase personalization as data accumulates.</li>
 <li><strong>Freshness vs stability:</strong> Micro-batch embedding updates every 5 minutes instead of real-time to avoid thrashing.</li>
-<li><strong>Diversity vs relevance:</strong> Apply diversity penalty (MMR Ã¢â‚¬â€ Maximum Marginal Relevance) to avoid showing 20 products from same brand.</li>
+<li><strong>Diversity vs relevance:</strong> Apply diversity penalty (MMR — Maximum Marginal Relevance) to avoid showing 20 products from same brand.</li>
 </ul>
 <div class="exercise"><strong>Exercise:</strong> Extend this system with a real-time session-based component. The user's current browsing session (last 5 clicks) should instantly adjust recommendations without waiting for daily retraining. Describe: session vector computation, storage (which DB?), blending with long-term embeddings, and the additional latency budget.</div>
 <nav><a href="15-trade-offs.html">&larr; Previous</a><a href="../index.html">Index</a><a href="17-interview-prep.html">Next: Interview Prep &rarr;</a></nav>

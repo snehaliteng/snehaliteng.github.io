@@ -25,7 +25,7 @@
 <li><strong>Encoding:</strong> Base62 (a-z, A-Z, 0-9) for short keys. 7 characters Ã¢â€ â€™ 62^7 Ã¢â€°Ë† 3.5 trillion combinations.</li>
 <li><strong>Key generation:</strong> Use a distributed ID generator (Snowflake) or pre-generate keys in a pool to avoid collisions.</li>
 <li><strong>Storage:</strong> SQL database (PostgreSQL) for strong consistency on key uniqueness. Cache in Redis for hot URLs.</li>
-<li><strong>Redirect:</strong> 301 (permanent) for SEO, 302 (temporary) for analytics Ã¢â‚¬â€ use 301 but count clicks before redirect.</li>
+<li><strong>Redirect:</strong> 301 (permanent) for SEO, 302 (temporary) for analytics — use 301 but count clicks before redirect.</li>
 </ul>
 <pre><code># API Design
 POST /shorten { "url": "https://example.com/very-long-url" }
@@ -149,7 +149,7 @@ Other devices download changed chunks and merge</code></pre>
 <li><strong>Order service:</strong> Orchestrates checkout flow. Create order Ã¢â€ â€™ reserve inventory Ã¢â€ â€™ process payment Ã¢â€ â€™ confirm.</li>
 <li><strong>Inventory service:</strong> Real-time stock tracking. Optimistic locks to prevent overselling.</li>
 <li><strong>Payment service:</strong> Integrates with payment gateways. Idempotency, retry, reconciliation.</li>
-<li><strong>Recommendation service:</strong> "Customers who bought this also boughtÃ¢â‚¬Â¦" Ã¢â‚¬â€ pre-computed on clickstream data.</li>
+<li><strong>Recommendation service:</strong> "Customers who bought this also boughtÃ¢â‚¬Â¦" — pre-computed on clickstream data.</li>
 </ul>
 
 <h2>12. Taxi Booking (e.g., Uber, Lyft)</h2>

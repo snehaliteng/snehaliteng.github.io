@@ -114,7 +114,7 @@ for result in results:
     print(result)</code></pre>
 
     <h2>The Global Interpreter Lock (GIL)</h2>
-    <p>The GIL is a mutex in CPython that prevents multiple threads from executing Python bytecode simultaneously. This means CPU-bound tasks do not benefit from threading Ã¢â‚¬â€ use <code>multiprocessing</code> instead. Threading is still useful for I/O-bound tasks.</p>
+    <p>The GIL is a mutex in CPython that prevents multiple threads from executing Python bytecode simultaneously. This means CPU-bound tasks do not benefit from threading — use <code>multiprocessing</code> instead. Threading is still useful for I/O-bound tasks.</p>
 
     <div class="note">
       <strong>Note:</strong> For CPU-bound operations, use the <code>multiprocessing</code> module which creates separate processes, each with its own GIL.

@@ -34,12 +34,12 @@
 
     <h2>Flow Network Terminology</h2>
     <ul>
-      <li><strong>Source (s)</strong> Ã¢â‚¬â€ the vertex where flow originates; has no incoming edges carrying flow.</li>
-      <li><strong>Sink (t)</strong> Ã¢â‚¬â€ the vertex where flow terminates; has no outgoing edges carrying flow.</li>
-      <li><strong>Capacity</strong> Ã¢â‚¬â€ a non-negative integer or real on each edge, denoting the maximum flow through that edge.</li>
-      <li><strong>Flow</strong> Ã¢â‚¬â€ a non-negative value on each edge satisfying <code>0 &le; flow &le; capacity</code>.</li>
-      <li><strong>Conservation</strong> Ã¢â‚¬â€ for every vertex except s and t, flow in = flow out.</li>
-      <li><strong>Value of flow</strong> Ã¢â‚¬â€ the total flow leaving the source (which equals total flow arriving at the sink).</li>
+      <li><strong>Source (s)</strong> — the vertex where flow originates; has no incoming edges carrying flow.</li>
+      <li><strong>Sink (t)</strong> — the vertex where flow terminates; has no outgoing edges carrying flow.</li>
+      <li><strong>Capacity</strong> — a non-negative integer or real on each edge, denoting the maximum flow through that edge.</li>
+      <li><strong>Flow</strong> — a non-negative value on each edge satisfying <code>0 &le; flow &le; capacity</code>.</li>
+      <li><strong>Conservation</strong> — for every vertex except s and t, flow in = flow out.</li>
+      <li><strong>Value of flow</strong> — the total flow leaving the source (which equals total flow arriving at the sink).</li>
     </ul>
 
     <h2>Ford-Fulkerson Method</h2>
@@ -112,10 +112,10 @@
 
     <h2>Applications of Maximum Flow</h2>
     <ul>
-      <li><strong>Bipartite Matching</strong> Ã¢â‚¬â€ add a source connected to left vertices, connect right vertices to a sink, set all capacities to 1. The max flow equals the size of the maximum matching.</li>
-      <li><strong>Transportation</strong> Ã¢â‚¬â€ shipping goods from factories (sources) to warehouses (sinks) with road capacity limits.</li>
-      <li><strong>Image Segmentation</strong> Ã¢â‚¬â€ treat pixels as vertices; the min cut separates foreground from background.</li>
-      <li><strong>Circulation with Demands</strong> Ã¢â‚¬â€ supply and demand nodes connected by capacity-limited edges.</li>
+      <li><strong>Bipartite Matching</strong> — add a source connected to left vertices, connect right vertices to a sink, set all capacities to 1. The max flow equals the size of the maximum matching.</li>
+      <li><strong>Transportation</strong> — shipping goods from factories (sources) to warehouses (sinks) with road capacity limits.</li>
+      <li><strong>Image Segmentation</strong> — treat pixels as vertices; the min cut separates foreground from background.</li>
+      <li><strong>Circulation with Demands</strong> — supply and demand nodes connected by capacity-limited edges.</li>
     </ul>
 
     <pre><code># Bipartite matching via max flow

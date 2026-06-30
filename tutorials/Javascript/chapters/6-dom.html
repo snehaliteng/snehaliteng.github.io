@@ -67,7 +67,7 @@ const prevSibling = element.previousElementSibling;</code></pre>
     <h2>Modifying Content</h2>
     <pre><code>const el = document.querySelector("#output");
 
-// Change text (safer Ã¢â‚¬â€ prevents XSS)
+// Change text (safer — prevents XSS)
 el.textContent = "New text content";
 
 // Change HTML (use with caution)
@@ -124,9 +124,9 @@ button.addEventListener("click", function(event) {
     <h2>Event Propagation</h2>
     <p>Events flow through the DOM in three phases:</p>
     <ul>
-      <li><strong>Capturing phase</strong> Ã¢â‚¬â€ Event travels from <code>document</code> down to the target</li>
-      <li><strong>Target phase</strong> Ã¢â‚¬â€ Event reaches the target element</li>
-      <li><strong>Bubbling phase</strong> Ã¢â‚¬â€ Event bubbles back up from target to <code>document</code></li>
+      <li><strong>Capturing phase</strong> — Event travels from <code>document</code> down to the target</li>
+      <li><strong>Target phase</strong> — Event reaches the target element</li>
+      <li><strong>Bubbling phase</strong> — Event bubbles back up from target to <code>document</code></li>
     </ul>
     <pre><code>// Stop propagation
 element.addEventListener("click", function(e) {

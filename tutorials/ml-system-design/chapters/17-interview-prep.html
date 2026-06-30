@@ -20,9 +20,9 @@
 <li><strong>Clarify requirements:</strong> Functional? Non-functional? Scale? Constraints? Success metrics?</li>
 <li><strong>Estimate scale:</strong> DAU, QPS, storage, bandwidth, training data volume.</li>
 <li><strong>Outline high-level architecture:</strong> Block diagram with 5Ã¢â‚¬â€œ8 components.</li>
-<li><strong>Deep dive Ã¢â‚¬â€ data pipeline:</strong> Ingestion, preprocessing, feature store, training-serving consistency.</li>
-<li><strong>Deep dive Ã¢â‚¬â€ model serving:</strong> API design, caching, batch vs real-time, model versioning.</li>
-<li><strong>Deep dive Ã¢â‚¬â€ trade-offs &amp; reliability:</strong> What trade-offs did you make? What breaks? How do you recover?</li>
+<li><strong>Deep dive — data pipeline:</strong> Ingestion, preprocessing, feature store, training-serving consistency.</li>
+<li><strong>Deep dive — model serving:</strong> API design, caching, batch vs real-time, model versioning.</li>
+<li><strong>Deep dive — trade-offs &amp; reliability:</strong> What trade-offs did you make? What breaks? How do you recover?</li>
 <li><strong>Monitoring, ethics &amp; improvements:</strong> Drift detection, fairness, what would you do with more time/budget?</li>
 </ol>
 <h2>Common Interview Questions</h2>
@@ -43,12 +43,12 @@ GPU memory = model_params Ãƒâ€” bytes_per_param (FP32: 4, FP16: 2)
 Throughput per GPU = batch_size / inference_time_per_sample</code></pre>
 <h2>Must-Know Trade-offs for Interviews</h2>
 <ul>
-<li>Accuracy vs latency Ã¢â‚¬â€ use distillation, quantization, pruning</li>
-<li>Batch vs real-time Ã¢â‚¬â€ use batch for training, real-time for serving</li>
-<li>Model complexity vs interpretability Ã¢â‚¬â€ XGBoost is a good middle ground</li>
-<li>Freshness vs stability Ã¢â‚¬â€ micro-batch features</li>
-<li>Cost vs redundancy Ã¢â‚¬â€ multi-region active-passive</li>
-<li>Consistency vs availability Ã¢â‚¬â€ depends on business impact of stale data</li>
+<li>Accuracy vs latency — use distillation, quantization, pruning</li>
+<li>Batch vs real-time — use batch for training, real-time for serving</li>
+<li>Model complexity vs interpretability — XGBoost is a good middle ground</li>
+<li>Freshness vs stability — micro-batch features</li>
+<li>Cost vs redundancy — multi-region active-passive</li>
+<li>Consistency vs availability — depends on business impact of stale data</li>
 </ul>
 <h2>How to Present Your Design</h2>
 <ol>
@@ -58,7 +58,7 @@ Throughput per GPU = batch_size / inference_time_per_sample</code></pre>
 <li>Discuss failure: "If Redis goes down, we fall back to per-user default features."</li>
 <li>Summarize trade-offs and next priorities.</li>
 </ol>
-<div class="exercise"><strong>Exercise:</strong> Practice the 7-step framework on this question: "Design an ML system that personalizes the search results for an e-commerce platform with 100M products." Record yourself (video or audio) answering within 40 minutes. Review against the framework Ã¢â‚¬â€ did you cover all 7 steps? Did you discuss trade-offs? Did you mention failure scenarios?</div>
+<div class="exercise"><strong>Exercise:</strong> Practice the 7-step framework on this question: "Design an ML system that personalizes the search results for an e-commerce platform with 100M products." Record yourself (video or audio) answering within 40 minutes. Review against the framework — did you cover all 7 steps? Did you discuss trade-offs? Did you mention failure scenarios?</div>
 <nav><a href="16-case-study.html">&larr; Previous</a><a href="../index.html">Index</a><a href="18-faq.html">Next: FAQ &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../js/feedback.js"></script>

@@ -17,10 +17,10 @@
 <h1>1. Introduction</h1>
 <h2>What is ML System Design?</h2>
 <p>ML System Design is the practice of architecting production-grade machine learning systems that reliably deliver predictions at scale. It encompasses data pipelines, training infrastructure, model serving, monitoring, and the operational processes that keep an ML system healthy over time.</p>
-<p>Unlike building a model in a notebook Ã¢â‚¬â€ where the goal is to maximize accuracy on a static dataset Ã¢â‚¬â€ ML system design focuses on the end-to-end lifecycle: how does data flow from source to feature to prediction to feedback?</p>
+<p>Unlike building a model in a notebook — where the goal is to maximize accuracy on a static dataset — ML system design focuses on the end-to-end lifecycle: how does data flow from source to feature to prediction to feedback?</p>
 <h2>Why ML System Design Matters</h2>
 <ul>
-<li><strong>Production failures are system failures, not model failures:</strong> Most ML projects fail due to data pipeline issues, training-serving skew, monitoring gaps, or infrastructure problems Ã¢â‚¬â€ not because the model's AUC was too low.</li>
+<li><strong>Production failures are system failures, not model failures:</strong> Most ML projects fail due to data pipeline issues, training-serving skew, monitoring gaps, or infrastructure problems — not because the model's AUC was too low.</li>
 <li><strong>Scale changes everything:</strong> A notebook model serving 10 requests/day looks nothing like a production system handling 10K QPS with 200ms latency SLAs.</li>
 <li><strong>ML systems are living systems:</strong> Data distributions shift, user behavior changes, models degrade. Production ML requires continuous monitoring, retraining, and adaptation.</li>
 <li><strong>Interdisciplinary:</strong> ML system design sits at the intersection of data engineering, software engineering, DevOps, and data science.</li>
@@ -38,7 +38,7 @@
 <h2>2026 State of ML Systems</h2>
 <ul>
 <li>Foundation models (LLMs) served via specialized inference engines (vLLM, TGI) with continuous batching.</li>
-<li>Feature stores are standard infrastructure Ã¢â‚¬â€ offline for training, online for serving.</li>
+<li>Feature stores are standard infrastructure — offline for training, online for serving.</li>
 <li>Automated retraining pipelines triggered by drift detection, not just schedules.</li>
 <li>MLOps platforms (MLflow, W&B, Kubeflow) integrated into CI/CD for model deployments.</li>
 <li>A/B testing and canary deployments are table stakes for model rollouts.</li>

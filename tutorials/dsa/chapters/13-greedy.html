@@ -27,7 +27,7 @@
     <p>A <strong>greedy algorithm</strong> builds a solution step by step by making the locally optimal choice at each step. It never reconsiders its decisions. When a problem has <strong>greedy choice property</strong> and <strong>optimal substructure</strong>, this simple strategy yields the globally optimal solution.</p>
 
     <div class="info">
-      Greedy algorithms are fast (often O(n log n) or O(n)) but only work for problems where local optimal choices lead to a globally optimal solution. This is not always true Ã¢â‚¬â€ which is why we have Dynamic Programming as a fallback.
+      Greedy algorithms are fast (often O(n log n) or O(n)) but only work for problems where local optimal choices lead to a globally optimal solution. This is not always true — which is why we have Dynamic Programming as a fallback.
     </div>
 
     <img src="../images/dsa-tree.svg" alt="Greedy algorithm illustration">
@@ -36,7 +36,7 @@
     <p>The greedy choice property states that a globally optimal solution can be arrived at by making a locally optimal (greedy) choice. In other words, you never need to reconsider a choice once it is made.</p>
 
     <h2>Optimal Substructure</h2>
-    <p>Optimal substructure means the optimal solution to the overall problem contains optimal solutions to its subproblems. This property is shared with Dynamic Programming, but greedy algorithms use it differently Ã¢â‚¬â€ they solve one subproblem after another without exploring alternatives.</p>
+    <p>Optimal substructure means the optimal solution to the overall problem contains optimal solutions to its subproblems. This property is shared with Dynamic Programming, but greedy algorithms use it differently — they solve one subproblem after another without exploring alternatives.</p>
 
     <h2>Huffman Coding</h2>
     <p>Huffman coding is a greedy algorithm for lossless data compression. It builds a variable-length prefix-free code where more frequent characters get shorter codes and less frequent characters get longer codes.</p>
@@ -110,7 +110,7 @@ def huffman_encode(data):
     <p>Time complexity: O(n log n). This is the classic "take as much as you can of the most valuable thing."</p>
 
     <div class="note">
-      The Fractional Knapsack problem has a greedy solution because you can take fractional amounts. The 0/1 Knapsack (no fractions) requires Dynamic Programming Ã¢â‚¬â€ this subtle difference changes the problem completely.
+      The Fractional Knapsack problem has a greedy solution because you can take fractional amounts. The 0/1 Knapsack (no fractions) requires Dynamic Programming — this subtle difference changes the problem completely.
     </div>
 
     <h2>Traveling Salesman Problem (Approximation)</h2>
@@ -145,7 +145,7 @@ def huffman_encode(data):
 
     <div class="exercise">
       <h3>Practice Task</h3>
-      <p>Implement a greedy algorithm to solve the <strong>Minimum Coins</strong> problem: given coin denominations [1, 5, 10, 25] and an amount N, use the greedy strategy (always take the largest possible coin) to return the minimum number of coins. Does this always give the optimal answer? Try with denominations [1, 3, 4] and amount 6 Ã¢â‚¬â€ the greedy answer is 3 (4+1+1), but the optimal is 2 (3+3).</p>
+      <p>Implement a greedy algorithm to solve the <strong>Minimum Coins</strong> problem: given coin denominations [1, 5, 10, 25] and an amount N, use the greedy strategy (always take the largest possible coin) to return the minimum number of coins. Does this always give the optimal answer? Try with denominations [1, 3, 4] and amount 6 — the greedy answer is 3 (4+1+1), but the optimal is 2 (3+3).</p>
     </div>
 
     <nav>

@@ -27,7 +27,7 @@
     <p><strong>Time complexity</strong> measures how the runtime of an algorithm grows as the input size increases. We use asymptotic notation to express this growth in a hardware-independent way. Understanding complexity lets you choose the right algorithm for large datasets.</p>
 
     <div class="info">
-      An algorithm that runs in O(n) on a dataset of 1 million items takes about 1 million operations. One that runs in O(nÃ‚Â²) takes about 1 trillion Ã¢â‚¬â€ that is the difference between one second and 12 days.
+      An algorithm that runs in O(n) on a dataset of 1 million items takes about 1 million operations. One that runs in O(nÃ‚Â²) takes about 1 trillion — that is the difference between one second and 12 days.
     </div>
 
     <img src="../images/dsa-tree.svg" alt="Big-O complexity graph">
@@ -47,18 +47,18 @@
       <tr><td>O(n!)</td><td>Factorial</td><td>Brute-force TSP</td><td>~12</td></tr>
     </table>
 
-    <pre><code># O(1) Ã¢â‚¬â€ constant time
+    <pre><code># O(1) — constant time
 def get_first(arr):
     return arr[0]
 
-# O(n) Ã¢â‚¬â€ linear time
+# O(n) — linear time
 def linear_search(arr, target):
     for i, v in enumerate(arr):
         if v == target:
             return i
     return -1
 
-# O(n^2) Ã¢â‚¬â€ quadratic time
+# O(n^2) — quadratic time
 def bubble_sort(arr):
     n = len(arr)
     for i in range(n):
@@ -66,7 +66,7 @@ def bubble_sort(arr):
             if arr[j] > arr[j + 1]:
                 arr[j], arr[j + 1] = arr[j + 1], arr[j]
 
-# O(log n) Ã¢â‚¬â€ logarithmic time
+# O(log n) — logarithmic time
 def binary_search(arr, target):
     lo, hi = 0, len(arr) - 1
     while lo <= hi:
@@ -81,12 +81,12 @@ def binary_search(arr, target):
 
     <h2>Omega Notation &amp; Theta Notation</h2>
     <ul>
-      <li><strong>ÃŽÂ© (Omega)</strong> Ã¢â‚¬â€ Lower bound. <code>f(n) = ÃŽÂ©(g(n))</code> means f(n) grows at least as fast as g(n). Describes the best-case scenario.</li>
-      <li><strong>ÃŽËœ (Theta)</strong> Ã¢â‚¬â€ Tight bound. <code>f(n) = ÃŽËœ(g(n))</code> means f(n) grows exactly as fast as g(n) (both upper and lower bound match). This is the most precise characterization.</li>
+      <li><strong>ÃŽÂ© (Omega)</strong> — Lower bound. <code>f(n) = ÃŽÂ©(g(n))</code> means f(n) grows at least as fast as g(n). Describes the best-case scenario.</li>
+      <li><strong>ÃŽËœ (Theta)</strong> — Tight bound. <code>f(n) = ÃŽËœ(g(n))</code> means f(n) grows exactly as fast as g(n) (both upper and lower bound match). This is the most precise characterization.</li>
     </ul>
 
     <div class="note">
-      Big-O is the most commonly used in practice. However, when analyzing algorithms like QuickSort, you will see O(nÃ‚Â²) worst-case and ÃŽÂ©(n log n) best-case Ã¢â‚¬â€ but the expected case is ÃŽËœ(n log n).
+      Big-O is the most commonly used in practice. However, when analyzing algorithms like QuickSort, you will see O(nÃ‚Â²) worst-case and ÃŽÂ©(n log n) best-case — but the expected case is ÃŽËœ(n log n).
     </div>
 
     <h2>Analyzing Loops and Recursion</h2>
@@ -136,7 +136,7 @@ def fib_dp(n):
     </table>
 
     <h2>Space Complexity</h2>
-    <p>Space complexity measures the amount of extra memory an algorithm uses. An in-place algorithm uses O(1) extra space (e.g., Bubble Sort). Algorithms that allocate new arrays (e.g., Merge Sort) use O(n) extra space. Recursion adds call stack space Ã¢â‚¬â€ a recursive function that calls itself n times deep uses O(n) stack space.</p>
+    <p>Space complexity measures the amount of extra memory an algorithm uses. An in-place algorithm uses O(1) extra space (e.g., Bubble Sort). Algorithms that allocate new arrays (e.g., Merge Sort) use O(n) extra space. Recursion adds call stack space — a recursive function that calls itself n times deep uses O(n) stack space.</p>
 
     <div class="exercise">
       <h3>Practice Task</h3>

@@ -108,7 +108,7 @@ dotnet publish --self-contained false       # Default</code></pre>
     <p>R2R compiles IL to native code at publish time, reducing JIT overhead at startup:</p>
     <pre><code>dotnet publish -c Release -r win-x64 --self-contained true -p:PublishReadyToRun=true</code></pre>
 
-    <div class="info">R2R images are larger but start significantly faster Ã¢â‚¬â€ ideal for containerized and serverless workloads.</div>
+    <div class="info">R2R images are larger but start significantly faster — ideal for containerized and serverless workloads.</div>
 
     <h2>Trimming</h2>
     <p>Publish trimming removes unused assemblies to reduce deployment size:</p>

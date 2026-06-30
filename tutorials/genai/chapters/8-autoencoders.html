@@ -18,7 +18,7 @@
   <h2>What is an Autoencoder?</h2>
   <p>An autoencoder is a neural network that learns to copy its input to its output through a bottleneck (latent space). It consists of an encoder that compresses input to a latent representation and a decoder that reconstructs the input from the latent.</p>
   <img src="../images/autoencoder.svg" alt="Autoencoder architecture with encoder, latent bottleneck, and decoder">
-  <p><em>Figure: Autoencoder Ã¢â‚¬â€ input is compressed to latent, then reconstructed.</em></p>
+  <p><em>Figure: Autoencoder — input is compressed to latent, then reconstructed.</em></p>
 
   <h2>Simple Autoencoder Implementation</h2>
   <pre><code>import torch.nn as nn
@@ -45,13 +45,13 @@ class Autoencoder(nn.Module):
 # Loss: reconstruction error (MSE or binary cross-entropy)</code></pre>
 
   <h2>Variational Autoencoders (VAEs)</h2>
-  <p>VAEs add a probabilistic twist Ã¢â‚¬â€ instead of encoding to a single point, the encoder outputs parameters (ÃŽÂ¼, ÃÆ’) of a Gaussian distribution. The decoder samples from this distribution during training. This regularizes the latent space and enables true generation.</p>
+  <p>VAEs add a probabilistic twist — instead of encoding to a single point, the encoder outputs parameters (ÃŽÂ¼, ÃÆ’) of a Gaussian distribution. The decoder samples from this distribution during training. This regularizes the latent space and enables true generation.</p>
 
   <h2>VAE Loss</h2>
   <p>The VAE loss has two terms:</p>
   <ul>
-    <li><strong>Reconstruction Loss</strong> Ã¢â‚¬â€ Measures how well the decoder reconstructs the input (MSE or BCE)</li>
-    <li><strong>KL Divergence</strong> Ã¢â‚¬â€ Regularizes the latent distribution toward a standard Gaussian N(0, I)</li>
+    <li><strong>Reconstruction Loss</strong> — Measures how well the decoder reconstructs the input (MSE or BCE)</li>
+    <li><strong>KL Divergence</strong> — Regularizes the latent distribution toward a standard Gaussian N(0, I)</li>
   </ul>
   <pre><code>def vae_loss(recon_x, x, ÃŽÂ¼, logvar):
     recon = binary_cross_entropy(recon_x, x, reduction='sum')
@@ -63,11 +63,11 @@ class Autoencoder(nn.Module):
 
   <h2>Applications of VAEs</h2>
   <ul>
-    <li><strong>Image Generation</strong> Ã¢â‚¬â€ Generate new faces, digits, objects</li>
-    <li><strong>Anomaly Detection</strong> Ã¢â‚¬â€ High reconstruction error indicates novelty</li>
-    <li><strong>Representation Learning</strong> Ã¢â‚¬â€ Latent space captures meaningful features</li>
-    <li><strong>Data Denoising</strong> Ã¢â‚¬â€ Clean input from noisy version</li>
-    <li><strong>Molecular Design</strong> Ã¢â‚¬â€ Generate novel drug-like molecules</li>
+    <li><strong>Image Generation</strong> — Generate new faces, digits, objects</li>
+    <li><strong>Anomaly Detection</strong> — High reconstruction error indicates novelty</li>
+    <li><strong>Representation Learning</strong> — Latent space captures meaningful features</li>
+    <li><strong>Data Denoising</strong> — Clean input from noisy version</li>
+    <li><strong>Molecular Design</strong> — Generate novel drug-like molecules</li>
   </ul>
 
   <div class="exercise">
