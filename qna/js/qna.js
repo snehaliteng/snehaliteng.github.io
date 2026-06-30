@@ -324,12 +324,13 @@ function renderQuestionList(questions, prefMap) {
     const p = prefMap[q.id];
     const read = p && p.is_read;
     const cat = catCache.find(c => c.id === q.category_id);
-    return `<div class="q-item" draggable="true" data-qid="${q.id}" data-idx="${i}" ondragstart="onDragStart(event)" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragend="onDragEnd(event)" onclick="toggleQDetail(${q.id}, this)">
+    return `<div class="q-item ${read ? 'q-read' : ''}" data-qid="${q.id}" data-idx="${i}" onclick="toggleQDetail(${q.id}, this)">
+      <span class="drag-handle" draggable="true" ondragstart="onDragStart(event)" ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragend="onDragEnd(event)" title="Drag to reorder">⠿</span>
       <input type="checkbox" class="q-checkbox" data-qid="${q.id}" onclick="event.stopPropagation();onQCheckChange()" ${window._qChecked && window._qChecked[q.id] ? 'checked' : ''}>
       <span class="q-title">${escHtml(q.title)}${read ? '<span class="read-badge">Read</span>' : ''}</span>
       <span class="q-meta">${cat ? escHtml(cat.name) : ''}${q.is_hidden ? ' <span style="color:#d93025;">Hidden</span>' : ''}</span>
       <span class="q-actions">
-        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();toggleRead(${q.id},${!read})" title="Mark as read/unread">&#128065;</button>
+        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();toggleHide(${q.id})" title="${q.is_hidden ? 'Unhide' : 'Hide'}">&#128065;</button>
         <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();showQModal(${q.id})">&#9998;</button>
         <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteQuestion(${q.id})">&#10005;</button>
       </span>
@@ -343,9 +344,13 @@ function renderQuestionList(questions, prefMap) {
 let _dragSrcId = null;
 
 function onDragStart(e) {
-  _dragSrcId = parseInt(e.target.closest('.q-item').dataset.qid);
+  const handle = e.target.closest('.drag-handle');
+  if (!handle) { e.preventDefault(); return; }
+  const item = e.target.closest('.q-item');
+  if (!item) { e.preventDefault(); return; }
+  _dragSrcId = parseInt(item.dataset.qid);
   e.dataTransfer.effectAllowed = 'move';
-  e.target.closest('.q-item').classList.add('dragging');
+  item.classList.add('dragging');
 }
 
 function onDragOver(e) {
@@ -394,7 +399,30 @@ function renderPagination() {
 
 async function toggleQDetail(questionId, el) {
   const detail = document.getElementById('qdetail-' + questionId);
-  if (!detail.classList.contains('hidden')) { detail.classList.add('hidden'); return; }
+
+  // If this detail is already visible, just hide it and return
+  if (!detail.classList.contains('hidden')) {
+    detail.classList.add('hidden');
+    return;
+  }
+
+  // Close all other open details (only one open at a time)
+  document.querySelectorAll('.q-detail:not(.hidden)').forEach(d => {
+    d.classList.add('hidden');
+  });
+
+  // Mark as read when expanding
+  if (currentUser) {
+    await sb.from('qna_user_question_preferences').upsert({
+      user_id: currentUser.id, question_id: questionId, is_read: true
+    }, { onConflict: 'user_id,question_id' });
+    el.classList.add('q-read');
+    const titleSpan = el.querySelector('.q-title');
+    if (titleSpan && !titleSpan.querySelector('.read-badge')) {
+      titleSpan.innerHTML += ' <span class="read-badge">Read</span>';
+    }
+  }
+
   if (detail.dataset.loaded) { detail.classList.remove('hidden'); return; }
   detail.innerHTML = '<p style="color:#999;">Loading...</p>';
   detail.classList.remove('hidden');
@@ -424,8 +452,15 @@ async function toggleQDetail(questionId, el) {
 
 async function toggleRead(questionId, markRead) {
   await sb.from('qna_user_question_preferences').upsert({
-    user_id: currentUser.id, question_id: questionId, is_read: markRead, is_hidden: false
-  });
+    user_id: currentUser.id, question_id: questionId, is_read: markRead
+  }, { onConflict: 'user_id,question_id' });
+  loadQuestions();
+}
+
+async function toggleHide(questionId) {
+  const { data: q } = await sb.from('qna_questions').select('is_hidden').eq('id', questionId).single();
+  if (!q) return;
+  await sb.from('qna_questions').update({ is_hidden: !q.is_hidden }).eq('id', questionId);
   loadQuestions();
 }
 
