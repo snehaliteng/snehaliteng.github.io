@@ -34,7 +34,7 @@ serve(async (req) => {
       .order('recorded_at', { ascending: false })
       .limit(1)
 
-    const MIN_DISTANCE_KM = 0.1
+    const MIN_DISTANCE_KM = 1.0
     const MIN_INTERVAL_MIN = 30
 
     if (last && last.length) {

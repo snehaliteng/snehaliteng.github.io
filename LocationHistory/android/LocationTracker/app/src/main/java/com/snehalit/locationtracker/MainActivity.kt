@@ -8,12 +8,10 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -24,11 +22,13 @@ import java.util.concurrent.TimeUnit
 class MainActivity : AppCompatActivity() {
 
     private lateinit var statusText: TextView
-    private lateinit var identifierInput: EditText
+    private lateinit var emailDisplay: TextView
     private lateinit var startBtn: Button
     private lateinit var pushNowBtn: Button
     private lateinit var stopBtn: Button
     private lateinit var batteryBtn: Button
+
+    private var phone: String = ""
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -41,7 +41,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (foregroundGranted && notificationGranted) {
-            // If we have foreground and notification, check for background
             checkBackgroundPermissionAndStart()
         } else {
             Toast.makeText(this, "Location and Notification permissions are required", Toast.LENGTH_LONG).show()
@@ -54,7 +53,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         Thread.setDefaultUncaughtExceptionHandler { _, e ->
             runOnUiThread {
                 Toast.makeText(this, "CRASH: ${e.message}", Toast.LENGTH_LONG).show()
@@ -65,7 +64,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         statusText = findViewById(R.id.status_text)
-        identifierInput = findViewById(R.id.identifier_input)
+        emailDisplay = findViewById(R.id.configured_email)
         startBtn = findViewById(R.id.start_btn)
         pushNowBtn = findViewById(R.id.push_now_btn)
         stopBtn = findViewById(R.id.stop_btn)
@@ -75,34 +74,44 @@ class MainActivity : AppCompatActivity() {
         pushNowBtn.setOnClickListener { pushLocationNow() }
         stopBtn.setOnClickListener { stopTracking() }
         batteryBtn.setOnClickListener { requestBatteryOptimization() }
+        emailDisplay.setOnClickListener { logout() }
+
+        phone = intent?.getStringExtra("phone")
+            ?: getSharedPreferences("tracker", MODE_PRIVATE).getString("phone", "")
+            ?: ""
+
+        if (phone.isBlank()) {
+            goToLogin()
+            return
+        }
+
+        emailDisplay.text = phone
+        startBtn.isEnabled = true
+        pushNowBtn.isEnabled = true
 
         updateStatus(false)
-        loadIdentifier()
     }
 
-    private fun loadIdentifier() {
-        val prefs = getSharedPreferences("tracker", MODE_PRIVATE)
-        val saved = prefs.getString("phone", "")
-        if (!saved.isNullOrBlank()) {
-            identifierInput.setText(saved)
+    private fun logout() {
+        stopTracking()
+        getSharedPreferences("tracker", MODE_PRIVATE).edit().clear().apply()
+        Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
+        goToLogin()
+    }
+
+    private fun goToLogin() {
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-    }
-
-    private fun saveIdentifier(phone: String) {
-        getSharedPreferences("tracker", MODE_PRIVATE).edit().putString("phone", phone).apply()
+        startActivity(intent)
+        finish()
     }
 
     private fun checkPermissionsAndStart() {
-        val phone = identifierInput.text.toString().trim()
-        if (phone.isBlank()) {
-            Toast.makeText(this, "Enter phone number or email", Toast.LENGTH_SHORT).show()
-            return
-        }
-        saveIdentifier(phone)
+        if (phone.isBlank()) { goToLogin(); return }
 
         val permissions = mutableListOf<String>()
-        
-        // 1. Check Foreground Location
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -110,7 +119,6 @@ class MainActivity : AppCompatActivity() {
             permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
         }
 
-        // 2. Check Notifications (Required for Foreground Service in Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
             != PackageManager.PERMISSION_GRANTED
@@ -121,7 +129,6 @@ class MainActivity : AppCompatActivity() {
         if (permissions.isNotEmpty()) {
             locationPermissionLauncher.launch(permissions.toTypedArray())
         } else {
-            // Already have foreground and notifications, now check background
             checkBackgroundPermissionAndStart()
         }
     }
@@ -131,7 +138,6 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            // On Android 11+, you must request background location separately
             locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION))
         } else {
             startTracking()
@@ -151,8 +157,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startTracking() {
-        val phone = identifierInput.text.toString().trim()
-        saveIdentifier(phone)
+        if (phone.isBlank()) { goToLogin(); return }
 
         try {
             val serviceIntent = Intent(this, LocationService::class.java).apply {
@@ -168,7 +173,6 @@ class MainActivity : AppCompatActivity() {
             android.util.Log.e("LocationTracker", "Start service failed", e)
         }
 
-        // Also schedule periodic WorkManager task as backup
         val workRequest = PeriodicWorkRequestBuilder<LocationWorker>(15, TimeUnit.MINUTES)
             .setInitialDelay(1, TimeUnit.MINUTES)
             .build()
@@ -184,24 +188,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun pushLocationNow() {
-        val phone = identifierInput.text.toString().trim()
-        if (phone.isBlank()) {
-            Toast.makeText(this, "Enter phone number or email first", Toast.LENGTH_SHORT).show()
-            return
-        }
-        saveIdentifier(phone)
+        if (phone.isBlank()) { goToLogin(); return }
 
-        // Check for basic location permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            Toast.makeText(this, "Location permission is required to push location", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Location permission is required", Toast.LENGTH_SHORT).show()
             return
         }
 
         val workRequest = OneTimeWorkRequestBuilder<LocationWorker>().build()
         WorkManager.getInstance(this).enqueue(workRequest)
-        
+
         Toast.makeText(this, "Pushing location...", Toast.LENGTH_SHORT).show()
     }
 
@@ -212,7 +210,6 @@ class MainActivity : AppCompatActivity() {
         WorkManager.getInstance(this).cancelUniqueWork("location_push")
 
         updateStatus(false)
-        Toast.makeText(this, "Tracking stopped", Toast.LENGTH_SHORT).show()
     }
 
     private fun updateStatus(isRunning: Boolean) {
@@ -220,7 +217,7 @@ class MainActivity : AppCompatActivity() {
         statusText.setTextColor(
             ContextCompat.getColor(this, if (isRunning) android.R.color.holo_green_dark else android.R.color.darker_gray)
         )
-        startBtn.isEnabled = !isRunning
+        startBtn.isEnabled = !isRunning && phone.isNotBlank()
         stopBtn.isEnabled = isRunning
     }
 

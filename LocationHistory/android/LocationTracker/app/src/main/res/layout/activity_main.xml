@@ -31,15 +31,18 @@
         android:textColor="#888"
         android:layout_marginBottom="24dp" />
 
-    <EditText
-        android:id="@+id/identifier_input"
+    <TextView
+        android:id="@+id/configured_email"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:hint="Phone number or email"
-        android:inputType="textEmailAddress"
-        android:padding="12dp"
-        android:background="@android:drawable/editbox_background"
-        android:layout_marginBottom="16dp" />
+        android:text="Not configured"
+        android:textColor="#1a73e8"
+        android:gravity="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        android:focusable="true" />
 
     <Button
         android:id="@+id/battery_btn"

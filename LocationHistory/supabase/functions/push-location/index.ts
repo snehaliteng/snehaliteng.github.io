@@ -34,7 +34,7 @@ serve(async (req) => {
       .order('recorded_at', { ascending: false })
       .limit(1)
 
-    const MIN_DISTANCE_KM = 0.1 // 100m
+    const MIN_DISTANCE_KM = 1.0 // 100m
     const MIN_INTERVAL_MIN = 30 // force insert after 30 min even if close
 
     if (last && last.length) {
