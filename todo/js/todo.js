@@ -11,6 +11,7 @@ let currentView = 'templates';
 let userPlan = null;
 let planLimits = { max_templates: 3, max_schedules_per_month: 30 };
 let selectedTaskIds = new Set();
+let selectedPermTaskIds = new Set();
 
 // Auth
 async function checkAuth() {
@@ -99,6 +100,7 @@ document.querySelectorAll('.nav-item').forEach(el => {
     document.getElementById('panel-' + view).classList.add('active');
     if (view === 'templates') loadTemplates();
     if (view === 'daily') { setDefaultDate(); loadDailySchedule(); }
+    if (view === 'permanent') loadPermanentTasks();
     if (view === 'monthly') { setDefaultDate(); loadSummaryTabs(); }
     if (view === 'yearly') { setDefaultDate(); loadYearlySummary(); }
   });
@@ -361,6 +363,7 @@ async function loadDailySchedule() {
   if (!schedules || !schedules.length) {
     container.innerHTML = '<p style="color:#666;padding:20px;text-align:center;">No schedule for this date. Select a template and click "Apply Template", or add custom tasks below.</p>' +
       '<button class="btn btn-sm btn-secondary" onclick="createEmptySchedule()" style="margin-top:8px;">+ Create Empty Schedule & Add Tasks</button>';
+    loadDailyPermanentTasks();
     return;
   }
 
@@ -389,6 +392,7 @@ async function loadDailySchedule() {
   }
   html += '<button class="btn btn-sm btn-secondary" onclick="showAddTaskModal(' + schedule.id + ')" style="margin-top:8px;">+ Add Custom Task</button>';
   container.innerHTML = html;
+  loadDailyPermanentTasks();
 }
 
 async function createEmptySchedule() {
@@ -636,6 +640,235 @@ function closeModal() {
 function escHtml(s) {
   if (!s) return '';
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ======= Permament Tasks =======
+let permTodayCache = null;
+
+async function loadPermanentTasks() {
+  const { data } = await sb.from('todo_permanent_tasks').select('*').eq('user_id', currentUser.id).order('order_index');
+  const container = document.getElementById('permanent-task-list');
+  if (!data || !data.length) {
+    container.innerHTML = '<div class="card"><p style="color:#666;text-align:center;padding:20px;">No todos yet. Add your first task above.</p></div>';
+    return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const taskIds = data.map(t => t.id);
+  const { data: logs } = await sb.from('todo_permanent_task_logs').select('*')
+    .eq('user_id', currentUser.id).eq('log_date', today).in('task_id', taskIds);
+  const logMap = {};
+  if (logs) logs.forEach(l => { logMap[l.task_id] = l; });
+
+  selectedPermTaskIds.clear();
+  document.getElementById('delete-selected-perm-btn').style.display = 'none';
+
+  const parents = data.filter(t => !t.parent_id);
+  const children = {};
+  data.filter(t => t.parent_id).forEach(t => {
+    if (!children[t.parent_id]) children[t.parent_id] = [];
+    children[t.parent_id].push(t);
+  });
+
+  function renderTask(t, depth) {
+    const log = logMap[t.id];
+    const completed = log ? log.is_completed : 0;
+    const hasChildren = children[t.id] && children[t.id].length;
+    const indent = depth * 24;
+    return '<div class="card" style="margin-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
+      '<div class="task-item">' +
+      '<input type="checkbox" class="task-select" onchange="togglePermSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
+      '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadPermanentTasks)">' +
+      '<span class="task-title' + (completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
+      '<span class="task-status-dot ' + (completed ? 'done' : 'pending') + '"></span>' +
+      (depth === 0 ? '<button class="btn btn-sm btn-ghost" onclick="showPermanentTaskModal(null,' + t.id + ')" title="Add subtask">+ Sub</button>' : '') +
+      '<button class="btn btn-sm btn-secondary" onclick="showPermanentTaskModal(' + t.id + ')">Edit</button>' +
+      '<button class="btn btn-sm btn-danger" onclick="deletePermanentTask(' + t.id + ')">Del</button></div></div>';
+  }
+
+  function renderSubtree(parentId, depth) {
+    const subs = children[parentId] || [];
+    let html = '';
+    for (const t of subs) {
+      html += renderTask(t, depth);
+      html += renderSubtree(t.id, depth + 1);
+    }
+    return html;
+  }
+
+  let html = '';
+  for (const p of parents) {
+    html += renderTask(p, 0);
+    html += renderSubtree(p.id, 1);
+  }
+  container.innerHTML = html;
+}
+
+function togglePermSelect(taskId, checked) {
+  if (checked) selectedPermTaskIds.add(taskId);
+  else selectedPermTaskIds.delete(taskId);
+  document.getElementById('delete-selected-perm-btn').style.display = selectedPermTaskIds.size ? 'inline-block' : 'none';
+}
+
+async function deleteSelectedPermTasks() {
+  if (!selectedPermTaskIds.size) return;
+  const count = selectedPermTaskIds.size;
+  if (!confirm('Delete ' + count + ' todo' + (count > 1 ? 's' : '') + '?')) return;
+  const ids = Array.from(selectedPermTaskIds);
+  selectedPermTaskIds.clear();
+  document.getElementById('delete-selected-perm-btn').style.display = 'none';
+  await sb.from('todo_permanent_task_logs').delete().in('task_id', ids);
+  await sb.from('todo_permanent_tasks').delete().in('id', ids);
+  loadPermanentTasks();
+}
+
+function showPermanentTaskModal(id, parentId) {
+  (async () => {
+    let task = null;
+    if (id) {
+      const { data: t } = await sb.from('todo_permanent_tasks').select('*').eq('id', id).single();
+      if (t) task = t;
+    }
+    const title = id ? 'Edit Todo' : 'New Todo';
+    const action = id ? ('savePermanentTask(' + id + ')') : (parentId ? 'savePermanentTask(null,' + parentId + ')' : 'savePermanentTask(null)');
+
+    let parentOptions = '';
+    if (!id && !parentId) {
+      const { data: parents } = await sb.from('todo_permanent_tasks').select('*').eq('user_id', currentUser.id).is('parent_id', null).order('order_index');
+      if (parents && parents.length) {
+        parentOptions = '<label>Parent Task</label><select id="pt-parent"><option value="">(top-level)</option>';
+        for (const p of parents) parentOptions += '<option value="' + p.id + '">' + escHtml(p.title) + '</option>';
+        parentOptions += '</select>';
+      }
+    }
+
+    const html = '<h3>' + title + '</h3>' +
+      parentOptions +
+      '<label>Task Description</label><input id="pt-title" value="' + (task ? escHtml(task.title) : '') + '" placeholder="e.g. Morning exercise">' +
+      '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="' + action + '">Save</button></div>';
+    showModal(html);
+  })();
+}
+
+async function savePermanentTask(id, parentId) {
+  const title = document.getElementById('pt-title').value.trim();
+  if (!title) return alert('Task description is required');
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const parentSelect = document.getElementById('pt-parent');
+  const actualParentId = parentId || (parentSelect ? (parentSelect.value || null) : null);
+
+  if (id) {
+    const { error } = await sb.from('todo_permanent_tasks').update({ title }).eq('id', id);
+    if (error) return alert('Error: ' + error.message);
+  } else {
+    const { data: existing } = await sb.from('todo_permanent_tasks').select('id').order('id', { ascending: false }).limit(1);
+    const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
+    const { error } = await sb.from('todo_permanent_tasks').insert({
+      id: newId, title, parent_id: actualParentId,
+      user_id: currentUser.id, created_at: now, order_index: newId
+    });
+    if (error) return alert('Error: ' + error.message);
+  }
+  closeModal();
+  loadPermanentTasks();
+}
+
+async function deletePermanentTask(id) {
+  if (!confirm('Delete this task and all its subtasks?')) return;
+  const { data: children } = await sb.from('todo_permanent_tasks').select('id').eq('parent_id', id);
+  const ids = [id];
+  if (children) {
+    for (const c of children) ids.push(c.id);
+    const { data: grandchildren } = await sb.from('todo_permanent_tasks').select('id').in('parent_id', ids);
+    if (grandchildren) for (const g of grandchildren) ids.push(g.id);
+  }
+  await sb.from('todo_permanent_task_logs').delete().in('task_id', ids);
+  await sb.from('todo_permanent_tasks').delete().in('id', ids);
+  loadPermanentTasks();
+}
+
+async function loadDailyPermanentTasks() {
+  const date = document.getElementById('daily-date').value;
+  const container = document.getElementById('daily-permanent');
+  if (!date) { container.innerHTML = ''; return; }
+
+  const { data: tasks } = await sb.from('todo_permanent_tasks').select('*').eq('user_id', currentUser.id).order('order_index');
+  if (!tasks || !tasks.length) { container.innerHTML = ''; return; }
+
+  const taskIds = tasks.map(t => t.id);
+  const { data: logs } = await sb.from('todo_permanent_task_logs').select('*')
+    .eq('user_id', currentUser.id).eq('log_date', date).in('task_id', taskIds);
+
+  const logMap = {};
+  if (logs) logs.forEach(l => { logMap[l.task_id] = l; });
+
+  const parents = tasks.filter(t => !t.parent_id);
+  const children = {};
+  tasks.filter(t => t.parent_id).forEach(t => {
+    if (!children[t.parent_id]) children[t.parent_id] = [];
+    children[t.parent_id].push(t);
+  });
+
+  function renderTask(t, depth) {
+    const log = logMap[t.id];
+    const completed = log ? log.is_completed : 0;
+    const indent = depth * 20;
+    return '<div class="task-item" style="padding-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
+      '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadDailyPermanentTasks)">' +
+      '<span class="task-title' + (completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
+      '<span class="task-status-dot ' + (completed ? 'done' : 'pending') + '"></span></div>';
+  }
+
+  function renderSubtree(parentId, depth) {
+    const subs = children[parentId] || [];
+    let html = '';
+    for (const t of subs) {
+      html += renderTask(t, depth);
+      html += renderSubtree(t.id, depth + 1);
+    }
+    return html;
+  }
+
+  let html = '<div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px;">&#128204; Todo</div>';
+  for (const p of parents) {
+    html += renderTask(p, 0);
+    html += renderSubtree(p.id, 1);
+  }
+  container.innerHTML = html;
+}
+
+async function togglePermanentTask(taskId, completed, cb) {
+  const date = document.getElementById('daily-date').value;
+  if (!date) return;
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  // Toggle children too
+  const { data: children } = await sb.from('todo_permanent_tasks').select('id').eq('parent_id', taskId);
+  const allIds = [taskId];
+  if (children) for (const c of children) allIds.push(c.id);
+
+  for (const id of allIds) {
+    const { data: existing } = await sb.from('todo_permanent_task_logs').select('*')
+      .eq('task_id', id).eq('user_id', currentUser.id).eq('log_date', date);
+
+    if (existing && existing.length) {
+      await sb.from('todo_permanent_task_logs').update({
+        is_completed: completed ? 1 : 0,
+        completed_at: completed ? now : null
+      }).eq('id', existing[0].id);
+    } else {
+      const { data: last } = await sb.from('todo_permanent_task_logs').select('id').order('id', { ascending: false }).limit(1);
+      const newId = (last && last.length) ? last[0].id + 1 : 1;
+      await sb.from('todo_permanent_task_logs').insert({
+        id: newId, task_id: id, user_id: currentUser.id,
+        log_date: date, is_completed: completed ? 1 : 0,
+        completed_at: completed ? now : null
+      });
+    }
+  }
+  loadDailyPermanentTasks();
+  if (cb) cb();
 }
 
 // ======= Yearly Summary =======

@@ -96,10 +96,36 @@ INSERT INTO todo_plans (id, name, max_templates, max_schedules_per_month, price,
   (4, 'Gold', 999999, 999999, 99900, true, '2025-01-01 00:00:00')
 ON CONFLICT (id) DO NOTHING;
 
+-- ======= Permanent Tasks =======
+CREATE TABLE IF NOT EXISTS todo_permanent_tasks (
+  id INTEGER PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  parent_id INTEGER REFERENCES todo_permanent_tasks(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL,
+  order_index INTEGER NOT NULL DEFAULT 0
+);
+ALTER TABLE todo_permanent_tasks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users own permanent tasks" ON todo_permanent_tasks FOR ALL USING (user_id = auth.uid());
+
+CREATE TABLE IF NOT EXISTS todo_permanent_task_logs (
+  id INTEGER PRIMARY KEY,
+  task_id INTEGER NOT NULL REFERENCES todo_permanent_tasks(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  log_date TEXT NOT NULL,
+  is_completed INTEGER NOT NULL DEFAULT 0,
+  completed_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_ptl_task_date ON todo_permanent_task_logs(task_id, log_date);
+ALTER TABLE todo_permanent_task_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users own permanent task logs" ON todo_permanent_task_logs FOR ALL USING (user_id = auth.uid());
+
 GRANT ALL ON todo_templates TO authenticated;
 GRANT ALL ON todo_template_tasks TO authenticated;
 GRANT ALL ON todo_daily_schedules TO authenticated;
 GRANT ALL ON todo_task_instances TO authenticated;
+GRANT ALL ON todo_permanent_tasks TO authenticated;
+GRANT ALL ON todo_permanent_task_logs TO authenticated;
 GRANT SELECT ON todo_plans TO anon, authenticated;
 GRANT ALL ON todo_plans TO authenticated;
 GRANT ALL ON todo_user_plans TO authenticated;

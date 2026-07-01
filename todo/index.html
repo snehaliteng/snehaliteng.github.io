@@ -22,6 +22,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .btn-sm { padding: 4px 10px; font-size: 12px; }
 .btn-danger { background: #d93025; color: #fff; }
 .btn-danger:hover { background: #b3261e; }
+.btn-ghost { background: transparent; color: #7c3aed; border: 1px dashed #7c3aed; }
+.btn-ghost:hover { background: #f3e8ff; }
 .btn-success { background: #188038; color: #fff; }
 .btn-success:hover { background: #146c2e; }
 
@@ -166,7 +168,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div id="sidebar">
     <div class="brand"><span>SnehalIT</span><small>Todo Planner</small></div>
     <nav>
-      <div class="nav-item active" data-view="templates"><span>&#128203;</span> <span>Templates</span></div>
+      <div class="nav-item active" data-view="permanent"><span>&#128204;</span> <span>Todo</span></div>
+      <div class="nav-item" data-view="templates"><span>&#128203;</span> <span>Templates</span></div>
       <div class="nav-item" data-view="daily"><span>&#128197;</span> <span>Daily Schedule</span></div>
       <div class="nav-item" data-view="monthly"><span>&#128200;</span> <span>Monthly</span></div>
       <div class="nav-item" data-view="yearly"><span>&#128202;</span> <span>Yearly</span></div>
@@ -176,13 +179,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
   <div id="main">
     <!-- Templates Panel -->
-    <div class="panel active" id="panel-templates">
+    <div class="panel" id="panel-templates">
       <div class="top-bar">
         <h1>Templates</h1>
         <button class="btn btn-primary btn-sm" onclick="showTemplateModal()">+ New Template</button>
       </div>
       <p class="subtitle">Create and manage your 24-hour schedule templates</p>
       <div id="template-list"></div>
+    </div>
+
+    <!-- Permanent Tasks Panel -->
+    <div class="panel active" id="panel-permanent">
+      <div class="top-bar">
+        <h1>Todo</h1>
+        <button class="btn btn-primary btn-sm" onclick="showPermanentTaskModal()">+ New Task</button>
+        <button class="btn btn-danger btn-sm" id="delete-selected-perm-btn" onclick="deleteSelectedPermTasks()" style="display:none;">Delete Selected</button>
+      </div>
+      <p class="subtitle">Recurring todos. Add subtasks to break down your work.</p>
+      <div id="permanent-task-list"></div>
     </div>
 
     <!-- Daily Schedule Panel -->
@@ -198,6 +212,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           <button class="btn btn-danger btn-sm" id="delete-selected-btn" onclick="deleteSelectedTasks()" style="display:none;">Delete Selected</button>
         </div>
         <div id="daily-tasks"></div>
+        <div id="daily-permanent" style="margin-top:16px;border-top:2px dashed #ccc;padding-top:12px;"></div>
       </div>
     </div>
 
