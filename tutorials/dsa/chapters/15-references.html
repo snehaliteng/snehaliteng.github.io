@@ -51,11 +51,11 @@
     <h2>Sorting Algorithms Reference</h2>
     <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;margin:16px 0;">
       <tr style="background:#f1f5f9;"><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable</th></tr>
-      <tr><td>Bubble Sort</td><td>O(n)</td><td>O(nÃ‚Â²)</td><td>O(nÃ‚Â²)</td><td>O(1)</td><td>Yes</td></tr>
-      <tr><td>Selection Sort</td><td>O(nÃ‚Â²)</td><td>O(nÃ‚Â²)</td><td>O(nÃ‚Â²)</td><td>O(1)</td><td>No</td></tr>
-      <tr><td>Insertion Sort</td><td>O(n)</td><td>O(nÃ‚Â²)</td><td>O(nÃ‚Â²)</td><td>O(1)</td><td>Yes</td></tr>
+      <tr><td>Bubble Sort</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>Yes</td></tr>
+      <tr><td>Selection Sort</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>No</td></tr>
+      <tr><td>Insertion Sort</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>Yes</td></tr>
       <tr><td>Merge Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n)</td><td>Yes</td></tr>
-      <tr><td>Quick Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(nÃ‚Â²)</td><td>O(log n)</td><td>No</td></tr>
+      <tr><td>Quick Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n²)</td><td>O(log n)</td><td>No</td></tr>
       <tr><td>Heap Sort</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td>O(1)</td><td>No</td></tr>
       <tr><td>Counting Sort</td><td>O(n + k)</td><td>O(n + k)</td><td>O(n + k)</td><td>O(k)</td><td>Yes</td></tr>
       <tr><td>Radix Sort</td><td>O(d * (n + k))</td><td>O(d * (n + k))</td><td>O(d * (n + k))</td><td>O(n + k)</td><td>Yes</td></tr>
@@ -70,12 +70,12 @@
       <tr><td>DFS (Depth-First Search)</td><td>Graph / Tree</td><td>O(V + E)</td><td>O(V)</td></tr>
       <tr><td>Dijkstra (SSSP)</td><td>Graph (non-negative weights)</td><td>O((V + E) log V)</td><td>O(V)</td></tr>
       <tr><td>Bellman-Ford (SSSP)</td><td>Graph (allows negative weights)</td><td>O(V * E)</td><td>O(V)</td></tr>
-      <tr><td>Floyd-Warshall (APSP)</td><td>Graph (allows negative weights)</td><td>O(VÃ‚Â³)</td><td>O(VÃ‚Â²)</td></tr>
+      <tr><td>Floyd-Warshall (APSP)</td><td>Graph (allows negative weights)</td><td>O(V³)</td><td>O(V²)</td></tr>
       <tr><td>A* Search</td><td>Graph with heuristic</td><td>O(E) (w/ good heuristic)</td><td>O(V)</td></tr>
       <tr><td>Prim's Algorithm (MST)</td><td>Graph (undirected)</td><td>O(E log V)</td><td>O(V)</td></tr>
       <tr><td>Kruskal's Algorithm (MST)</td><td>Graph (undirected)</td><td>O(E log E)</td><td>O(V)</td></tr>
       <tr><td>Ford-Fulkerson (Max Flow)</td><td>Flow Network</td><td>O(E * |f|)</td><td>O(V)</td></tr>
-      <tr><td>Edmonds-Karp (Max Flow)</td><td>Flow Network</td><td>O(V * EÃ‚Â²)</td><td>O(V)</td></tr>
+      <tr><td>Edmonds-Karp (Max Flow)</td><td>Flow Network</td><td>O(V * E²)</td><td>O(V)</td></tr>
     </table>
 
     <h2>Graph Algorithms Reference</h2>
@@ -98,7 +98,7 @@
       <li><strong>Fibonacci-style</strong> — DP[i] = DP[i-1] + DP[i-2]. Examples: climbing stairs, Fibonacci.</li>
       <li><strong>Knapsack-style</strong> — DP[i][w] = max(DP[i-1][w], value[i] + DP[i-1][w-weight[i]]). Examples: 0/1 knapsack, subset sum, partition equal sum.</li>
       <li><strong>Longest Common Subsequence</strong> — DP[i][j] = DP[i-1][j-1] + 1 if match, else max(DP[i-1][j], DP[i][j-1]). Examples: LCS, edit distance, longest palindromic subsequence.</li>
-      <li><strong>Longest Increasing Subsequence</strong> — DP[i] = 1 + max(DP[j]) for j &lt; i and arr[j] &lt; arr[i]. O(nÃ‚Â²) or O(n log n) with patience sorting.</li>
+      <li><strong>Longest Increasing Subsequence</strong> — DP[i] = 1 + max(DP[j]) for j &lt; i and arr[j] &lt; arr[i]. O(n²) or O(n log n) with patience sorting.</li>
       <li><strong>Interval DP</strong> — DP[i][j] = optimal solution for subarray i..j. Examples: matrix chain multiplication, burst balloons.</li>
       <li><strong>Tree DP</strong> — DP on tree nodes, usually combining child results. Examples: diameter of tree, tree max independent set.</li>
     </ul>
@@ -106,14 +106,14 @@
     <h2>Quick Guide Cheatsheet</h2>
 
     <h3>Big-O Complexity Classes</h3>
-    <pre><code>O(1)       < O(log n)   < O(n)     < O(n log n)  < O(nÃ‚Â²)     < O(2Ã¢ÂÂ¿)     < O(n!)
+    <pre><code>O(1)       < O(log n)   < O(n)     < O(n log n)  < O(n²)     < O(2ⁿ)     < O(n!)
 constant   logarithmic   linear    linearithmic   quadratic   exponential   factorial</code></pre>
 
     <h3>Common Recurrence Solutions</h3>
-    <pre><code>T(n) = 2T(n/2) + O(n)      Ã¢â€ â€™ O(n log n)   (Merge Sort)
-T(n) = T(n-1) + O(1)        Ã¢â€ â€™ O(n)         (Linear recursion)
-T(n) = T(n-1) + T(n-2)      Ã¢â€ â€™ O(2Ã¢ÂÂ¿)        (Naive Fibonacci)
-T(n) = 2T(n-1) + O(1)       Ã¢â€ â€™ O(2Ã¢ÂÂ¿)        (Subset generation)</code></pre>
+    <pre><code>T(n) = 2T(n/2) + O(n)      → O(n log n)   (Merge Sort)
+T(n) = T(n-1) + O(1)        → O(n)         (Linear recursion)
+T(n) = T(n-1) + T(n-2)      → O(2ⁿ)        (Naive Fibonacci)
+T(n) = 2T(n-1) + O(1)       → O(2ⁿ)        (Subset generation)</code></pre>
 
     <h3>Python Snippets for Quick Reference</h3>
     <pre><code># Binary search

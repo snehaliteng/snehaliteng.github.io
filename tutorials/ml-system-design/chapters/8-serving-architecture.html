@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>8. Serving Architecture Ã¢â‚¬â€œ ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>8. Serving Architecture — ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>8. Serving Architecture</h1>
@@ -30,13 +30,13 @@
 </table>
 <h2>Request Flow</h2>
 <pre><code># End-to-end serving flow
-1. Client Ã¢â€ â€™ Load Balancer Ã¢â€ â€™ API Gateway
+1. Client → Load Balancer → API Gateway
 2. Gateway validates auth token and rate limit
 3. Gateway routes to inference service
 4. Inference service:
    a. Parse request, extract features
    b. Check prediction cache (hash of features)
-      - Hit Ã¢â€ â€™ return cached prediction (skip steps c-e)
+      - Hit → return cached prediction (skip steps c-e)
    c. Fetch missing features from online feature store (Redis)
    d. Run model inference (GPU/CPU)
    e. Log prediction + features to Kafka (async)

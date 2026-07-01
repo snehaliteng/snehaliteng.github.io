@@ -27,7 +27,7 @@
 CREATE MATERIALIZED VIEW daily_sales AS
 SELECT DATE_TRUNC('day', sale_ts), SUM(amount)
 FROM sales GROUP BY 1;</code></pre>
-<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Create a permanent table, a transient table, and a materialized view. Compare the storage costs using ACCOUNT_USAGE views.</div>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create a permanent table, a transient table, and a materialized view. Compare the storage costs using ACCOUNT_USAGE views.</div>
 <nav><a href="8-objects.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="10-login.html">Next: Login &amp; Setup &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../js/feedback.js"></script>

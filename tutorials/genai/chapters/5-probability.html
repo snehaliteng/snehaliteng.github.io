@@ -16,7 +16,7 @@
   <p class="tag">Probability &amp; Estimation</p>
 
   <h2>Probability Distributions</h2>
-  <p>Generative models learn probability distributions over data. A distribution P(x) assigns a probability to each possible data point x. The goal is to approximate the true data distribution with a model distribution P_ÃŽÂ¸(x).</p>
+  <p>Generative models learn probability distributions over data. A distribution P(x) assigns a probability to each possible data point x. The goal is to approximate the true data distribution with a model distribution P_θ(x).</p>
   <ul>
     <li><strong>Discrete Distributions</strong> — Bernoulli (binary), Categorical (multi-class), Poisson (counts)</li>
     <li><strong>Continuous Distributions</strong> — Normal/Gaussian, Uniform, Beta, Exponential</li>
@@ -24,25 +24,25 @@
   </ul>
 
   <h2>Probability Density Functions (PDF)</h2>
-  <p>For continuous data, the PDF f(x) describes the relative likelihood. The integral over a range gives the probability. The Gaussian PDF is the most common: f(x) = 1 / (ÃÆ’Ã¢Ë†Å¡(2Ãâ‚¬)) Ã‚Â· exp(-(x-ÃŽÂ¼)Ã‚Â² / (2ÃÆ’Ã‚Â²)).</p>
+  <p>For continuous data, the PDF f(x) describes the relative likelihood. The integral over a range gives the probability. The Gaussian PDF is the most common: f(x) = 1 / (σ√(2π)) · exp(-(x-μ)² / (2σ²)).</p>
 
   <h2>Maximum Likelihood Estimation (MLE)</h2>
-  <p>MLE finds parameters ÃŽÂ¸ that maximize the probability of observed data. This is the core objective for most generative models. Equivalently, minimize negative log-likelihood (NLL).</p>
+  <p>MLE finds parameters θ that maximize the probability of observed data. This is the core objective for most generative models. Equivalently, minimize negative log-likelihood (NLL).</p>
   <pre><code># MLE for Gaussian distribution
 def mle_gaussian(data):
-    ÃŽÂ¼ = mean(data)
-    ÃÆ’ = std(data)
-    return ÃŽÂ¼, ÃÆ’
-    # These ÃŽÂ¼, ÃÆ’ maximize P(data | ÃŽÂ¼, ÃÆ’)
+    μ = mean(data)
+    σ = std(data)
+    return μ, σ
+    # These μ, σ maximize P(data | μ, σ)
 
 # In neural networks:
-# loss = -log P_ÃŽÂ¸(data)  # minimize NLL</code></pre>
+# loss = -log P_θ(data)  # minimize NLL</code></pre>
 
   <h2>KL Divergence</h2>
-  <p>KL divergence measures how one distribution P differs from another Q: D_KL(P || Q) = ÃŽÂ£ P(x) log(P(x)/Q(x)). It's asymmetric and non-negative. Used in VAEs (KL loss) and distillation.</p>
+  <p>KL divergence measures how one distribution P differs from another Q: D_KL(P || Q) = Σ P(x) log(P(x)/Q(x)). It's asymmetric and non-negative. Used in VAEs (KL loss) and distillation.</p>
 
   <h2>Bayesian Inference</h2>
-  <p>Bayes' theorem updates beliefs given evidence: P(ÃŽÂ¸|D) = P(D|ÃŽÂ¸)Ã‚Â·P(ÃŽÂ¸) / P(D). Posterior = Likelihood Ãƒâ€” Prior / Evidence. Used in Bayesian neural networks and some generative approaches.</p>
+  <p>Bayes' theorem updates beliefs given evidence: P(θ|D) = P(D|θ)·P(θ) / P(D). Posterior = Likelihood × Prior / Evidence. Used in Bayesian neural networks and some generative approaches.</p>
 
   <div class="note">
     <strong>Note:</strong> Understanding these concepts is crucial for grasping how generative models are trained and evaluated. MLE is the most common training objective across all model types.

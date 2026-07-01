@@ -59,7 +59,7 @@ def query_or_body_extractor(q: str = Depends(query_extractor)):
 @app.get("/search/")
 def search(query: str = Depends(query_or_body_extractor)):
     return {"query": query}</code></pre>
-<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Create a dependency that validates an API key from headers. Use it to protect 3 endpoints. Add a second dependency for pagination (page, size).</div>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create a dependency that validates an API key from headers. Use it to protect 3 endpoints. Add a second dependency for pagination (page, size).</div>
 <nav><a href="22-nested-models.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="24-cors.html">Next: CORS &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../js/feedback.js"></script>

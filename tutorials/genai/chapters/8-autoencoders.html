@@ -45,7 +45,7 @@ class Autoencoder(nn.Module):
 # Loss: reconstruction error (MSE or binary cross-entropy)</code></pre>
 
   <h2>Variational Autoencoders (VAEs)</h2>
-  <p>VAEs add a probabilistic twist — instead of encoding to a single point, the encoder outputs parameters (ÃŽÂ¼, ÃÆ’) of a Gaussian distribution. The decoder samples from this distribution during training. This regularizes the latent space and enables true generation.</p>
+  <p>VAEs add a probabilistic twist — instead of encoding to a single point, the encoder outputs parameters (μ, σ) of a Gaussian distribution. The decoder samples from this distribution during training. This regularizes the latent space and enables true generation.</p>
 
   <h2>VAE Loss</h2>
   <p>The VAE loss has two terms:</p>
@@ -53,13 +53,13 @@ class Autoencoder(nn.Module):
     <li><strong>Reconstruction Loss</strong> — Measures how well the decoder reconstructs the input (MSE or BCE)</li>
     <li><strong>KL Divergence</strong> — Regularizes the latent distribution toward a standard Gaussian N(0, I)</li>
   </ul>
-  <pre><code>def vae_loss(recon_x, x, ÃŽÂ¼, logvar):
+  <pre><code>def vae_loss(recon_x, x, μ, logvar):
     recon = binary_cross_entropy(recon_x, x, reduction='sum')
-    kl = -0.5 * sum(1 + logvar - ÃŽÂ¼.pow(2) - logvar.exp())
+    kl = -0.5 * sum(1 + logvar - μ.pow(2) - logvar.exp())
     return recon + kl
 
-    # ÃŽÂ²-VAE: adds weight ÃŽÂ² on KL term for better disentanglement
-    # return recon + ÃŽÂ² * kl</code></pre>
+    # β-VAE: adds weight β on KL term for better disentanglement
+    # return recon + β * kl</code></pre>
 
   <h2>Applications of VAEs</h2>
   <ul>

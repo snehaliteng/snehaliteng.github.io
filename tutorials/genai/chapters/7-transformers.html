@@ -27,7 +27,7 @@
   <p>Since attention has no inherent notion of position, positional encodings are added to input embeddings. Original transformers used sinusoidal functions; learned positional embeddings are also common.</p>
 
   <h2>Multi-Head Attention</h2>
-  <p>The core innovation. Queries (Q), Keys (K), and Values (V) are linear projections of the input. Attention weights are computed as: Attention(Q,K,V) = softmax(QKÃ¡Âµâ‚¬/Ã¢Ë†Å¡d)V. Multiple heads learn different relationship patterns.</p>
+  <p>The core innovation. Queries (Q), Keys (K), and Values (V) are linear projections of the input. Attention weights are computed as: Attention(Q,K,V) = softmax(QKᵀ/√d)V. Multiple heads learn different relationship patterns.</p>
   <pre><code># Scaled dot-product attention (single head)
 def attention(Q, K, V):
     d_k = Q.shape[-1]

@@ -49,7 +49,7 @@
       <li>Consider all edges from visited vertices to unvisited vertices.</li>
       <li>Pick the edge with the smallest weight. Add it to the MST.</li>
       <li>Mark the newly connected vertex as visited.</li>
-      <li>Repeat steps 2Ã¢â‚¬â€œ4 until all vertices are visited.</li>
+      <li>Repeat steps 2—4 until all vertices are visited.</li>
     </ol>
 
     <pre><code>def prim(graph, start):
@@ -73,7 +73,7 @@
                 min_edge[v] = w
     return total_weight</code></pre>
 
-    <p>Time complexity: <code>O(VÃ‚Â²)</code> with an adjacency matrix, or <code>O(E log V)</code> with a binary heap.</p>
+    <p>Time complexity: <code>O(V²)</code> with an adjacency matrix, or <code>O(E log V)</code> with a binary heap.</p>
 
     <h2>Kruskal's Algorithm (Edge-Based, Union-Find DSU)</h2>
     <p>Kruskal's algorithm sorts all edges by weight, then adds them one by one — skipping any edge that would create a cycle. It uses a <strong>Disjoint Set Union (DSU)</strong> or <strong>Union-Find</strong> data structure to detect cycles efficiently.</p>
@@ -154,7 +154,7 @@ def kruskal(vertices, edges):
 
     <div class="exercise">
       <h3>Practice Task</h3>
-      <p>Implement both Prim's and Kruskal's algorithms on the following graph (vertices 0Ã¢â‚¬â€œ4):</p>
+      <p>Implement both Prim's and Kruskal's algorithms on the following graph (vertices 0—4):</p>
       <pre><code>edges = [
     (0, 1, 10), (0, 2, 6), (0, 3, 5),
     (1, 3, 15), (2, 3, 4), (3, 4, 8)

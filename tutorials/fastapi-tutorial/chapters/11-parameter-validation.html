@@ -49,7 +49,7 @@ def list_products(
     sort: str = Query("name", regex="^(name|price|date)$")
 ):
     return {"page": page, "size": size, "sort": sort}</code></pre>
-<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Create an endpoint with a path param <code>user_id</code> (>= 1) and a query param <code>email</code> (valid email regex pattern). Test validation errors in Swagger.</div>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create an endpoint with a path param <code>user_id</code> (>= 1) and a query param <code>email</code> (valid email regex pattern). Test validation errors in Swagger.</div>
 <nav><a href="10-query-parameters.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="12-pydantic.html">Next: Pydantic Models &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../js/feedback.js"></script>

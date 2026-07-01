@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>12. Real-Time Inference Pipeline Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>12. Real-Time Inference Pipeline — AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>12. Real-Time Inference Pipeline</h1>
@@ -25,7 +25,7 @@
 4. Feature computation: compute real-time features (tx amount vs avg, location match)
 5. Cache check: has this exact transaction been scored recently?
 6. Model inference: run ensemble of 3 XGBoost models (50ms budget)
-7. Post-processing: apply business rules (amount > 10K Ã¢â€ â€™ force review)
+7. Post-processing: apply business rules (amount > 10K → force review)
 8. Response: return fraud_score + explanation + action
 9. Async: log to Kafka for monitoring, feedback collection</code></pre>
 <h2>Micro-Batching</h2>
@@ -57,7 +57,7 @@ Throughput increase: 3-5x for small LLMs</code></pre>
 <tr><td>Model inference (3 models)</td><td>Triton (XGBoost)</td><td>100ms (parallel)</td></tr>
 <tr><td>Post-processing &amp; rules</td><td>In-app</td><td>10ms</td></tr>
 <tr><td>Kafka logging</td><td>Async (non-blocking)</td><td>0ms added</td></tr>
-<tr><td>Total (p99)</td><td></td><td>~160ms Ã¢Å“â€¦</td></tr>
+<tr><td>Total (p99)</td><td></td><td>~160ms ✅</td></tr>
 </table>
 <h2>Performance Optimization Checklist</h2>
 <ul>
@@ -66,7 +66,7 @@ Throughput increase: 3-5x for small LLMs</code></pre>
 <li>[ ] Cache features, predictions, and model weights</li>
 <li>[ ] Use connection pooling for DB/cache/queue connections</li>
 <li>[ ] Micro-batch GPU inference requests</li>
-<li>[ ] Pre-compute expensive features (batch Ã¢â€ â€™ feature store)</li>
+<li>[ ] Pre-compute expensive features (batch → feature store)</li>
 <li>[ ] Quantize models (FP16/INT8) if accuracy permits</li>
 <li>[ ] Use async logging to avoid blocking the response path</li>
 <li>[ ] Warm up models (pre-load, pre-run dummy inference)</li>

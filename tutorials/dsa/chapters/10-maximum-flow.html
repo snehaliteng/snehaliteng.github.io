@@ -93,10 +93,10 @@
     return max_flow</code></pre>
 
     <h2>Edmonds-Karp Algorithm</h2>
-    <p>Edmonds-Karp is a specific implementation of Ford-Fulkerson that uses <strong>BFS</strong> to find the shortest augmenting path (in terms of number of edges). This guarantees <code>O(V * EÃ‚Â²)</code> time complexity, whereas a naive DFS-based Ford-Fulkerson can be exponential.</p>
+    <p>Edmonds-Karp is a specific implementation of Ford-Fulkerson that uses <strong>BFS</strong> to find the shortest augmenting path (in terms of number of edges). This guarantees <code>O(V * E²)</code> time complexity, whereas a naive DFS-based Ford-Fulkerson can be exponential.</p>
 
     <div class="note">
-      The key insight: BFS finds the path with the fewest edges, which bounds the number of augmentations to <code>O(V * E)</code>. Each BFS costs <code>O(E)</code>, yielding <code>O(V * EÃ‚Â²)</code> overall.
+      The key insight: BFS finds the path with the fewest edges, which bounds the number of augmentations to <code>O(V * E)</code>. Each BFS costs <code>O(E)</code>, yielding <code>O(V * E²)</code> overall.
     </div>
 
     <h2>Max-Flow Min-Cut Theorem</h2>
@@ -137,8 +137,8 @@ def max_bipartite_matching(left, right, edges):
     <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;margin:16px 0;">
       <tr style="background:#f1f5f9;"><th>Algorithm</th><th>Time Complexity</th><th>Notes</th></tr>
       <tr><td>Ford-Fulkerson (DFS)</td><td>O(E * |f|)</td><td>Depends on max flow value; can be slow</td></tr>
-      <tr><td>Edmonds-Karp (BFS)</td><td>O(V * EÃ‚Â²)</td><td>Polynomial; guarantees termination</td></tr>
-      <tr><td>Dinic's</td><td>O(VÃ‚Â² * E)</td><td>Faster for unit-capacity graphs; O(E * sqrt(V)) for bipartite matching</td></tr>
+      <tr><td>Edmonds-Karp (BFS)</td><td>O(V * E²)</td><td>Polynomial; guarantees termination</td></tr>
+      <tr><td>Dinic's</td><td>O(V² * E)</td><td>Faster for unit-capacity graphs; O(E * sqrt(V)) for bipartite matching</td></tr>
     </table>
 
     <div class="exercise">

@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>7. Storage Ã¢â‚¬â€œ System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>7. Storage — System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>7. Storage</h1>
@@ -29,7 +29,7 @@
 <h3>Hash-Based Sharding</h3>
 <p>Use a hash function on the shard key: <code>shard = hash(key) % N</code>. Provides even distribution but makes range queries expensive.</p>
 <h3>Range-Based Sharding</h3>
-<p>Split data by value ranges: shard 1 = user IDs 1Ã¢â‚¬â€œ1M, shard 2 = 1MÃ¢â‚¬â€œ2M, etc. Range queries are efficient but can cause hot spots.</p>
+<p>Split data by value ranges: shard 1 = user IDs 1—1M, shard 2 = 1M—2M, etc. Range queries are efficient but can cause hot spots.</p>
 <h3>Directory-Based Sharding</h3>
 <p>Maintain a lookup table mapping keys to shards. Flexible but adds a lookup step and single point of failure risk.</p>
 <h3>Geographic Sharding</h3>
@@ -37,7 +37,7 @@
 <h2>Replication</h2>
 <p>Replication copies data across multiple nodes for fault tolerance and read scalability.</p>
 <pre><code># Leader-Follower Replication
-Writes go to Leader Ã¢â€ â€™ replicates to Followers
+Writes go to Leader → replicates to Followers
 Reads can go to any replica (Follower or Leader)
 If Leader fails, a Follower is promoted to Leader
 

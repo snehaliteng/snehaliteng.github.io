@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>4. High-Level Architecture Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>4. High-Level Architecture — AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>4. High-Level Architecture</h1>
@@ -58,8 +58,8 @@
 <li><strong>Drift detection:</strong> Evidently AI, WhyLabs, NannyML — continuous monitoring of data and concept drift.</li>
 </ul>
 <pre><code># Layered request flow (recommendation system)
-User request Ã¢â€ â€™ API Gateway Ã¢â€ â€™ Auth Ã¢â€ â€™ Feature Fetch (from Feature Store)
-Ã¢â€ â€™ Cache Check (Redis) Ã¢â€ â€™ Model Inference Ã¢â€ â€™ Post-process Ã¢â€ â€™ Log Ã¢â€ â€™ Response</code></pre>
+User request → API Gateway → Auth → Feature Fetch (from Feature Store)
+→ Cache Check (Redis) → Model Inference → Post-process → Log → Response</code></pre>
 <div class="exercise"><strong>Exercise:</strong> Draw the high-level architecture (on paper or using diagrams.net) for an AI-powered document summarization service. Label each layer with the specific technologies you would use (e.g., Kafka for ingestion, Hugging Face for model, Triton for serving, Prometheus for monitoring).</div>
 <nav><a href="3-objectives.html">&larr; Previous</a><a href="../index.html">Index</a><a href="5-data-flow.html">Next: Data Flow &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

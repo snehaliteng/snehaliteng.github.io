@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>8. Offline vs Online Pipelines Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>8. Offline vs Online Pipelines — AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>8. Offline vs Online Pipelines</h1>
@@ -49,11 +49,11 @@ Schedule: Daily at 2 AM
 All incoming data splits into two paths:
 
 Batch Layer:
-  Data Ã¢â€ â€™ Batch processing Ã¢â€ â€™ Pre-computed views (serving layer)
+  Data → Batch processing → Pre-computed views (serving layer)
   (complete, accurate, high latency)
 
 Speed Layer:
-  Data Ã¢â€ â€™ Stream processing Ã¢â€ â€™ Real-time views (serving layer)
+  Data → Stream processing → Real-time views (serving layer)
   (approximate, low latency)
 
 Serving Layer merges batch + speed views for query</code></pre>
@@ -61,7 +61,7 @@ Serving Layer merges batch + speed views for query</code></pre>
 <h2>Kappa Architecture</h2>
 <p>Simplified: everything is a stream. Batch is treated as a special case of streaming with a larger window.</p>
 <pre><code># Kappa Architecture
-Data Ã¢â€ â€™ Event Stream (Kafka) Ã¢â€ â€™ Stream Processor Ã¢â€ â€™ Serving Layer
+Data → Event Stream (Kafka) → Stream Processor → Serving Layer
 No separate batch layer.
 Batch jobs = stream processing with historical replay (reprocess from topic start)</code></pre>
 <p><strong>Pros:</strong> Single codebase, simpler operations. <strong>Cons:</strong> Harder to handle large historical backfills efficiently.</p>

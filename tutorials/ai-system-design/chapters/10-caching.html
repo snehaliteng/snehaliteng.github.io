@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>10. Caching Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>10. Caching — AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>10. Caching</h1>
@@ -21,11 +21,11 @@
 <pre><code># Feature cache flow
 Request: predict for user_id=42
 Check feature cache (Redis): key = "features:user:42"
-  Hit Ã¢â€ â€™ return cached features (2ms)
-  Miss Ã¢â€ â€™ compute features from raw data (100ms)
-         Ã¢â€ â€™ store in cache with TTL (e.g., 5 min)
-         Ã¢â€ â€™ return features</code></pre>
-<p><strong>Cache invalidation:</strong> Invalidate feature cache when underlying data changes (e.g., user completes a purchase Ã¢â€ â€™ invalidate purchase-related features).</p>
+  Hit → return cached features (2ms)
+  Miss → compute features from raw data (100ms)
+         → store in cache with TTL (e.g., 5 min)
+         → return features</code></pre>
+<p><strong>Cache invalidation:</strong> Invalidate feature cache when underlying data changes (e.g., user completes a purchase → invalidate purchase-related features).</p>
 <h2>2. Model Cache</h2>
 <p>Keep model weights loaded in GPU/CPU memory. Avoid reloading for every request. This is standard in inference servers but worth explicit design.</p>
 <ul>
@@ -36,9 +36,9 @@ Check feature cache (Redis): key = "features:user:42"
 <h2>3. Prediction Cache</h2>
 <p>Cache identical prediction requests. Highly effective when the same input is requested multiple times (e.g., popular product recommendations, cached embedding computations).</p>
 <pre><code># Prediction cache design
-Hash(request features) Ã¢â€ â€™ lookup in prediction cache (Redis/SearchCache)
-  Hit Ã¢â€ â€™ return cached prediction, skip model inference
-  Miss Ã¢â€ â€™ run model, cache prediction with TTL
+Hash(request features) → lookup in prediction cache (Redis/SearchCache)
+  Hit → return cached prediction, skip model inference
+  Miss → run model, cache prediction with TTL
 
 Cache key: hash(features + model_version + model_id)
 Cache value: serialized prediction + confidence score
@@ -47,10 +47,10 @@ Eviction: LRU + TTL-based expiration</code></pre>
 <p>For LLM-powered applications, semantic cache stores and retrieves results based on <em>meaning</em>, not exact match. Uses embeddings to find similar questions.</p>
 <pre><code># Semantic cache (LLM response caching)
 New query: "What's the weather in Tokyo?"
-Embed query Ã¢â€ â€™ vector (256-dim)
+Embed query → vector (256-dim)
 Search vector DB for similar queries (cosine similarity > 0.95)
-  Hit Ã¢â€ â€™ return cached response (no LLM call)
-  Miss Ã¢â€ â€™ call LLM, store (query, response, embedding) in cache
+  Hit → return cached response (no LLM call)
+  Miss → call LLM, store (query, response, embedding) in cache
 
 Benefits: Cache hits for rephrased questions
 Cost: Embedding computation (cheap) vs LLM call (expensive)</code></pre>
@@ -59,8 +59,8 @@ Cost: Embedding computation (cheap) vs LLM call (expensive)</code></pre>
 <tr><th>Caching Need</th><th>Recommended Store</th><th>TTL</th><th>Eviction</th></tr>
 <tr><td>Feature cache</td><td>Redis / Memcached</td><td>Minutes</td><td>TTL + write-through invalidation</td></tr>
 <tr><td>Model weights</td><td>GPU memory / RAM</td><td>Uptime of server</td><td>LRU (for multi-model serving)</td></tr>
-<tr><td>Exact prediction cache</td><td>Redis with TTL</td><td>MinutesÃ¢â‚¬â€œhours</td><td>LRU + TTL</td></tr>
-<tr><td>Semantic cache</td><td>Vector DB (Pinecone, Qdrant)</td><td>HoursÃ¢â‚¬â€œdays</td><td>Similarity threshold + TTL</td></tr>
+<tr><td>Exact prediction cache</td><td>Redis with TTL</td><td>Minutes—hours</td><td>LRU + TTL</td></tr>
+<tr><td>Semantic cache</td><td>Vector DB (Pinecone, Qdrant)</td><td>Hours—days</td><td>Similarity threshold + TTL</td></tr>
 </table>
 <div class="note"><strong>Pro tip:</strong> Cache hit ratio is a key observability metric. If your prediction cache hit ratio is below 20%, the cache may be doing more harm than good (overhead of check exceeding benefit). Tune TTL and eviction policies based on observed patterns.</div>
 <div class="exercise"><strong>Exercise:</strong> Design a caching strategy for a real-time product recommendation system with 10M users. Each user sees 20 products on their homepage. Features include: user demographics, recent purchases, trending items. Which cache types would you use? What are your cache keys and TTLs? How do you invalidate when a user makes a purchase?</div>

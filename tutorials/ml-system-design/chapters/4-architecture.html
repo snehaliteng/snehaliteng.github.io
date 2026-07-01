@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>4. Step-by-Step Architecture Ã¢â‚¬â€œ ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>4. Step-by-Step Architecture — ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>4. Step-by-Step Architecture</h1>
@@ -19,8 +19,8 @@
 <h2>Step 1: Data Ingestion</h2>
 <p>Raw data enters the system through batch or streaming paths.</p>
 <pre><code># Ingestion architecture
-Batch path: Daily database dump Ã¢â€ â€™ Airflow Ã¢â€ â€™ S3 raw bucket
-Streaming path: User events Ã¢â€ â€™ Kafka Ã¢â€ â€™ Flink Ã¢â€ â€™ S3 raw bucket + Feature Store</code></pre>
+Batch path: Daily database dump → Airflow → S3 raw bucket
+Streaming path: User events → Kafka → Flink → S3 raw bucket + Feature Store</code></pre>
 <h2>Step 2: Data Storage</h2>
 <p>Raw data is stored in a data lake (S3, ADLS, GCS). Processed features go to a feature store (Feast, Tecton). Labels are stored in a data warehouse (Snowflake, BigQuery).</p>
 <h2>Step 3: Preprocessing</h2>
@@ -40,7 +40,7 @@ def compute_features(raw):
 <h2>Step 6: Deployment</h2>
 <p>The model is deployed to a serving infrastructure. Common patterns: rolling update, canary deployment, shadow deployment.</p>
 <h2>Step 7: Serving</h2>
-<p>Inference requests hit the serving layer: API gateway Ã¢â€ â€™ feature fetch Ã¢â€ â€™ model server Ã¢â€ â€™ response. Predictions are cached, logged, and monitored.</p>
+<p>Inference requests hit the serving layer: API gateway → feature fetch → model server → response. Predictions are cached, logged, and monitored.</p>
 <h2>Step 8: Monitoring &amp; Feedback</h2>
 <p>Predictions and features are logged. Drift detection runs continuously. Ground truth (when available) is collected for accuracy computation. Degradation triggers alerts and retraining.</p>
 <img src="../images/inference-pipeline.svg" alt="Inference pipeline showing request flow from API to response with caching, fallback, and monitoring">

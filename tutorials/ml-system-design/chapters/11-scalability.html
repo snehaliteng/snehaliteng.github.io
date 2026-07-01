@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>11. Scalability Ã¢â‚¬â€œ ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>11. Scalability — ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>11. Scalability</h1>
@@ -21,20 +21,20 @@
 Load balancer distributes requests to N replicas
 All replicas identical, stateless (model loaded from shared storage)
 Auto-scaling based on:
-  - CPU/GPU utilization (>70% Ã¢â€ â€™ add replica)
-  - Queue depth (>100 pending requests Ã¢â€ â€™ add replica)
-  - Request latency (p99 > 200ms Ã¢â€ â€™ add replica)</code></pre>
+  - CPU/GPU utilization (>70% → add replica)
+  - Queue depth (>100 pending requests → add replica)
+  - Request latency (p99 > 200ms → add replica)</code></pre>
 <h2>Partitioning (Sharding)</h2>
 <p>For stateful components (feature stores, model registry), partition data across nodes.</p>
 <ul>
 <li><strong>Hash-based sharding:</strong> shard = hash(entity_id) % N. Even distribution, but resharding is expensive.</li>
-<li><strong>Range-based sharding:</strong> user_id 1Ã¢â‚¬â€œ1M on shard A, 1MÃ¢â‚¬â€œ2M on shard B. Good for range queries, risk of hot spots.</li>
+<li><strong>Range-based sharding:</strong> user_id 1—1M on shard A, 1M—2M on shard B. Good for range queries, risk of hot spots.</li>
 <li><strong>Directory-based sharding:</strong> Lookup table maps keys to shards. Flexible but adds latency.</li>
 </ul>
 <h2>Queues for Load Smoothing</h2>
 <p>Use message queues to decouple request arrival from processing. Queues absorb traffic spikes and provide back-pressure.</p>
 <pre><code># Queue-based inference
-Request Ã¢â€ â€™ API Gateway Ã¢â€ â€™ Request Queue (Kafka/SQS)
+Request → API Gateway → Request Queue (Kafka/SQS)
 Inference workers consume from queue:
   - Pull batch of requests (up to 32)
   - Run batch inference (GPU)

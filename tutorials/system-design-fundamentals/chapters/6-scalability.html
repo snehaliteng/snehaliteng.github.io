@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>6. Scalability Ã¢â‚¬â€œ System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>6. Scalability — System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>6. Scalability</h1>
@@ -23,7 +23,7 @@
 <tr><td>Diagonal</td><td>Vertical within a tier, horizontal across tiers</td><td>Balanced approach</td><td>Complexity of both</td></tr>
 </table>
 <pre><code># Horizontal scaling pattern
-[Users] Ã¢â€ â€™ [Load Balancer] Ã¢â€ â€™ [App Server 1] Ã¢â€ â€™ [Shared DB]
+[Users] → [Load Balancer] → [App Server 1] → [Shared DB]
                              [App Server 2]
                              [App Server N]
 # Stateless apps scale easily; stateful (DB) requires sharding/replication</code></pre>
@@ -37,7 +37,7 @@
 <li><strong>Circuit breaking:</strong> Stop routing to a backend when it repeatedly fails.</li>
 </ul>
 <h2>Auto-Scaling</h2>
-<p>Auto-scaling automatically adjusts the number of compute resources based on demand. Metrics-based (CPU > 70% Ã¢â€ â€™ add instance) or schedule-based (scale up at 8 AM, scale down at 10 PM).</p>
+<p>Auto-scaling automatically adjusts the number of compute resources based on demand. Metrics-based (CPU > 70% → add instance) or schedule-based (scale up at 8 AM, scale down at 10 PM).</p>
 <pre><code># Auto-scaling configuration (conceptual)
 AutoScalingGroup:
   min: 2

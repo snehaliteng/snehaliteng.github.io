@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>7. Agentic AI Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>7. Agentic AI — AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>7. Agentic AI</h1>
@@ -23,10 +23,10 @@
 User: "Write a blog post about AI trends"
 
 Orchestrator decomposes:
-  Task 1: Research latest AI trends Ã¢â€ â€™ Researcher Agent
-  Task 2: Outline blog structure Ã¢â€ â€™ Writer Agent
-  Task 3: Draft sections Ã¢â€ â€™ Writer Agent
-  Task 4: Review and polish Ã¢â€ â€™ Editor Agent
+  Task 1: Research latest AI trends → Researcher Agent
+  Task 2: Outline blog structure → Writer Agent
+  Task 3: Draft sections → Writer Agent
+  Task 4: Review and polish → Editor Agent
 
 Each agent has:
   - Role-specific system prompt
@@ -58,7 +58,7 @@ Final Answer: Your order #101 is out for delivery and should arrive by 5 PM toda
 <h2>MCP (Model Context Protocol)</h2>
 <p>MCP standardizes how AI agents connect to external tools and data sources. Instead of custom integrations per tool, agents speak MCP, and tools expose MCP servers. This decouples agent logic from tool implementation.</p>
 <pre><code># MCP architecture
-Agent Ã¢â€ â€ MCP Client Ã¢â€ â€ MCP Protocol Ã¢â€ â€ MCP Server Ã¢â€ â€ External Tool
+Agent ↔ MCP Client ↔ MCP Protocol ↔ MCP Server ↔ External Tool
                                             (e.g., SQL DB, GitHub API, Web Search)</code></pre>
 <h2>Multi-Agent Collaboration Patterns</h2>
 <ul>

@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>9. Scalability &amp; Performance Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>9. Scalability &amp; Performance — AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>9. Scalability &amp; Performance</h1>
@@ -34,13 +34,13 @@ All workers apply G to their model copy</code></pre>
 <tr><td>Data Parallelism</td><td>Fits on one GPU</td><td>Gradients (frequent)</td><td>PyTorch DDP, Horovod</td></tr>
 <tr><td>Pipeline Parallelism</td><td>Fits on a few GPUs</td><td>Activations (moderate)</td><td>DeepSpeed, Megatron-LM</td></tr>
 <tr><td>Tensor Parallelism</td><td>Very large (100B+ params)</td><td>Intermediate tensors (intra-node)</td><td>Megatron-LM, FSDP</td></tr>
-<tr><td>FSDP (Fully Sharded)</td><td>Large (1BÃ¢â‚¬â€œ100B params)</td><td>All-gather (efficient)</td><td>PyTorch FSDP</td></tr>
+<tr><td>FSDP (Fully Sharded)</td><td>Large (1B—100B params)</td><td>All-gather (efficient)</td><td>PyTorch FSDP</td></tr>
 </table>
 <h2>Model Compression</h2>
 <p>Smaller models mean lower latency and lower cost:</p>
 <ul>
-<li><strong>Quantization:</strong> FP32 Ã¢â€ â€™ FP16 (2x speed), INT8 (4x speed). Lossy but often negligible quality drop.</li>
-<li><strong>Pruning:</strong> Remove low-magnitude weights. Can reduce model size by 50Ã¢â‚¬â€œ90% with fine-tuning.</li>
+<li><strong>Quantization:</strong> FP32 → FP16 (2x speed), INT8 (4x speed). Lossy but often negligible quality drop.</li>
+<li><strong>Pruning:</strong> Remove low-magnitude weights. Can reduce model size by 50—90% with fine-tuning.</li>
 <li><strong>Distillation:</strong> Train a small "student" model to mimic a large "teacher" model.</li>
 <li><strong>LoRA adapters:</strong> Fine-tune small adapter matrices instead of the full model. Multiple adapters can be served from one base model.</li>
 </ul>
@@ -61,8 +61,8 @@ INT8:  7 GB GPU memory, 15ms per token</code></pre>
 <table>
 <tr><th>Technique</th><th>Latency Improvement</th><th>Cost Impact</th><th>Quality Impact</th></tr>
 <tr><td>Quantization (FP16)</td><td>~2x</td><td>Lower (less GPU time)</td><td>Minimal</td></tr>
-<tr><td>Quantization (INT8)</td><td>~4x</td><td>Lower</td><td>Small (0.5Ã¢â‚¬â€œ2%)</td></tr>
-<tr><td>Distillation (10% size)</td><td>~10x</td><td>Much lower</td><td>Moderate (3Ã¢â‚¬â€œ5%)</td></tr>
+<tr><td>Quantization (INT8)</td><td>~4x</td><td>Lower</td><td>Small (0.5—2%)</td></tr>
+<tr><td>Distillation (10% size)</td><td>~10x</td><td>Much lower</td><td>Moderate (3—5%)</td></tr>
 <tr><td>Dynamic batching</td><td>Higher throughput</td><td>Better GPU utilization</td><td>No impact</td></tr>
 </table>
 <div class="exercise"><strong>Exercise:</strong> You need to serve a 70B parameter LLM at 100 requests/second with p99 latency under 1 second. You have 8 A100 GPUs (80GB each). Design the serving architecture: model parallelism strategy, quantization level, batch size, and number of replicas. Show your calculations.</div>

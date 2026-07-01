@@ -51,7 +51,7 @@ await page.locator('.form').getByRole('button', { name: 'Submit' }).click();
 // Filter
 await page.locator('.product').filter({ hasText: 'Laptop' }).getByRole('button').click();
 await page.locator('li').filter({ hasNotText: 'Out of stock' });</code></pre>
-<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Refactor a test that uses CSS selectors to use getByRole, getByLabel, and getByTestId instead. Run it and verify it still passes.</div>
+<div class="exercise"><strong>✏️ Exercise:</strong> Refactor a test that uses CSS selectors to use getByRole, getByLabel, and getByTestId instead. Run it and verify it still passes.</div>
 <nav><a href="6-e2e-exercises.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="8-inspectors-tools.html">Next: Inspectors &amp; Tools &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../js/feedback.js"></script>

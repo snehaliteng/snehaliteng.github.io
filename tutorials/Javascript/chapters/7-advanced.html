@@ -43,24 +43,24 @@ console.log("End");
     <p>ES6 modules let you split code into separate files. Use <code>export</code> to expose values and <code>import</code> to consume them:</p>
 
     <h3>Named Exports</h3>
-    <pre><code>// Ã°Å¸â€œÂ math.js
+    <pre><code>// 📁 math.js
 export const PI = 3.14159;
 export function add(a, b) {
   return a + b;
 }
 export class Calculator { /* ... */ }</code></pre>
 
-    <pre><code>// Ã°Å¸â€œÂ app.js
+    <pre><code>// 📁 app.js
 import { PI, add } from "./math.js";
 console.log(add(PI, 2)); // 5.14159</code></pre>
 
     <h3>Default Exports</h3>
-    <pre><code>// Ã°Å¸â€œÂ utils.js
+    <pre><code>// 📁 utils.js
 export default function formatDate(date) {
   return date.toISOString();
 }
 
-// Ã°Å¸â€œÂ app.js
+// 📁 app.js
 import formatDate from "./utils.js";</code></pre>
 
     <h3>Dynamic Imports</h3>
@@ -112,7 +112,7 @@ proxy.newProp = 42;         // Logs: "Setting newProp to 42"</code></pre>
 
 const proxy = new Proxy({}, handler);
 proxy.name = "Alice"; // Logs: Setting name = Alice
-console.log(proxy.name); // Logs: Getting name Ã¢â€ â€™ "Alice"</code></pre>
+console.log(proxy.name); // Logs: Getting name → "Alice"</code></pre>
 
     <h2>Typed Arrays</h2>
     <p>Typed arrays provide views over raw binary data buffers. Each typed array interprets the buffer as a sequence of a specific numeric type:</p>

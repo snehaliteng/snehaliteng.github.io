@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>13. Monitoring &amp; Drift Detection Ã¢â‚¬â€œ ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>13. Monitoring &amp; Drift Detection — ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>13. Monitoring &amp; Drift Detection</h1>
@@ -30,8 +30,8 @@ Prediction at t=0: fraud_score=0.92
 Ground truth at t=24h: confirmed_fraud=True
 
 Weekly report:
-  Precision@threshold=0.5: 0.83  (was 0.85 last week) Ã¢Å¡Â 
-  Recall@threshold=0.5:    0.76  (was 0.78 last week)  Ã¢Å¡Â 
+  Precision@threshold=0.5: 0.83  (was 0.85 last week) ⚠
+  Recall@threshold=0.5:    0.76  (was 0.78 last week)  ⚠
   Alert if drop > 0.02</code></pre>
 <h2>Drift Detection</h2>
 <p>Drift is the most common cause of silent ML system degradation.</p>
@@ -47,7 +47,7 @@ Weekly report:
 psi = sum((p_i - q_i) * log(p_i / q_i))
 # p_i = proportion in serving data, q_i = proportion in training data
 # PSI < 0.1: no drift
-# PSI 0.1Ã¢â‚¬â€œ0.25: moderate drift (investigate)
+# PSI 0.1—0.25: moderate drift (investigate)
 # PSI > 0.25: severe drift (retrain immediately)</code></pre>
 <h2>Prometheus + Grafana Dashboard</h2>
 <p>Recommended panels:</p>

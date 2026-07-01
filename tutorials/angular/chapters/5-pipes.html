@@ -96,7 +96,7 @@ export class TruncatePipe implements PipeTransform {
   }
 }</code></pre>
 
-    <p>Usage: <code>{{ longText | truncate:30:'Ã¢â‚¬Â¦' }}</code></p>
+    <p>Usage: <code>{{ longText | truncate:30:'…' }}</code></p>
 
     <h2>Pure vs Impure Pipes</h2>
     <p>Pipes are <strong>pure</strong> by default. A pure pipe only re-evaluates when its input value changes by reference (not mutation). An <strong>impure</strong> pipe re-evaluates on every change detection cycle, which is useful for pipes that track internal state or handle mutable data.</p>

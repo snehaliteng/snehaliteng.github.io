@@ -42,7 +42,7 @@ GET @my_stage/unload/ file://local_output/;</code></pre>
 FROM sales_table
 PARTITION BY ('year=' || YEAR(sale_date))
 FILE_FORMAT = (TYPE = PARQUET);</code></pre>
-<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Export a table as CSV with headers, download using GET, and verify file contents.</div>
+<div class="exercise"><strong>✏️ Exercise:</strong> Export a table as CSV with headers, download using GET, and verify file contents.</div>
 <nav><a href="18-cache.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="20-external-loading.html">Next: Load from S3 &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../js/feedback.js"></script>

@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>15. Fault Tolerance Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>15. Fault Tolerance — AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>15. Fault Tolerance</h1>
@@ -40,14 +40,14 @@ def retry_with_backoff(fn, max_retries=3):
 <p>When a downstream service (e.g., feature store, embedding API) is consistently failing, stop calling it to prevent cascading failures.</p>
 <pre><code># Circuit breaker states for AI inference
 CLOSED: Normal operation. Requests flow to feature store.
-  If 5 consecutive failures Ã¢â€ â€™ transition to OPEN
+  If 5 consecutive failures → transition to OPEN
 
 OPEN: Requests bypass feature store. Use default features.
-  After 30 seconds Ã¢â€ â€™ transition to HALF_OPEN
+  After 30 seconds → transition to HALF_OPEN
 
 HALF_OPEN: Allow 1 test request to feature store.
-  If success Ã¢â€ â€™ transition to CLOSED
-  If failure Ã¢â€ â€™ transition to OPEN, wait longer (exponential backoff)</code></pre>
+  If success → transition to CLOSED
+  If failure → transition to OPEN, wait longer (exponential backoff)</code></pre>
 <h2>Fallback Models</h2>
 <p>When the primary model is unavailable (GPU failure, model corruption, timeout), serve a fallback.</p>
 <table>

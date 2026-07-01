@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>10. Indexing Ã¢â‚¬â€œ ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>10. Indexing — ML System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>10. Indexing</h1>
@@ -32,9 +32,9 @@ ef = 50        # search quality (higher = better recall, slower search)</code></
 <h2>Inverted Indexing</h2>
 <p>Classic information retrieval structure. Maps terms to documents. Used for keyword-based search and as a component in hybrid search systems.</p>
 <pre><code># Inverted index structure
-"machine" Ã¢â€ â€™ [doc1, doc5, doc9, doc23]
-"learning" Ã¢â€ â€™ [doc1, doc3, doc5, doc12]
-"system" Ã¢â€ â€™ [doc2, doc5, doc7, doc9]
+"machine" → [doc1, doc5, doc9, doc23]
+"learning" → [doc1, doc3, doc5, doc12]
+"system" → [doc2, doc5, doc7, doc9]
 
 Query: "machine learning system"
 Scoring: TF-IDF or BM25 on matching documents
@@ -42,9 +42,9 @@ Top result: doc5 (contains all three terms)</code></pre>
 <h2>Hash Indexing</h2>
 <p>Provides O(1) lookups for exact key matches. Used for feature store lookups, cache keys, and model registry lookups.</p>
 <ul>
-<li><strong>Feature store:</strong> Redis hash maps entity_id Ã¢â€ â€™ feature vector.</li>
-<li><strong>Prediction cache:</strong> Hash of (features + model_version) Ã¢â€ â€™ prediction.</li>
-<li><strong>Model registry:</strong> model_name Ã¢â€ â€™ latest_version mapping.</li>
+<li><strong>Feature store:</strong> Redis hash maps entity_id → feature vector.</li>
+<li><strong>Prediction cache:</strong> Hash of (features + model_version) → prediction.</li>
+<li><strong>Model registry:</strong> model_name → latest_version mapping.</li>
 </ul>
 <h2>Which Index to Use Where</h2>
 <table>

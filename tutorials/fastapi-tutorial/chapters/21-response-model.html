@@ -46,7 +46,7 @@ def get_item(id: int):
 @app.get("/items/", response_model=list[ItemOut])
 def list_items():
     return [{"name": "A", "price": 1.0}]</code></pre>
-<div class="exercise"><strong>Ã¢Å“ÂÃ¯Â¸Â Exercise:</strong> Create In/Out models for a User. Input has password, output excludes password. Create a POST endpoint that returns only the safe fields.</div>
+<div class="exercise"><strong>✏️ Exercise:</strong> Create In/Out models for a User. Input has password, output excludes password. Create a POST endpoint that returns only the safe fields.</div>
 <nav><a href="20-header-parameters.html">&larr; Previous</a><a href="../index.html">Back to Index</a><a href="22-nested-models.html">Next: Nested Models &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../js/feedback.js"></script>

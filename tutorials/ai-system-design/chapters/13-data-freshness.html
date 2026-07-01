@@ -11,7 +11,7 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>13. Data Freshness Ã¢â‚¬â€œ AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>13. Data Freshness — AI System Design</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>13. Data Freshness</h1>
@@ -20,9 +20,9 @@
 <table>
 <tr><th>Tier</th><th>Freshness</th><th>Examples</th><th>Pipeline</th></tr>
 <tr><td>Real-time</td><td>&lt;1 second</td><td>Current session activity, GPS location, weather</td><td>Streaming</td></tr>
-<tr><td>Near real-time</td><td>SecondsÃ¢â‚¬â€œminutes</td><td>Recent clicks, page views, cart updates</td><td>Micro-batch / streaming</td></tr>
-<tr><td>Batch fresh</td><td>HoursÃ¢â‚¬â€œdays</td><td>User demographics, 7-day purchase history</td><td>Batch (hourly/daily)</td></tr>
-<tr><td>Static</td><td>WeeksÃ¢â‚¬â€œmonths</td><td>User signup date, product category</td><td>Batch (weekly)</td></tr>
+<tr><td>Near real-time</td><td>Seconds—minutes</td><td>Recent clicks, page views, cart updates</td><td>Micro-batch / streaming</td></tr>
+<tr><td>Batch fresh</td><td>Hours—days</td><td>User demographics, 7-day purchase history</td><td>Batch (hourly/daily)</td></tr>
+<tr><td>Static</td><td>Weeks—months</td><td>User signup date, product category</td><td>Batch (weekly)</td></tr>
 </table>
 <h2>Streaming Feature Updates</h2>
 <p>For real-time features, use stream processing to compute and update feature values as events arrive.</p>
@@ -35,7 +35,7 @@ Stream processor:
   - compute: days_since_last_purchase
   - Output to online feature store (Redis) + offline store (S3)
 
-Feature update latency: ~100ms from event Ã¢â€ â€™ feature stored</code></pre>
+Feature update latency: ~100ms from event → feature stored</code></pre>
 <h2>Micro-Batching</h2>
 <p>Micro-batching strikes a balance between freshness and cost. Instead of processing every event individually (expensive), collect events into small time or size windows.</p>
 <pre><code># Micro-batch feature computation

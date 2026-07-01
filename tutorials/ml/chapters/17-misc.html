@@ -28,7 +28,7 @@
     <h2>Performance Metrics</h2>
 
     <h3>Classification Metrics</h3>
-    <p><strong>Accuracy</strong> = (TP + TN) / (TP + TN + FP + FN) — overall correctness. <strong>Precision</strong> = TP / (TP + FP) — how many positive predictions were correct. <strong>Recall</strong> = TP / (TP + FN) — how many actual positives were found. <strong>F1-score</strong> = 2 Ãƒâ€” (P Ãƒâ€” R) / (P + R) — harmonic mean of precision and recall.</p>
+    <p><strong>Accuracy</strong> = (TP + TN) / (TP + TN + FP + FN) — overall correctness. <strong>Precision</strong> = TP / (TP + FP) — how many positive predictions were correct. <strong>Recall</strong> = TP / (TP + FN) — how many actual positives were found. <strong>F1-score</strong> = 2 × (P × R) / (P + R) — harmonic mean of precision and recall.</p>
     <pre><code>from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 y_true = [0, 1, 1, 0, 1, 0, 1, 0, 1, 1]

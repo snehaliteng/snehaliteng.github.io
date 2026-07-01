@@ -11,13 +11,13 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>11. Interview Blueprint Ã¢â‚¬â€œ System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>11. Interview Blueprint — System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>11. Interview Blueprint</h1>
 <p>A repeatable 4-step framework for approaching any system design interview question. Practice this until it becomes automatic.</p>
 <img src="../images/system-design-overview.svg" alt="System design pillars and trade-offs diagram">
-<h2>Step 1: Understand the Problem &amp; Set Scope (5Ã¢â‚¬â€œ7 min)</h2>
+<h2>Step 1: Understand the Problem &amp; Set Scope (5—7 min)</h2>
 <p>Before designing anything, clarify what you are building. Ask questions:</p>
 <ul>
 <li>What are the core features? (explicit and implicit)</li>
@@ -28,7 +28,7 @@
 <li>What are the non-functional requirements? (availability, durability, consistency)</li>
 </ul>
 <div class="note"><strong>Pro tip:</strong> Write down the requirements explicitly. Confirm scope with the interviewer. Example: "So to clarify, we are designing a URL shortener that handles 100M URLs per month, with redirect latency under 100ms. Is that right?"</div>
-<h2>Step 2: Estimate Scale (3Ã¢â‚¬â€œ5 min)</h2>
+<h2>Step 2: Estimate Scale (3—5 min)</h2>
 <p>Do back-of-the-envelope calculations to size the system:</p>
 <pre><code># Example: Twitter-like news feed
 MAU: 500 million
@@ -37,13 +37,13 @@ Tweets per day: 500 million
 Reads per day: 20 billion (each user reads ~100 tweets/day)
 
 Storage per tweet: ~1 KB (text + metadata)
-Daily storage: 500M Ãƒâ€” 1KB = 500 GB
-Yearly storage: 500 GB Ãƒâ€” 365 Ã¢â€°Ë† 182 TB
+Daily storage: 500M × 1KB = 500 GB
+Yearly storage: 500 GB × 365 ≈ 182 TB
 
-Bandwidth (writes): 500M tweets Ãƒâ€” 1KB / 86400s Ã¢â€°Ë† 5.8 MB/s
-Bandwidth (reads): 20B reads Ãƒâ€” 1KB / 86400s Ã¢â€°Ë† 230 MB/s</code></pre>
-<p>Know common numbers: 1M requests/day Ã¢â€°Ë† 12 req/s, 1 PB = 1000 TB, typical DB row size, SSD vs HDD latency, network round trips.</p>
-<h2>Step 3: High-Level Design (10Ã¢â‚¬â€œ15 min)</h2>
+Bandwidth (writes): 500M tweets × 1KB / 86400s ≈ 5.8 MB/s
+Bandwidth (reads): 20B reads × 1KB / 86400s ≈ 230 MB/s</code></pre>
+<p>Know common numbers: 1M requests/day ≈ 12 req/s, 1 PB = 1000 TB, typical DB row size, SSD vs HDD latency, network round trips.</p>
+<h2>Step 3: High-Level Design (10—15 min)</h2>
 <p>Draw the system architecture with major components. Focus on breadth, not depth:</p>
 <ul>
 <li><strong>Clients:</strong> Mobile app, web browser, API consumers</li>
@@ -54,7 +54,7 @@ Bandwidth (reads): 20B reads Ãƒâ€” 1KB / 86400s Ã¢â€°Ë† 230 MB/s
 <li><strong>CDN:</strong> For static assets and cached content</li>
 </ul>
 <p>Explain <em>why</em> you chose each component. "I'm putting a cache here because the read-to-write ratio is 40:1 and we need sub-10ms response times."</p>
-<h2>Step 4: Deep Dive &amp; Infrastructure Decisions (10Ã¢â‚¬â€œ15 min)</h2>
+<h2>Step 4: Deep Dive &amp; Infrastructure Decisions (10—15 min)</h2>
 <p>Now go deeper into the most interesting or critical parts. The interviewer will guide you here. Common deep dives:</p>
 <ul>
 <li><strong>Database schema:</strong> Tables, indexes, shard key design</li>
@@ -72,7 +72,7 @@ Table: urls
   created_at  DATETIME
   user_id     INT (FK to users table)
   click_count BIGINT DEFAULT 0</code></pre>
-<h2>Final Step: Summarize &amp; Identify Trade-offs (2Ã¢â‚¬â€œ3 min)</h2>
+<h2>Final Step: Summarize &amp; Identify Trade-offs (2—3 min)</h2>
 <p>End with a concise summary and acknowledge the trade-offs you made:</p>
 <ul>
 <li>"We chose eventual consistency for read performance and accepted stale data for up to 1 second."</li>
@@ -87,7 +87,7 @@ Table: urls
 <li>Not using the whiteboard/diagram effectively</li>
 <li>Going silent while thinking — verbalize your thought process</li>
 </ul>
-<div class="exercise"><strong>Exercise:</strong> Practice the 4-step blueprint on a new problem: "Design a real-time leaderboard for a mobile game with 50 million players." Go through steps 1Ã¢â‚¬â€œ4 verbally (record yourself or practice with a friend).</div>
+<div class="exercise"><strong>Exercise:</strong> Practice the 4-step blueprint on a new problem: "Design a real-time leaderboard for a mobile game with 50 million players." Go through steps 1—4 verbally (record yourself or practice with a friend).</div>
 <nav><a href="10-security.html">&larr; Previous</a><a href="../index.html">Index</a><a href="12-case-studies.html">Next: Case Studies &rarr;</a></nav>
 </div>  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../../js/feedback.js"></script>

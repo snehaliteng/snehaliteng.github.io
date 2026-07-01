@@ -11,18 +11,18 @@
 
   gtag('config', 'G-1RVMWL4SDK');
 </script>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>2. Networking &amp; Communication Ã¢â‚¬â€œ System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>2. Networking &amp; Communication — System Design Fundamentals</title><link rel="stylesheet" href="../styles.css"></head>
 <body><div class="chapter">
 <a href="../index.html" style="display:inline-block;margin-bottom:12px;font-size:.9rem;">&larr; Back to Index</a>
 <h1>2. Networking &amp; Communication</h1>
 <h2>IP (Internet Protocol)</h2>
 <p>Every device on a network is identified by an IP address (IPv4: 32-bit, e.g., <code>192.168.1.1</code>; IPv6: 128-bit). IP handles routing packets from source to destination, but does not guarantee delivery, ordering, or error correction — that is left to higher-layer protocols.</p>
 <h2>DNS (Domain Name System)</h2>
-<p>DNS translates human-readable domain names (<code>example.com</code>) into IP addresses. It uses a hierarchical system: root servers Ã¢â€ â€™ TLD servers (.com, .org) Ã¢â€ â€™ authoritative name servers. DNS caching at browsers, OS, ISPs, and CDNs reduces latency.</p>
+<p>DNS translates human-readable domain names (<code>example.com</code>) into IP addresses. It uses a hierarchical system: root servers → TLD servers (.com, .org) → authoritative name servers. DNS caching at browsers, OS, ISPs, and CDNs reduces latency.</p>
 <pre><code># Simplified DNS resolution flow
 User types "api.example.com"
-Browser checks local cache Ã¢â€ â€™ OS cache Ã¢â€ â€™ recursive resolver
-Recursive resolver queries root Ã¢â€ â€™ .com TLD Ã¢â€ â€™ example.com authoritative
+Browser checks local cache → OS cache → recursive resolver
+Recursive resolver queries root → .com TLD → example.com authoritative
 Authoritative server returns IP 93.184.216.34
 Browser opens TCP connection to that IP</code></pre>
 <h2>Client-Server Model</h2>
