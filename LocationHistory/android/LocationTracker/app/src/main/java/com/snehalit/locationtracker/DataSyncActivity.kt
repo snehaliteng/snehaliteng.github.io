@@ -2,6 +2,7 @@ package com.snehalit.locationtracker
 
 import android.Manifest
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -29,6 +30,7 @@ class DataSyncActivity : AppCompatActivity() {
     private lateinit var syncMessagesBtn: Button
     private lateinit var syncCallsBtn: Button
     private lateinit var syncContactsBtn: Button
+    private lateinit var mergeContactsBtn: Button
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -43,6 +45,7 @@ class DataSyncActivity : AppCompatActivity() {
         private const val PERM_REQ_SMS = 201
         private const val PERM_REQ_CALLS = 202
         private const val PERM_REQ_CONTACTS = 203
+        private const val PERM_REQ_WRITE_CONTACTS = 204
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +56,7 @@ class DataSyncActivity : AppCompatActivity() {
         syncMessagesBtn = findViewById(R.id.sync_messages_btn)
         syncCallsBtn = findViewById(R.id.sync_calls_btn)
         syncContactsBtn = findViewById(R.id.sync_contacts_btn)
+        mergeContactsBtn = findViewById(R.id.merge_contacts_btn)
 
         if (phone.isBlank()) {
             statusText.text = "Not logged in. Go back and sign in first."
@@ -65,6 +69,7 @@ class DataSyncActivity : AppCompatActivity() {
         syncMessagesBtn.setOnClickListener { checkSmsPermission() }
         syncCallsBtn.setOnClickListener { checkCallLogPermission() }
         syncContactsBtn.setOnClickListener { checkContactsPermission() }
+        mergeContactsBtn.setOnClickListener { checkWriteContactsPermission() }
     }
 
     private fun checkSmsPermission() {
@@ -91,6 +96,62 @@ class DataSyncActivity : AppCompatActivity() {
         syncContacts()
     }
 
+    private fun checkWriteContactsPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_CONTACTS), PERM_REQ_WRITE_CONTACTS)
+            return
+        }
+        mergeLocalContacts()
+    }
+
+    private fun mergeLocalContacts() {
+        mergeContactsBtn.isEnabled = false
+        statusText.text = "Merging duplicate contacts on phone..."
+        Thread {
+            try {
+                val nameUri = android.provider.ContactsContract.Data.CONTENT_URI
+                val nameProjection = arrayOf(
+                    android.provider.ContactsContract.Data.RAW_CONTACT_ID,
+                    android.provider.ContactsContract.Data.DISPLAY_NAME
+                )
+                val nameSelection = android.provider.ContactsContract.Data.MIMETYPE + " = ? AND " + android.provider.ContactsContract.Data.DISPLAY_NAME + " IS NOT NULL"
+                val nameArgs = arrayOf(android.provider.ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+
+                val rawNames = mutableMapOf<Long, String>()
+                contentResolver.query(nameUri, nameProjection, nameSelection, nameArgs, null)?.use { c ->
+                    while (c.moveToNext()) {
+                        val rawId = c.getLong(0)
+                        val name = c.getString(1)?.trim() ?: continue
+                        if (name.isEmpty()) continue
+                        rawNames[rawId] = name.lowercase()
+                    }
+                }
+
+                val groups = mutableMapOf<String, MutableList<Long>>()
+                rawNames.forEach { (rawId, name) -> groups.getOrPut(name) { mutableListOf() }.add(rawId) }
+
+                var deleted = 0
+                for ((_, ids) in groups) {
+                    if (ids.size < 2) continue
+                    for (i in 1 until ids.size) {
+                        val uri = ContentUris.withAppendedId(android.provider.ContactsContract.RawContacts.CONTENT_URI, ids[i])
+                        contentResolver.delete(uri, null, null)
+                        deleted++
+                    }
+                }
+
+                val finalDeleted = deleted
+                runOnUiThread {
+                    statusText.text = "Merged $finalDeleted duplicate contact${if (finalDeleted == 1) "" else "s"} on phone. Re-syncing..."
+                    mergeContactsBtn.isEnabled = true
+                }
+                if (finalDeleted > 0) syncContacts()
+            } catch (e: Exception) {
+                runOnUiThread { statusText.text = "Error: " + e.message; mergeContactsBtn.isEnabled = true }
+            }
+        }.start()
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
@@ -98,6 +159,7 @@ class DataSyncActivity : AppCompatActivity() {
             PERM_REQ_SMS -> if (granted) syncMessages() else Toast.makeText(this, "SMS permission required", Toast.LENGTH_SHORT).show()
             PERM_REQ_CALLS -> if (granted) syncCallLog() else Toast.makeText(this, "Call log permission required", Toast.LENGTH_SHORT).show()
             PERM_REQ_CONTACTS -> if (granted) syncContacts() else Toast.makeText(this, "Contacts permission required", Toast.LENGTH_SHORT).show()
+            PERM_REQ_WRITE_CONTACTS -> if (granted) mergeLocalContacts() else Toast.makeText(this, "Write contacts permission required to merge", Toast.LENGTH_SHORT).show()
         }
     }
 

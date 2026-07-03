@@ -53,6 +53,14 @@
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:text="👤 Sync Contacts"
+        android:layout_marginBottom="12dp"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/merge_contacts_btn"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="🔀 Merge Duplicate Contacts"
         android:layout_marginBottom="24dp"
         android:textAllCaps="false" />
 
