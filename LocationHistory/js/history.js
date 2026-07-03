@@ -549,6 +549,12 @@ function renderMonthView(container, distMap) {
   container.innerHTML = html
 }
 
+const PHONE_TABLES = {
+  messages: { table: 'phone_messages', order: 'message_timestamp.desc', limit: 200, select: 'id,body,address,type,source,message_timestamp' },
+  calls: { table: 'phone_calls', order: 'call_timestamp.desc', limit: 200, select: 'id,number,name,type,duration,call_timestamp' },
+  contacts: { table: 'phone_contacts', order: 'name.asc', limit: 500, select: 'id,name,number,email' },
+}
+
 async function loadPhoneData(view) {
   const container = document.getElementById('history-list')
   if (!currentPhone) { container.innerHTML = '<div class="location-empty">Sign in to view ' + view + '.</div>'; return }
