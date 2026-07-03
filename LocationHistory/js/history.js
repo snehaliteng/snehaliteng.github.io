@@ -304,7 +304,7 @@ function switchView(el) {
   el.classList.add('active')
   currentView = el.dataset.view
 
-  const isPhoneData = currentView === 'phone-data'
+  const isPhoneData = currentView === 'messages' || currentView === 'calls' || currentView === 'contacts'
   document.getElementById('map').style.display = isPhoneData ? 'none' : 'block'
   document.querySelector('.stats').style.display = isPhoneData ? 'none' : 'flex'
   document.querySelector('.controls').style.display = isPhoneData ? 'none' : 'flex'
@@ -314,7 +314,7 @@ function switchView(el) {
   document.getElementById('debug-result').style.display = 'none'
 
   if (isPhoneData) {
-    loadPhoneData()
+    loadPhoneData(currentView)
   } else {
     renderHistory()
   }
@@ -445,6 +445,7 @@ function buildDistMap() {
 
 function renderHistory() {
   const container = document.getElementById('history-list')
+  if (currentView === 'messages' || currentView === 'calls' || currentView === 'contacts') { loadPhoneData(currentView); return }
   if (!allLocations.length) { container.innerHTML = '<div class="location-empty">No location data found between ' + document.getElementById('filter-from').value + ' and ' + document.getElementById('filter-to').value + '.</div>'; return }
   const distMap = buildDistMap()
 
@@ -548,119 +549,37 @@ function renderMonthView(container, distMap) {
   container.innerHTML = html
 }
 
-function renderHourView(container) {
-  const groups = {}
-  allLocations.forEach(l => {
-    if (!l.recorded_at) return
-    const d = new Date(l.recorded_at)
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + 'T' + String(d.getHours()).padStart(2, '0') + ':00'
-    if (!groups[key]) groups[key] = []
-    groups[key].push(l)
-  })
-
-  const sorted = Object.keys(groups).sort()
-  let html = ''
-  sorted.forEach(key => {
-    const pts = groups[key]
-    const d = new Date(pts[0].recorded_at)
-    html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + pts.length + ' pts)</div>'
-    pts.forEach(l => {
-      const time = l.recorded_at ? new Date(l.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '?'
-      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>')
-    })
-    html += '</div>'
-  })
-  container.innerHTML = html
-}
-
-function renderDayView(container) {
-  const groups = {}
-  allLocations.forEach(l => {
-    if (!l.recorded_at) return
-    const d = new Date(l.recorded_at)
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
-    if (!groups[key]) groups[key] = []
-    groups[key].push(l)
-  })
-
-  const sorted = Object.keys(groups).sort().reverse()
-  let html = ''
-  sorted.forEach(key => {
-    const pts = groups[key]
-    const d = new Date(pts[0].recorded_at)
-    html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' (' + pts.length + ' pts)</div>'
-    pts.forEach(l => {
-      const time = l.recorded_at ? new Date(l.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '?'
-      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>')
-    })
-    html += '</div>'
-  })
-  container.innerHTML = html
-}
-
-function renderMonthView(container) {
-  const groups = {}
-  allLocations.forEach(l => {
-    if (!l.recorded_at) return
-    const d = new Date(l.recorded_at)
-    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
-    if (!groups[key]) groups[key] = []
-    groups[key].push(l)
-  })
-
-  const sorted = Object.keys(groups).sort().reverse()
-  let html = ''
-  sorted.forEach(key => {
-    const pts = groups[key]
-    const d = new Date(pts[0].recorded_at)
-    html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString([], { month: 'long', year: 'numeric' }) + ' (' + pts.length + ' pts)</div>'
-    pts.forEach(l => {
-      const time = l.recorded_at ? new Date(l.recorded_at).toLocaleString() : '?'
-      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>')
-    })
-    html += '</div>'
-  })
-  container.innerHTML = html
-}
-
-async function loadPhoneData() {
+async function loadPhoneData(view) {
   const container = document.getElementById('history-list')
-  if (!currentPhone) { container.innerHTML = '<div class="location-empty">Sign in to view phone data.</div>'; return }
-  container.innerHTML = '<div class="location-empty">Loading phone data...</div>'
+  if (!currentPhone) { container.innerHTML = '<div class="location-empty">Sign in to view ' + view + '.</div>'; return }
+  container.innerHTML = '<div class="location-empty">Loading ' + view + '...</div>'
+
+  const cfg = PHONE_TABLES[view]
+  if (!cfg) { container.innerHTML = '<div class="location-empty">Unknown view.</div>'; return }
 
   const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
 
   try {
-    const [msgRes, callRes, conRes] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/phone_messages?select=id,body,address,type,source,message_timestamp&phone=eq.' + encodeURIComponent(currentPhone) + '&order=message_timestamp.desc&limit=200', { headers }),
-      fetch(SUPABASE_URL + '/rest/v1/phone_calls?select=id,number,name,type,duration,call_timestamp&phone=eq.' + encodeURIComponent(currentPhone) + '&order=call_timestamp.desc&limit=200', { headers }),
-      fetch(SUPABASE_URL + '/rest/v1/phone_contacts?select=id,name,number,email&phone=eq.' + encodeURIComponent(currentPhone) + '&order=name.asc&limit=500', { headers }),
-    ])
-
-    if (!msgRes.ok || !callRes.ok || !conRes.ok) {
-      container.innerHTML = '<div class="location-empty">Error fetching phone data. HTTP ' + msgRes.status + ' / ' + callRes.status + ' / ' + conRes.status + '</div>'
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + cfg.table + '?select=' + cfg.select + '&phone=eq.' + encodeURIComponent(currentPhone) + '&order=' + cfg.order + '&limit=' + cfg.limit, { headers })
+    if (!res.ok) {
+      container.innerHTML = '<div class="location-empty">Error fetching ' + view + '. HTTP ' + res.status + '</div>'
       return
     }
-
-    const messages = await msgRes.json()
-    const calls = await callRes.json()
-    const contacts = await conRes.json()
-
-    renderPhoneData(container, messages, calls, contacts)
+    const data = await res.json()
+    if (view === 'messages') renderMessages(container, data)
+    else if (view === 'calls') renderCalls(container, data)
+    else renderContacts(container, data)
   } catch (e) {
     container.innerHTML = '<div class="location-empty">Error: ' + e.message + '</div>'
   }
 }
 
-function renderPhoneData(container, messages, calls, contacts) {
-  let html = ''
-
-  // Messages section
-  html += '<div class="phone-section"><h3>Messages (' + messages.length + ')</h3>'
+function renderMessages(container, messages) {
+  let html = '<div class="phone-section"><h3>Messages (' + messages.length + ')</h3>'
   if (messages.length === 0) {
     html += '<div class="location-empty" style="padding:12px">No messages synced yet. Sync from the Android app.</div>'
   } else {
-    messages.slice(0, 100).forEach(m => {
+    messages.forEach(m => {
       const time = m.message_timestamp ? new Date(m.message_timestamp).toLocaleString() : '?'
       const src = m.source ? '<span style="color:#1a73e8;font-weight:600">' + m.source.toUpperCase() + '</span>' : ''
       const type = m.type ? (m.type === '1' || m.type === 'inbox' ? '📩' : m.type === '2' || m.type === 'sent' ? '📤' : '🔔') : '💬'
@@ -668,13 +587,15 @@ function renderPhoneData(container, messages, calls, contacts) {
     })
   }
   html += '</div>'
+  container.innerHTML = html
+}
 
-  // Calls section
-  html += '<div class="phone-section"><h3>Calls (' + calls.length + ')</h3>'
+function renderCalls(container, calls) {
+  let html = '<div class="phone-section"><h3>Calls (' + calls.length + ')</h3>'
   if (calls.length === 0) {
     html += '<div class="location-empty" style="padding:12px">No call logs synced yet. Sync from the Android app.</div>'
   } else {
-    calls.slice(0, 100).forEach(c => {
+    calls.forEach(c => {
       const time = c.call_timestamp ? new Date(c.call_timestamp).toLocaleString() : '?'
       const typeIcon = c.type === 'incoming' ? '📞' : c.type === 'outgoing' ? '📲' : c.type === 'missed' ? '📵' : '📞'
       const durStr = c.duration ? (c.duration < 60 ? c.duration + 's' : Math.floor(c.duration / 60) + 'm ' + (c.duration % 60) + 's') : ''
@@ -682,9 +603,11 @@ function renderPhoneData(container, messages, calls, contacts) {
     })
   }
   html += '</div>'
+  container.innerHTML = html
+}
 
-  // Contacts section
-  html += '<div class="phone-section"><h3>Contacts (' + contacts.length + ')</h3>'
+function renderContacts(container, contacts) {
+  let html = '<div class="phone-section"><h3>Contacts (' + contacts.length + ')</h3>'
   if (contacts.length === 0) {
     html += '<div class="location-empty" style="padding:12px">No contacts synced yet. Sync from the Android app.</div>'
   } else {
@@ -693,7 +616,6 @@ function renderPhoneData(container, messages, calls, contacts) {
     })
   }
   html += '</div>'
-
   container.innerHTML = html
 }
 
