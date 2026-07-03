@@ -101,17 +101,12 @@ async function deleteSelected() {
   debug.innerHTML = 'Deleting...'
 
   try {
-    const res = await fetch(SUPABASE_URL + '/functions/v1/delete-locations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify({ ids })
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status)
+    const { data, error } = await sb.rpc('delete_location_history', { ids })
+    if (error) throw new Error(error.message + '. Run CREATE FUNCTION SQL in Supabase SQL editor (see schema.sql)')
 
-    const deletedCount = data.deleted || 0
+    const deletedCount = data || 0
     if (deletedCount === 0) {
-      throw new Error('No rows deleted — deploy the delete-locations Edge Function in Supabase')
+      throw new Error('No rows deleted')
     }
 
     selectionMode = false

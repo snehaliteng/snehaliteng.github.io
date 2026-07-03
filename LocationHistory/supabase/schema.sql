@@ -23,3 +23,18 @@ CREATE POLICY "enable select for anon" ON location_history FOR SELECT USING (tru
 
 DROP POLICY IF EXISTS "enable delete for anon" ON location_history;
 CREATE POLICY "enable delete for anon" ON location_history FOR DELETE USING (true);
+
+-- Stored procedure to delete by IDs (bypasses RLS via SECURITY DEFINER)
+CREATE OR REPLACE FUNCTION delete_location_history(ids bigint[])
+RETURNS int
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  cnt int;
+BEGIN
+  DELETE FROM location_history WHERE id = ANY(ids);
+  GET DIAGNOSTICS cnt = ROW_COUNT;
+  RETURN cnt;
+END;
+$$;
