@@ -19,7 +19,7 @@
 
   var PRODUCT_SLUGS = {
     'ai':'ai-tutorial','genai':'genai-tutorial',
-    'ai-agentic-track':'ai-agentic-track-tutorial','ai-engineer-core':'ai-engineer-core-tutorial',
+    'ai-102':'ai-102-tutorial','ai-agentic-track':'ai-agentic-track-tutorial','ai-engineer-core':'ai-engineer-core-tutorial',
     'claude-vibe-course':'claude-vibe-course-tutorial','maf-fundamentals':'maf-fundamentals-tutorial',
     'foundry-fundamentals':'foundry-fundamentals-tutorial','snowflake-tutorial':'snowflake-tutorial',
     'project-management':'project-management-tutorial','interpersonal-skills':'interpersonal-skills-tutorial',
