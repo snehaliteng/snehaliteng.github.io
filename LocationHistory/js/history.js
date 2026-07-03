@@ -9,6 +9,8 @@ let map = null
 let markers = []
 let polyline = null
 let currentView = 'hour'
+let selectionMode = false
+let selectedIds = new Set()
 
 const STORAGE_KEY = 'lh_phone'
 
@@ -32,6 +34,76 @@ function logout() {
   document.getElementById('app').style.display = 'none'
   document.getElementById('login-overlay').style.display = 'flex'
   document.getElementById('login-identifier').value = ''
+}
+
+function toggleBulkDelete() {
+  selectionMode = !selectionMode
+  selectedIds.clear()
+  document.getElementById('bulk-toggle').textContent = selectionMode ? 'Cancel' : 'Bulk Delete'
+  document.getElementById('bulk-bar').style.display = selectionMode ? 'flex' : 'none'
+  document.getElementById('bulk-count').textContent = '0 selected'
+  document.getElementById('bulk-delete-btn').disabled = true
+  renderHistory()
+}
+
+function toggleSelect(id, cb) {
+  const row = cb.closest('.location-row')
+  if (selectedIds.has(id)) {
+    selectedIds.delete(id)
+    row.classList.remove('selected')
+  } else {
+    selectedIds.add(id)
+    row.classList.add('selected')
+  }
+  const count = selectedIds.size
+  document.getElementById('bulk-count').textContent = count + ' selected'
+  document.getElementById('bulk-delete-btn').disabled = count === 0
+}
+
+function selectAll() {
+  allLocations.forEach(l => selectedIds.add(l.id))
+  const count = selectedIds.size
+  document.getElementById('bulk-count').textContent = count + ' selected'
+  document.getElementById('bulk-delete-btn').disabled = false
+  renderHistory()
+}
+
+function deselectAll() {
+  selectedIds.clear()
+  document.getElementById('bulk-count').textContent = '0 selected'
+  document.getElementById('bulk-delete-btn').disabled = true
+  renderHistory()
+}
+
+async function deleteSelected() {
+  if (selectedIds.size === 0) return
+  if (!confirm('Delete ' + selectedIds.size + ' location point' + (selectedIds.size > 1 ? 's' : '') + '?')) return
+
+  const ids = Array.from(selectedIds)
+  try {
+    const { error } = await sb.from('location_history').delete().in('id', ids)
+    if (error) throw new Error(error.message)
+
+    selectionMode = false
+    selectedIds.clear()
+    document.getElementById('bulk-toggle').textContent = 'Bulk Delete'
+    document.getElementById('bulk-bar').style.display = 'none'
+    const debug = document.getElementById('debug-result')
+    debug.style.display = 'block'
+    debug.innerHTML = 'Deleted ' + ids.length + ' point' + (ids.length > 1 ? 's' : '')
+    await loadHistory()
+  } catch (e) {
+    const debug = document.getElementById('debug-result')
+    debug.style.display = 'block'
+    debug.innerHTML = 'Delete error: ' + e.message
+  }
+}
+
+function wrapLocationRow(l, innerHtml) {
+  const checked = selectedIds.has(l.id) ? ' checked' : ''
+  const cb = selectionMode ? '<input type="checkbox" class="select-cb" onchange="toggleSelect(' + l.id + ', this)"' + checked + '>' : ''
+  const selClass = selectionMode && selectedIds.has(l.id) ? ' selected' : ''
+  return '<div class="location-row' + selClass + '">' + cb + innerHtml + '</div>'
 }
 
 ;(function() {
@@ -286,7 +358,7 @@ function renderListView(container) {
   allLocations.forEach(l => {
     const time = l.recorded_at ? new Date(l.recorded_at).toLocaleString() : '?'
     const acc = l.accuracy ? (l.accuracy < 50 ? '<span class="badge">' + l.accuracy + 'm</span>' : '<span class="badge low-acc">' + l.accuracy + 'm</span>') : ''
-    html += '<div class="location-row"><span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span><span style="font-size:10px;color:#999">' + (l.phone || '') + '</span>' + acc + '</div>'
+    html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span><span style="font-size:10px;color:#999">' + (l.phone || '') + '</span>' + acc)
   })
   container.innerHTML = html
 }
@@ -308,7 +380,7 @@ function renderHourView(container) {
     html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + pts.length + ' pts)</div>'
     pts.forEach(l => {
       const time = l.recorded_at ? new Date(l.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '?'
-      html += '<div class="location-row"><span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span></div>'
+      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>')
     })
     html += '</div>'
   })
@@ -332,7 +404,7 @@ function renderDayView(container) {
     html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' (' + pts.length + ' pts)</div>'
     pts.forEach(l => {
       const time = l.recorded_at ? new Date(l.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '?'
-      html += '<div class="location-row"><span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span></div>'
+      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>')
     })
     html += '</div>'
   })
@@ -356,7 +428,7 @@ function renderMonthView(container) {
     html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString([], { month: 'long', year: 'numeric' }) + ' (' + pts.length + ' pts)</div>'
     pts.forEach(l => {
       const time = l.recorded_at ? new Date(l.recorded_at).toLocaleString() : '?'
-      html += '<div class="location-row"><span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span></div>'
+      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>')
     })
     html += '</div>'
   })

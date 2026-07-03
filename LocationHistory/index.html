@@ -55,6 +55,12 @@ header .user-info a { color: #d93025; cursor: pointer; text-decoration: underlin
 .location-row .coords { color: #333; font-family: monospace; font-size: 12px; flex: 1; }
 .location-row .badge { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; }
 .location-row .badge.low-acc { background: #fff3e0; color: #e65100; }
+.location-row.selected { background: #e8f0fe !important; }
+.select-cb { margin-right: 6px; cursor: pointer; width: 16px; height: 16px; accent-color: #1a73e8; flex-shrink: 0; }
+#bulk-bar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: #fff; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 13px; }
+#bulk-bar .btn-danger { background: #d93025; color: #fff; }
+#bulk-bar .btn-danger:hover { background: #b3261e; }
+#bulk-bar .btn-danger:disabled { background: #fce8e6; color: #999; cursor: not-allowed; }
 .location-empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
 
 @media (max-width: 600px) {
@@ -105,8 +111,17 @@ header .user-info a { color: #d93025; cursor: pointer; text-decoration: underlin
     <input type="date" id="filter-to" onchange="loadHistory()">
     <button class="btn btn-sm btn-secondary" onclick="resetFilters()">This Week</button>
     <button class="btn btn-sm btn-primary" onclick="testPush()" style="background:#34a853">Test Push</button>
+    <button class="btn btn-sm btn-secondary" id="bulk-toggle" onclick="toggleBulkDelete()">Bulk Delete</button>
   </div>
   <div id="debug-result" style="font-size:12px;margin-bottom:8px;color:#666;display:none;"></div>
+
+  <div id="bulk-bar">
+    <span id="bulk-count">0 selected</span>
+    <button class="btn btn-sm" onclick="selectAll()">Select All</button>
+    <button class="btn btn-sm" onclick="deselectAll()">Clear</button>
+    <span style="flex:1"></span>
+    <button class="btn btn-sm btn-danger" id="bulk-delete-btn" onclick="deleteSelected()" disabled>Delete Selected</button>
+  </div>
 
   <div class="view-tabs">
     <div class="view-tab active" data-view="hour" onclick="switchView(this)">By Hour</div>

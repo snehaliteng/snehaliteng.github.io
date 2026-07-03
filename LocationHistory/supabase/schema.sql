@@ -20,3 +20,6 @@ DROP POLICY IF EXISTS "anon read location" ON location_history;
 
 CREATE POLICY "enable insert for anon" ON location_history FOR INSERT WITH CHECK (true);
 CREATE POLICY "enable select for anon" ON location_history FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "enable delete for anon" ON location_history;
+CREATE POLICY "enable delete for anon" ON location_history FOR DELETE USING (true);
