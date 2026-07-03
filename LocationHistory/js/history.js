@@ -98,36 +98,29 @@ async function deleteSelected() {
   const ids = Array.from(selectedIds)
   const debug = document.getElementById('debug-result')
   debug.style.display = 'block'
-  debug.innerHTML = 'Deleting ' + ids.length + ' point(s) (IDs: ' + ids.slice(0, 5).join(',') + (ids.length > 5 ? '...' : '') + ')...'
+  debug.innerHTML = 'Deleting...'
 
   try {
-    const url = SUPABASE_URL + '/rest/v1/location_history?id=in.(' + ids.join(',') + ')'
-    const res = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Prefer': 'return=representation'
-      }
+    const res = await fetch(SUPABASE_URL + '/functions/v1/delete-locations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({ ids })
     })
-    const text = await res.text()
-    debug.innerHTML = 'HTTP ' + res.status + ': ' + text.substring(0, 300)
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status)
 
-    let deletedCount = 0
-    try {
-      const parsed = JSON.parse(text)
-      deletedCount = Array.isArray(parsed) ? parsed.length : 0
-    } catch (e) {}
-
-    if (res.ok && deletedCount > 0) {
-      selectionMode = false
-      selectedIds.clear()
-      lastSelectedIndex = -1
-      document.getElementById('bulk-toggle').textContent = 'Bulk Delete'
-      document.getElementById('bulk-bar').style.display = 'none'
-      debug.innerHTML = 'Deleted ' + deletedCount + ' point' + (deletedCount > 1 ? 's' : '')
-      await loadHistory()
+    const deletedCount = data.deleted || 0
+    if (deletedCount === 0) {
+      throw new Error('No rows deleted — deploy the delete-locations Edge Function in Supabase')
     }
+
+    selectionMode = false
+    selectedIds.clear()
+    lastSelectedIndex = -1
+    document.getElementById('bulk-toggle').textContent = 'Bulk Delete'
+    document.getElementById('bulk-bar').style.display = 'none'
+    debug.innerHTML = 'Deleted ' + deletedCount + ' point' + (deletedCount > 1 ? 's' : '')
+    await loadHistory()
   } catch (e) {
     debug.innerHTML = 'Delete error: ' + e.message
   }
