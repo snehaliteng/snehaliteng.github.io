@@ -98,24 +98,36 @@ async function deleteSelected() {
   const ids = Array.from(selectedIds)
   const debug = document.getElementById('debug-result')
   debug.style.display = 'block'
-  debug.innerHTML = 'Deleting...'
+  debug.innerHTML = 'Deleting ' + ids.length + ' point(s) (IDs: ' + ids.slice(0, 5).join(',') + (ids.length > 5 ? '...' : '') + ')...'
 
   try {
-    const { data, error } = await sb.from('location_history').delete().in('id', ids).select()
-    if (error) throw new Error(error.message)
+    const url = SUPABASE_URL + '/rest/v1/location_history?id=in.(' + ids.join(',') + ')'
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=representation'
+      }
+    })
+    const text = await res.text()
+    debug.innerHTML = 'HTTP ' + res.status + ': ' + text.substring(0, 300)
 
-    const deletedCount = data ? data.length : 0
-    if (deletedCount === 0) {
-      throw new Error('No rows deleted. Run this SQL in your Supabase SQL editor:\n\nDROP POLICY IF EXISTS "enable delete for anon" ON location_history;\nCREATE POLICY "enable delete for anon" ON location_history FOR DELETE USING (true);')
+    let deletedCount = 0
+    try {
+      const parsed = JSON.parse(text)
+      deletedCount = Array.isArray(parsed) ? parsed.length : 0
+    } catch (e) {}
+
+    if (res.ok && deletedCount > 0) {
+      selectionMode = false
+      selectedIds.clear()
+      lastSelectedIndex = -1
+      document.getElementById('bulk-toggle').textContent = 'Bulk Delete'
+      document.getElementById('bulk-bar').style.display = 'none'
+      debug.innerHTML = 'Deleted ' + deletedCount + ' point' + (deletedCount > 1 ? 's' : '')
+      await loadHistory()
     }
-
-    selectionMode = false
-    selectedIds.clear()
-    lastSelectedIndex = -1
-    document.getElementById('bulk-toggle').textContent = 'Bulk Delete'
-    document.getElementById('bulk-bar').style.display = 'none'
-    debug.innerHTML = 'Deleted ' + deletedCount + ' point' + (deletedCount > 1 ? 's' : '')
-    await loadHistory()
   } catch (e) {
     debug.innerHTML = 'Delete error: ' + e.message
   }
