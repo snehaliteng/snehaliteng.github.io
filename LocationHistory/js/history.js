@@ -97,8 +97,21 @@ async function deleteSelected() {
 
   const ids = Array.from(selectedIds)
   try {
-    const { error } = await sb.from('location_history').delete().in('id', ids)
-    if (error) throw new Error(error.message)
+    // Use raw REST DELETE with return=representation to verify actual deletion
+    const delRes = await fetch(SUPABASE_URL + '/rest/v1/location_history?id=in.(' + ids.join(',') + ')' + (currentPhone ? '&phone=eq.' + encodeURIComponent(currentPhone) : ''), {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=representation'
+      }
+    })
+    const deletedData = await delRes.json()
+    const deletedCount = Array.isArray(deletedData) ? deletedData.length : 0
+
+    if (!delRes.ok || deletedCount === 0) {
+      throw new Error('Delete blocked by database policy. Run the DELETE RLS policy SQL in Supabase dashboard.')
+    }
 
     selectionMode = false
     selectedIds.clear()
@@ -107,7 +120,7 @@ async function deleteSelected() {
     document.getElementById('bulk-bar').style.display = 'none'
     const debug = document.getElementById('debug-result')
     debug.style.display = 'block'
-    debug.innerHTML = 'Deleted ' + ids.length + ' point' + (ids.length > 1 ? 's' : '')
+    debug.innerHTML = 'Deleted ' + deletedCount + ' point' + (deletedCount > 1 ? 's' : '')
     await loadHistory()
   } catch (e) {
     const debug = document.getElementById('debug-result')

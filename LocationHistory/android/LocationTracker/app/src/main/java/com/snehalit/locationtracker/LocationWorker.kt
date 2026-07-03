@@ -82,14 +82,14 @@ class LocationWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 .build()
 
             client.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: "unknown"
+                val respBody = response.body?.string() ?: "unknown"
                 if (!response.isSuccessful) {
-                    android.util.Log.e("LocationWorker", "Push failed, queuing: $body")
+                    android.util.Log.e("LocationWorker", "Push failed, queuing: $respBody")
                     QueueManager.enqueue(applicationContext, json)
-                } else if (body.contains("too_close") || body.contains("inserted\":false")) {
-                    android.util.Log.w("LocationWorker", "Push skipped (too close): $body")
+                } else if (respBody.contains("too_close") || respBody.contains("inserted\":false")) {
+                    android.util.Log.w("LocationWorker", "Push skipped (too close): $respBody")
                 } else {
-                    android.util.Log.d("LocationWorker", "Push successful: $body")
+                    android.util.Log.d("LocationWorker", "Push successful: $respBody")
                 }
             }
         } catch (e: Exception) {

@@ -153,13 +153,13 @@ class LocationService : Service() {
 
                 override fun onResponse(call: Call, response: Response) {
                     response.use {
-                        val body = response.body?.string() ?: "unknown"
+                        val respBody = response.body?.string() ?: "unknown"
                         if (!response.isSuccessful) {
-                            android.util.Log.e("LocationTracker", "Push failed: $body")
-                        } else if (body.contains("too_close") || body.contains("inserted\":false")) {
-                            android.util.Log.w("LocationTracker", "Push skipped (too close to last): $body")
+                            android.util.Log.e("LocationTracker", "Push failed: $respBody")
+                        } else if (respBody.contains("too_close") || respBody.contains("inserted\":false")) {
+                            android.util.Log.w("LocationTracker", "Push skipped (too close to last): $respBody")
                         } else {
-                            android.util.Log.d("LocationTracker", "Push successful: $body")
+                            android.util.Log.d("LocationTracker", "Push successful: $respBody")
                         }
                     }
                 }
