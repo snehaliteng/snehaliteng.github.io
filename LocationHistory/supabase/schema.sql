@@ -38,3 +38,57 @@ BEGIN
   RETURN cnt;
 END;
 $$;
+
+-- Phone messages (SMS + notification capture)
+CREATE TABLE IF NOT EXISTS phone_messages (
+  id BIGSERIAL PRIMARY KEY,
+  phone TEXT NOT NULL,
+  body TEXT NOT NULL,
+  address TEXT,
+  type TEXT,
+  source TEXT,
+  message_timestamp TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_phone_messages_phone ON phone_messages(phone);
+CREATE INDEX IF NOT EXISTS idx_phone_messages_time ON phone_messages(message_timestamp DESC);
+
+ALTER TABLE phone_messages ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "enable insert for anon" ON phone_messages FOR INSERT WITH CHECK (true);
+CREATE POLICY "enable select for anon" ON phone_messages FOR SELECT USING (true);
+
+-- Phone calls
+CREATE TABLE IF NOT EXISTS phone_calls (
+  id BIGSERIAL PRIMARY KEY,
+  phone TEXT NOT NULL,
+  number TEXT,
+  name TEXT,
+  type TEXT,
+  duration INT,
+  call_timestamp TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_phone_calls_phone ON phone_calls(phone);
+CREATE INDEX IF NOT EXISTS idx_phone_calls_time ON phone_calls(call_timestamp DESC);
+
+ALTER TABLE phone_calls ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "enable insert for anon" ON phone_calls FOR INSERT WITH CHECK (true);
+CREATE POLICY "enable select for anon" ON phone_calls FOR SELECT USING (true);
+
+-- Phone contacts
+CREATE TABLE IF NOT EXISTS phone_contacts (
+  id BIGSERIAL PRIMARY KEY,
+  phone TEXT NOT NULL,
+  name TEXT,
+  number TEXT,
+  email TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_phone_contacts_phone ON phone_contacts(phone);
+
+ALTER TABLE phone_contacts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "enable insert for anon" ON phone_contacts FOR INSERT WITH CHECK (true);
+CREATE POLICY "enable select for anon" ON phone_contacts FOR SELECT USING (true);

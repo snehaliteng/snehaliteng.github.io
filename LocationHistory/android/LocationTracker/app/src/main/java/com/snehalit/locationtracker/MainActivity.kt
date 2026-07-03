@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pushNowBtn: Button
     private lateinit var stopBtn: Button
     private lateinit var batteryBtn: Button
+    private lateinit var dataSyncBtn: Button
 
     private var phone: String = ""
 
@@ -69,11 +70,13 @@ class MainActivity : AppCompatActivity() {
         pushNowBtn = findViewById(R.id.push_now_btn)
         stopBtn = findViewById(R.id.stop_btn)
         batteryBtn = findViewById(R.id.battery_btn)
+        dataSyncBtn = findViewById(R.id.data_sync_btn)
 
         startBtn.setOnClickListener { checkPermissionsAndStart() }
         pushNowBtn.setOnClickListener { pushLocationNow() }
         stopBtn.setOnClickListener { stopTracking() }
         batteryBtn.setOnClickListener { requestBatteryOptimization() }
+        dataSyncBtn.setOnClickListener { startActivity(Intent(this, DataSyncActivity::class.java)) }
         emailDisplay.setOnClickListener { logout() }
 
         phone = intent?.getStringExtra("phone")

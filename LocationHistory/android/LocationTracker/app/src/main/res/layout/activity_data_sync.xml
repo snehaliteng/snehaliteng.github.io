@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sync Phone Data"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upload SMS, call logs and contacts to cloud"
+        android:textSize="14sp"
+        android:textColor="#888"
+        android:layout_marginBottom="32dp" />
+
+    <TextView
+        android:id="@+id/sync_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap a button below to sync data"
+        android:textSize="14sp"
+        android:textColor="#666"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/sync_messages_btn"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="📩 Sync Messages (SMS)"
+        android:layout_marginBottom="12dp"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/sync_calls_btn"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="📞 Sync Call Log"
+        android:layout_marginBottom="12dp"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/sync_contacts_btn"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="👤 Sync Contacts"
+        android:layout_marginBottom="24dp"
+        android:textAllCaps="false" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Messages from WhatsApp, Telegram and other apps are captured in real-time via notification listener. Enable it in Settings &gt; Apps &gt; Notification Access."
+        android:textSize="12sp"
+        android:textColor="#aaa"
+        android:gravity="center"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

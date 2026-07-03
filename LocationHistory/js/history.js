@@ -45,12 +45,41 @@ function toggleBulkDelete() {
   document.getElementById('bulk-bar').style.display = selectionMode ? 'flex' : 'none'
   updateBulkUI()
   renderHistory()
+  updateMap()
 }
 
 function updateBulkUI() {
   const count = selectedIds.size
   document.getElementById('bulk-count').textContent = count + ' selected'
   document.getElementById('bulk-delete-btn').disabled = count === 0
+
+  let totalKm = 0, totalH = 0, avgSpd = null
+  if (count >= 2) {
+    const sel = allLocations.filter(l => selectedIds.has(l.id)).sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at))
+    for (let i = 1; i < sel.length; i++) {
+      totalKm += haversineKm(sel[i - 1].latitude, sel[i - 1].longitude, sel[i].latitude, sel[i].longitude)
+      totalH += (new Date(sel[i].recorded_at) - new Date(sel[i - 1].recorded_at)) / 3600000
+    }
+    if (totalH > 0) avgSpd = totalKm / totalH
+  }
+
+  const distEl = document.getElementById('stat-dist-sel')
+  if (totalKm > 0) {
+    distEl.textContent = totalKm < 1 ? Math.round(totalKm * 1000) + 'm' : totalKm.toFixed(2) + 'km'
+  } else {
+    distEl.textContent = '—'
+  }
+  distEl.nextElementSibling.textContent = count >= 2 ? 'Distance (' + count + ' pts)' : 'Distance (selected)'
+
+  const spdEl = document.getElementById('stat-speed')
+  const spdLbl = spdEl.nextElementSibling
+  if (avgSpd !== null) {
+    spdEl.textContent = avgSpd < 1 ? (avgSpd * 10).toFixed(0) / 10 + '' : Math.round(avgSpd) + ''
+    spdLbl.textContent = 'Avg Speed km/h (' + count + ' pts)'
+  } else {
+    spdEl.textContent = '—'
+    spdLbl.textContent = 'Avg Speed (selected)'
+  }
 }
 
 function toggleSelect(id, cb, event) {
@@ -64,31 +93,35 @@ function toggleSelect(id, cb, event) {
     }
     renderHistory()
     updateBulkUI()
+    updateMap()
     return
   }
 
   const row = cb.closest('.location-row')
-  if (cb.checked) {
-    selectedIds.add(id)
-    row.classList.add('selected')
-  } else {
+  if (selectedIds.has(id)) {
     selectedIds.delete(id)
-    row.classList.remove('selected')
+    if (row) row.classList.remove('selected')
+  } else {
+    selectedIds.add(id)
+    if (row) row.classList.add('selected')
   }
-  updateBulkUI()
   lastSelectedIndex = currentIndex
+  updateBulkUI()
+  updateMap()
 }
 
 function selectAll() {
   allLocations.forEach(l => selectedIds.add(l.id))
   updateBulkUI()
   renderHistory()
+  updateMap()
 }
 
 function deselectAll() {
   selectedIds.clear()
   updateBulkUI()
   renderHistory()
+  updateMap()
 }
 
 async function deleteSelected() {
@@ -123,7 +156,7 @@ async function deleteSelected() {
 
 function wrapLocationRow(l, innerHtml) {
   const checked = selectedIds.has(l.id) ? ' checked' : ''
-  const cb = selectionMode ? '<input type="checkbox" class="select-cb" onchange="toggleSelect(' + l.id + ', this, event)"' + checked + '>' : ''
+  const cb = selectionMode ? '<input type="checkbox" class="select-cb" onclick="toggleSelect(' + l.id + ', this, event)"' + checked + '>' : ''
   const selClass = selectionMode && selectedIds.has(l.id) ? ' selected' : ''
   return '<div class="location-row' + selClass + '">' + cb + innerHtml + '</div>'
 }
@@ -270,7 +303,21 @@ function switchView(el) {
   document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'))
   el.classList.add('active')
   currentView = el.dataset.view
-  renderHistory()
+
+  const isPhoneData = currentView === 'phone-data'
+  document.getElementById('map').style.display = isPhoneData ? 'none' : 'block'
+  document.querySelector('.stats').style.display = isPhoneData ? 'none' : 'flex'
+  document.querySelector('.controls').style.display = isPhoneData ? 'none' : 'flex'
+  document.getElementById('bulk-bar').style.display = 'none'
+  document.getElementById('bulk-toggle').textContent = 'Bulk Delete'
+  if (selectionMode) { selectionMode = false; selectedIds.clear(); lastSelectedIndex = -1; updateBulkUI() }
+  document.getElementById('debug-result').style.display = 'none'
+
+  if (isPhoneData) {
+    loadPhoneData()
+  } else {
+    renderHistory()
+  }
 }
 
 async function loadHistory() {
@@ -335,9 +382,14 @@ function updateMap() {
 
   if (!allLocations.length) return
 
+  const showFiltered = selectionMode && selectedIds.size > 0
+  const locations = showFiltered ? allLocations.filter(l => selectedIds.has(l.id)) : allLocations
+
+  if (!locations.length) return
+
   const bounds = []
   const latlngs = []
-  allLocations.forEach(l => {
+  locations.forEach(l => {
     const ll = [l.latitude, l.longitude]
     latlngs.push(ll)
     bounds.push(ll)
@@ -360,36 +412,70 @@ function updateMap() {
   map.fitBounds(bounds, { padding: [30, 30] })
 }
 
+function formatDist(info) {
+  if (!info) return ''
+  const km = info.distKm
+  const dtH = info.dtMs / 3600000
+  let distStr
+  if (km < 0.001) distStr = '&lt;1m'
+  else if (km < 1) distStr = Math.round(km * 1000) + 'm'
+  else distStr = km.toFixed(2) + 'km'
+
+  let speedStr = ''
+  if (dtH > 0 && km > 0) {
+    const spd = km / dtH
+    if (spd < 0.1) speedStr = ' <span class="speed">0km/h</span>'
+    else if (spd < 1) speedStr = ' <span class="speed">' + Math.round(spd * 10) / 10 + 'km/h</span>'
+    else speedStr = ' <span class="speed">' + Math.round(spd) + 'km/h</span>'
+  }
+  return '<span class="dist-badge">' + distStr + speedStr + '</span>'
+}
+
+function buildDistMap() {
+  const m = new Map()
+  for (let i = 1; i < allLocations.length; i++) {
+    const prev = allLocations[i - 1]
+    const curr = allLocations[i]
+    const distKm = haversineKm(prev.latitude, prev.longitude, curr.latitude, curr.longitude)
+    const dtMs = prev.recorded_at && curr.recorded_at ? new Date(curr.recorded_at) - new Date(prev.recorded_at) : 0
+    m.set(curr.id, { distKm, dtMs })
+  }
+  return m
+}
+
 function renderHistory() {
   const container = document.getElementById('history-list')
   if (!allLocations.length) { container.innerHTML = '<div class="location-empty">No location data found between ' + document.getElementById('filter-from').value + ' and ' + document.getElementById('filter-to').value + '.</div>'; return }
+  const distMap = buildDistMap()
 
   if (currentView === 'list') {
-    renderListView(container)
+    renderListView(container, distMap)
   } else if (currentView === 'hour') {
-    renderHourView(container)
+    renderHourView(container, distMap)
   } else if (currentView === 'day') {
-    renderDayView(container)
+    renderDayView(container, distMap)
   } else if (currentView === 'month') {
-    renderMonthView(container)
+    renderMonthView(container, distMap)
   }
 }
 
-function renderListView(container) {
+function renderListView(container, distMap) {
   let html = ''
   allLocations.forEach(l => {
     const time = l.recorded_at ? new Date(l.recorded_at).toLocaleString() : '?'
     const acc = l.accuracy ? (l.accuracy < 50 ? '<span class="badge">' + l.accuracy + 'm</span>' : '<span class="badge low-acc">' + l.accuracy + 'm</span>') : ''
-    html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span><span style="font-size:10px;color:#999">' + (l.phone || '') + '</span>' + acc)
+    const dist = l.id !== allLocations[0].id ? formatDist(distMap.get(l.id)) : ''
+    html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>' + acc + dist + '<span style="font-size:10px;color:#999;margin-left:auto">' + (l.phone || '') + '</span>')
   })
   container.innerHTML = html
 }
 
-function renderHourView(container) {
+function renderHourView(container, distMap) {
   const groups = {}
   allLocations.forEach(l => {
     if (!l.recorded_at) return
-    const key = l.recorded_at.substring(0, 13) + ':00'
+    const d = new Date(l.recorded_at)
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + 'T' + String(d.getHours()).padStart(2, '0') + ':00'
     if (!groups[key]) groups[key] = []
     groups[key].push(l)
   })
@@ -398,7 +484,85 @@ function renderHourView(container) {
   let html = ''
   sorted.forEach(key => {
     const pts = groups[key]
-    const d = new Date(key)
+    const d = new Date(pts[0].recorded_at)
+    html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + pts.length + ' pts)</div>'
+    pts.forEach(l => {
+      const time = l.recorded_at ? new Date(l.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '?'
+      const dist = l.id !== allLocations[0].id ? formatDist(distMap.get(l.id)) : ''
+      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>' + dist)
+    })
+    html += '</div>'
+  })
+  container.innerHTML = html
+}
+
+function renderDayView(container, distMap) {
+  const groups = {}
+  allLocations.forEach(l => {
+    if (!l.recorded_at) return
+    const d = new Date(l.recorded_at)
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+    if (!groups[key]) groups[key] = []
+    groups[key].push(l)
+  })
+
+  const sorted = Object.keys(groups).sort().reverse()
+  let html = ''
+  sorted.forEach(key => {
+    const pts = groups[key]
+    const d = new Date(pts[0].recorded_at)
+    html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' (' + pts.length + ' pts)</div>'
+    pts.forEach(l => {
+      const time = l.recorded_at ? new Date(l.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '?'
+      const dist = l.id !== allLocations[0].id ? formatDist(distMap.get(l.id)) : ''
+      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>' + dist)
+    })
+    html += '</div>'
+  })
+  container.innerHTML = html
+}
+
+function renderMonthView(container, distMap) {
+  const groups = {}
+  allLocations.forEach(l => {
+    if (!l.recorded_at) return
+    const d = new Date(l.recorded_at)
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+    if (!groups[key]) groups[key] = []
+    groups[key].push(l)
+  })
+
+  const sorted = Object.keys(groups).sort().reverse()
+  let html = ''
+  sorted.forEach(key => {
+    const pts = groups[key]
+    const d = new Date(pts[0].recorded_at)
+    html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString([], { month: 'long', year: 'numeric' }) + ' (' + pts.length + ' pts)</div>'
+    pts.forEach(l => {
+      const time = l.recorded_at ? new Date(l.recorded_at).toLocaleString() : '?'
+      const dist = l.id !== allLocations[0].id ? formatDist(distMap.get(l.id)) : ''
+      html += wrapLocationRow(l, '<span class="time">' + time + '</span><span class="coords">' + l.latitude.toFixed(5) + ', ' + l.longitude.toFixed(5) + '</span>' + dist)
+    })
+    html += '</div>'
+  })
+  container.innerHTML = html
+}
+
+function renderHourView(container) {
+  const groups = {}
+  allLocations.forEach(l => {
+    if (!l.recorded_at) return
+    const d = new Date(l.recorded_at)
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + 'T' + String(d.getHours()).padStart(2, '0') + ':00'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(l)
+  })
+
+  const sorted = Object.keys(groups).sort()
+  let html = ''
+  sorted.forEach(key => {
+    const pts = groups[key]
+    const d = new Date(pts[0].recorded_at)
     html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' (' + pts.length + ' pts)</div>'
     pts.forEach(l => {
       const time = l.recorded_at ? new Date(l.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '?'
@@ -413,7 +577,8 @@ function renderDayView(container) {
   const groups = {}
   allLocations.forEach(l => {
     if (!l.recorded_at) return
-    const key = l.recorded_at.substring(0, 10)
+    const d = new Date(l.recorded_at)
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
     if (!groups[key]) groups[key] = []
     groups[key].push(l)
   })
@@ -422,7 +587,7 @@ function renderDayView(container) {
   let html = ''
   sorted.forEach(key => {
     const pts = groups[key]
-    const d = new Date(key + 'T00:00:00')
+    const d = new Date(pts[0].recorded_at)
     html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' (' + pts.length + ' pts)</div>'
     pts.forEach(l => {
       const time = l.recorded_at ? new Date(l.recorded_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '?'
@@ -437,7 +602,8 @@ function renderMonthView(container) {
   const groups = {}
   allLocations.forEach(l => {
     if (!l.recorded_at) return
-    const key = l.recorded_at.substring(0, 7)
+    const d = new Date(l.recorded_at)
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
     if (!groups[key]) groups[key] = []
     groups[key].push(l)
   })
@@ -446,7 +612,7 @@ function renderMonthView(container) {
   let html = ''
   sorted.forEach(key => {
     const pts = groups[key]
-    const d = new Date(key + '-01T00:00:00')
+    const d = new Date(pts[0].recorded_at)
     html += '<div class="history-group"><div class="history-group-title">' + d.toLocaleDateString([], { month: 'long', year: 'numeric' }) + ' (' + pts.length + ' pts)</div>'
     pts.forEach(l => {
       const time = l.recorded_at ? new Date(l.recorded_at).toLocaleString() : '?'
@@ -455,6 +621,86 @@ function renderMonthView(container) {
     html += '</div>'
   })
   container.innerHTML = html
+}
+
+async function loadPhoneData() {
+  const container = document.getElementById('history-list')
+  if (!currentPhone) { container.innerHTML = '<div class="location-empty">Sign in to view phone data.</div>'; return }
+  container.innerHTML = '<div class="location-empty">Loading phone data...</div>'
+
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+
+  try {
+    const [msgRes, callRes, conRes] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/phone_messages?select=id,body,address,type,source,message_timestamp&phone=eq.' + encodeURIComponent(currentPhone) + '&order=message_timestamp.desc&limit=200', { headers }),
+      fetch(SUPABASE_URL + '/rest/v1/phone_calls?select=id,number,name,type,duration,call_timestamp&phone=eq.' + encodeURIComponent(currentPhone) + '&order=call_timestamp.desc&limit=200', { headers }),
+      fetch(SUPABASE_URL + '/rest/v1/phone_contacts?select=id,name,number,email&phone=eq.' + encodeURIComponent(currentPhone) + '&order=name.asc&limit=500', { headers }),
+    ])
+
+    if (!msgRes.ok || !callRes.ok || !conRes.ok) {
+      container.innerHTML = '<div class="location-empty">Error fetching phone data. HTTP ' + msgRes.status + ' / ' + callRes.status + ' / ' + conRes.status + '</div>'
+      return
+    }
+
+    const messages = await msgRes.json()
+    const calls = await callRes.json()
+    const contacts = await conRes.json()
+
+    renderPhoneData(container, messages, calls, contacts)
+  } catch (e) {
+    container.innerHTML = '<div class="location-empty">Error: ' + e.message + '</div>'
+  }
+}
+
+function renderPhoneData(container, messages, calls, contacts) {
+  let html = ''
+
+  // Messages section
+  html += '<div class="phone-section"><h3>Messages (' + messages.length + ')</h3>'
+  if (messages.length === 0) {
+    html += '<div class="location-empty" style="padding:12px">No messages synced yet. Sync from the Android app.</div>'
+  } else {
+    messages.slice(0, 100).forEach(m => {
+      const time = m.message_timestamp ? new Date(m.message_timestamp).toLocaleString() : '?'
+      const src = m.source ? '<span style="color:#1a73e8;font-weight:600">' + m.source.toUpperCase() + '</span>' : ''
+      const type = m.type ? (m.type === '1' || m.type === 'inbox' ? '📩' : m.type === '2' || m.type === 'sent' ? '📤' : '🔔') : '💬'
+      html += '<div class="phone-item"><div class="meta">' + type + ' ' + src + ' ' + (m.address || 'unknown') + ' | ' + time + '</div><div class="body">' + escapeHtml(m.body) + '</div></div>'
+    })
+  }
+  html += '</div>'
+
+  // Calls section
+  html += '<div class="phone-section"><h3>Calls (' + calls.length + ')</h3>'
+  if (calls.length === 0) {
+    html += '<div class="location-empty" style="padding:12px">No call logs synced yet. Sync from the Android app.</div>'
+  } else {
+    calls.slice(0, 100).forEach(c => {
+      const time = c.call_timestamp ? new Date(c.call_timestamp).toLocaleString() : '?'
+      const typeIcon = c.type === 'incoming' ? '📞' : c.type === 'outgoing' ? '📲' : c.type === 'missed' ? '📵' : '📞'
+      const durStr = c.duration ? (c.duration < 60 ? c.duration + 's' : Math.floor(c.duration / 60) + 'm ' + (c.duration % 60) + 's') : ''
+      html += '<div class="phone-item"><div class="meta">' + typeIcon + ' ' + (c.name || c.number || 'unknown') + ' | ' + time + (durStr ? ' | ' + durStr : '') + '</div></div>'
+    })
+  }
+  html += '</div>'
+
+  // Contacts section
+  html += '<div class="phone-section"><h3>Contacts (' + contacts.length + ')</h3>'
+  if (contacts.length === 0) {
+    html += '<div class="location-empty" style="padding:12px">No contacts synced yet. Sync from the Android app.</div>'
+  } else {
+    contacts.forEach(c => {
+      html += '<div class="phone-item"><div class="meta">👤 ' + (c.name || '?') + ' | ' + (c.number || '') + (c.email ? ' | ' + c.email : '') + '</div></div>'
+    })
+  }
+  html += '</div>'
+
+  container.innerHTML = html
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div')
+  d.textContent = str
+  return d.innerHTML
 }
 
 function haversineKm(lat1, lon1, lat2, lon2) {

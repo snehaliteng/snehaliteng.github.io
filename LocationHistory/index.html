@@ -55,6 +55,8 @@ header .user-info a { color: #d93025; cursor: pointer; text-decoration: underlin
 .location-row .coords { color: #333; font-family: monospace; font-size: 12px; flex: 1; }
 .location-row .badge { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; }
 .location-row .badge.low-acc { background: #fff3e0; color: #e65100; }
+.location-row .dist-badge { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: #e3f2fd; color: #1565c0; margin-left: auto; }
+.location-row .speed { font-weight: 600; }
 .location-row.selected { background: #e8f0fe !important; }
 .select-cb { margin-right: 6px; cursor: pointer; width: 16px; height: 16px; accent-color: #1a73e8; flex-shrink: 0; }
 #bulk-bar { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: #fff; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 13px; }
@@ -62,6 +64,12 @@ header .user-info a { color: #d93025; cursor: pointer; text-decoration: underlin
 #bulk-bar .btn-danger:hover { background: #b3261e; }
 #bulk-bar .btn-danger:disabled { background: #fce8e6; color: #999; cursor: not-allowed; }
 .location-empty { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+.phone-section { margin-bottom: 20px; }
+.phone-section h3 { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; gap: 8px; }
+.phone-item { padding: 6px 8px; border-bottom: 1px solid #f5f5f5; font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
+.phone-item:hover { background: #f8f9fa; }
+.phone-item .meta { color: #888; font-size: 10px; display: flex; gap: 8px; }
+.phone-item .body { color: #333; }
 
 @media (max-width: 600px) {
   #app { padding: 8px; }
@@ -104,6 +112,8 @@ header .user-info a { color: #d93025; cursor: pointer; text-decoration: underlin
     <div class="stat-card"><div class="num" id="stat-today">0</div><div class="label">Today</div></div>
     <div class="stat-card"><div class="num" id="stat-streak">0</div><div class="label">Day Streak</div></div>
     <div class="stat-card"><div class="num" id="stat-range">0</div><div class="label">Max Range (km)</div></div>
+    <div class="stat-card"><div class="num" id="stat-dist-sel">—</div><div class="label">Distance (selected)</div></div>
+    <div class="stat-card"><div class="num" id="stat-speed">—</div><div class="label">Avg Speed (selected)</div></div>
   </div>
 
   <div class="controls">
@@ -128,6 +138,7 @@ header .user-info a { color: #d93025; cursor: pointer; text-decoration: underlin
     <div class="view-tab" data-view="day" onclick="switchView(this)">By Day</div>
     <div class="view-tab" data-view="month" onclick="switchView(this)">By Month</div>
     <div class="view-tab" data-view="list" onclick="switchView(this)">All</div>
+    <div class="view-tab" data-view="phone-data" onclick="switchView(this)">Phone Data</div>
   </div>
 
   <div id="history-list"></div>

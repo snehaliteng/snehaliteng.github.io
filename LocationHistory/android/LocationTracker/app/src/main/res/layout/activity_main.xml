@@ -73,6 +73,14 @@
         android:text="Stop Tracking"
         android:enabled="false" />
 
+    <Button
+        android:id="@+id/data_sync_btn"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="📊 Sync Phone Data"
+        android:textAllCaps="false"
+        android:layout_marginTop="8dp" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
