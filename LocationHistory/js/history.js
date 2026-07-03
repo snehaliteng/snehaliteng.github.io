@@ -617,12 +617,32 @@ function renderContacts(container, contacts) {
   if (contacts.length === 0) {
     html += '<div class="location-empty" style="padding:12px">No contacts synced yet. Sync from the Android app.</div>'
   } else {
+    html += '<div style="margin-bottom:8px"><button class="btn btn-sm btn-secondary" onclick="mergeDuplicates()">Merge Duplicates</button></div>'
     contacts.forEach(c => {
       html += '<div class="phone-item"><div class="meta">👤 ' + (c.name || '?') + ' | ' + (c.number || '') + (c.email ? ' | ' + c.email : '') + '</div></div>'
     })
   }
   html += '</div>'
   container.innerHTML = html
+}
+
+async function mergeDuplicates() {
+  const container = document.getElementById('history-list')
+  if (!currentPhone) return
+  container.innerHTML = '<div class="location-empty">Merging duplicates...</div>'
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/merge-contacts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({ phone: currentPhone }),
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+    container.innerHTML = '<div class="location-empty" style="color:#2e7d32">Merged ' + data.merged + ' duplicate contact' + (data.merged === 1 ? '' : 's') + '.</div>'
+    setTimeout(() => loadPhoneData('contacts'), 1500)
+  } catch (e) {
+    container.innerHTML = '<div class="location-empty" style="color:#d93025">Merge error: ' + e.message + '</div>'
+  }
 }
 
 function escapeHtml(str) {
