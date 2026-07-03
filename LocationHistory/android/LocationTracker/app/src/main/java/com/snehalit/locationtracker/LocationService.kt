@@ -11,6 +11,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.location.Location
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
@@ -38,6 +42,7 @@ class LocationService : Service() {
     private lateinit var fusedClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private var phone: String = ""
+    private var connectivityCallback: ConnectivityManager.NetworkCallback? = null
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
@@ -72,6 +77,7 @@ class LocationService : Service() {
             }.build()
 
             createNotificationChannel()
+            registerNetworkCallback()
         } catch (e: Exception) {
             android.util.Log.e("LocationTracker", "Error in onCreate", e)
         }
@@ -103,6 +109,7 @@ class LocationService : Service() {
         }
 
         startLocationUpdates()
+        flushPendingQueue()
 
         return START_STICKY
     }
@@ -140,7 +147,8 @@ class LocationService : Service() {
 
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
-                    android.util.Log.e("LocationTracker", "Push error", e)
+                    android.util.Log.e("LocationTracker", "Push error, queuing offline", e)
+                    QueueManager.enqueue(this@LocationService, json)
                 }
 
                 override fun onResponse(call: Call, response: Response) {
@@ -159,6 +167,41 @@ class LocationService : Service() {
         } catch (e: Exception) {
             android.util.Log.e("LocationTracker", "Push error", e)
         }
+    }
+
+    private fun registerNetworkCallback() {
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val callback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    val hasInternet = cm.getNetworkCapabilities(network)
+                        ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+                    if (hasInternet) {
+                        flushPendingQueue()
+                    }
+                }
+            }
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+            cm.registerNetworkCallback(request, callback)
+            connectivityCallback = callback
+        } catch (e: Exception) {
+            android.util.Log.e("LocationTracker", "Failed to register network callback", e)
+        }
+    }
+
+    private fun flushPendingQueue() {
+        Thread {
+            try {
+                val count = QueueManager.flush(this, client, SUPABASE_FUNCTION_URL, SUPABASE_ANON_KEY)
+                if (count > 0) {
+                    android.util.Log.d("LocationTracker", "Flushed $count pending locations")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("LocationTracker", "Flush error", e)
+            }
+        }.start()
     }
 
     private fun getBatteryLevel(): Float {
@@ -214,6 +257,14 @@ class LocationService : Service() {
     override fun onDestroy() {
         if (::fusedClient.isInitialized) {
             fusedClient.removeLocationUpdates(locationCallback)
+        }
+        try {
+            connectivityCallback?.let {
+                val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                cm.unregisterNetworkCallback(it)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("LocationTracker", "Error unregistering network callback", e)
         }
         super.onDestroy()
     }

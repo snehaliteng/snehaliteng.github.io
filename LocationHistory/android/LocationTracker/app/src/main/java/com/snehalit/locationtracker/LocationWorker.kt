@@ -39,6 +39,13 @@ class LocationWorker(context: Context, params: WorkerParameters) : CoroutineWork
             return Result.success()
         }
 
+        // Flush any queued locations from offline periods
+        try {
+            QueueManager.flush(applicationContext, client, LocationService.SUPABASE_FUNCTION_URL, LocationService.SUPABASE_ANON_KEY)
+        } catch (e: Exception) {
+            android.util.Log.e("LocationWorker", "Flush error", e)
+        }
+
         return try {
             val fusedClient = LocationServices.getFusedLocationProviderClient(applicationContext)
 
@@ -56,16 +63,16 @@ class LocationWorker(context: Context, params: WorkerParameters) : CoroutineWork
     }
 
     private fun pushLocation(phone: String, location: Location) {
-        try {
-            val json = JSONObject().apply {
-                put("phone", phone)
-                put("latitude", location.latitude)
-                put("longitude", location.longitude)
-                put("accuracy", location.accuracy)
-                put("battery_level", getBatteryLevel())
-                put("recorded_at", java.time.Instant.now().toString())
-            }
+        val json = JSONObject().apply {
+            put("phone", phone)
+            put("latitude", location.latitude)
+            put("longitude", location.longitude)
+            put("accuracy", location.accuracy)
+            put("battery_level", getBatteryLevel())
+            put("recorded_at", java.time.Instant.now().toString())
+        }
 
+        try {
             val body = json.toString().toRequestBody("application/json".toMediaType())
             val request = Request.Builder()
                 .url(LocationService.SUPABASE_FUNCTION_URL)
@@ -77,7 +84,8 @@ class LocationWorker(context: Context, params: WorkerParameters) : CoroutineWork
             client.newCall(request).execute().use { response ->
                 val body = response.body?.string() ?: "unknown"
                 if (!response.isSuccessful) {
-                    android.util.Log.e("LocationWorker", "Push failed: $body")
+                    android.util.Log.e("LocationWorker", "Push failed, queuing: $body")
+                    QueueManager.enqueue(applicationContext, json)
                 } else if (body.contains("too_close") || body.contains("inserted\":false")) {
                     android.util.Log.w("LocationWorker", "Push skipped (too close): $body")
                 } else {
@@ -85,7 +93,8 @@ class LocationWorker(context: Context, params: WorkerParameters) : CoroutineWork
                 }
             }
         } catch (e: Exception) {
-            android.util.Log.e("LocationWorker", "Push error", e)
+            android.util.Log.e("LocationWorker", "Push network error, queuing", e)
+            QueueManager.enqueue(applicationContext, json)
         }
     }
 
