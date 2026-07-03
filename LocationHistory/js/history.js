@@ -11,6 +11,7 @@ let polyline = null
 let currentView = 'hour'
 let selectionMode = false
 let selectedIds = new Set()
+let lastSelectedIndex = -1
 
 const STORAGE_KEY = 'lh_phone'
 
@@ -39,39 +40,54 @@ function logout() {
 function toggleBulkDelete() {
   selectionMode = !selectionMode
   selectedIds.clear()
+  lastSelectedIndex = -1
   document.getElementById('bulk-toggle').textContent = selectionMode ? 'Cancel' : 'Bulk Delete'
   document.getElementById('bulk-bar').style.display = selectionMode ? 'flex' : 'none'
-  document.getElementById('bulk-count').textContent = '0 selected'
-  document.getElementById('bulk-delete-btn').disabled = true
+  updateBulkUI()
   renderHistory()
 }
 
-function toggleSelect(id, cb) {
-  const row = cb.closest('.location-row')
-  if (selectedIds.has(id)) {
-    selectedIds.delete(id)
-    row.classList.remove('selected')
-  } else {
-    selectedIds.add(id)
-    row.classList.add('selected')
-  }
+function updateBulkUI() {
   const count = selectedIds.size
   document.getElementById('bulk-count').textContent = count + ' selected'
   document.getElementById('bulk-delete-btn').disabled = count === 0
 }
 
+function toggleSelect(id, cb, event) {
+  const currentIndex = allLocations.findIndex(l => l.id === id)
+
+  if (event && event.shiftKey && lastSelectedIndex >= 0 && currentIndex >= 0) {
+    const start = Math.min(lastSelectedIndex, currentIndex)
+    const end = Math.max(lastSelectedIndex, currentIndex)
+    for (let i = start; i <= end; i++) {
+      selectedIds.add(allLocations[i].id)
+    }
+    renderHistory()
+    updateBulkUI()
+    return
+  }
+
+  const row = cb.closest('.location-row')
+  if (cb.checked) {
+    selectedIds.add(id)
+    row.classList.add('selected')
+  } else {
+    selectedIds.delete(id)
+    row.classList.remove('selected')
+  }
+  updateBulkUI()
+  lastSelectedIndex = currentIndex
+}
+
 function selectAll() {
   allLocations.forEach(l => selectedIds.add(l.id))
-  const count = selectedIds.size
-  document.getElementById('bulk-count').textContent = count + ' selected'
-  document.getElementById('bulk-delete-btn').disabled = false
+  updateBulkUI()
   renderHistory()
 }
 
 function deselectAll() {
   selectedIds.clear()
-  document.getElementById('bulk-count').textContent = '0 selected'
-  document.getElementById('bulk-delete-btn').disabled = true
+  updateBulkUI()
   renderHistory()
 }
 
@@ -86,6 +102,7 @@ async function deleteSelected() {
 
     selectionMode = false
     selectedIds.clear()
+    lastSelectedIndex = -1
     document.getElementById('bulk-toggle').textContent = 'Bulk Delete'
     document.getElementById('bulk-bar').style.display = 'none'
     const debug = document.getElementById('debug-result')
@@ -101,7 +118,7 @@ async function deleteSelected() {
 
 function wrapLocationRow(l, innerHtml) {
   const checked = selectedIds.has(l.id) ? ' checked' : ''
-  const cb = selectionMode ? '<input type="checkbox" class="select-cb" onchange="toggleSelect(' + l.id + ', this)"' + checked + '>' : ''
+  const cb = selectionMode ? '<input type="checkbox" class="select-cb" onchange="toggleSelect(' + l.id + ', this, event)"' + checked + '>' : ''
   const selClass = selectionMode && selectedIds.has(l.id) ? ' selected' : ''
   return '<div class="location-row' + selClass + '">' + cb + innerHtml + '</div>'
 }
