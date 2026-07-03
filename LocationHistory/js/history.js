@@ -96,21 +96,17 @@ async function deleteSelected() {
   if (!confirm('Delete ' + selectedIds.size + ' location point' + (selectedIds.size > 1 ? 's' : '') + '?')) return
 
   const ids = Array.from(selectedIds)
-  try {
-    // Use raw REST DELETE with return=representation to verify actual deletion
-    const delRes = await fetch(SUPABASE_URL + '/rest/v1/location_history?id=in.(' + ids.join(',') + ')' + (currentPhone ? '&phone=eq.' + encodeURIComponent(currentPhone) : ''), {
-      method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Prefer': 'return=representation'
-      }
-    })
-    const deletedData = await delRes.json()
-    const deletedCount = Array.isArray(deletedData) ? deletedData.length : 0
+  const debug = document.getElementById('debug-result')
+  debug.style.display = 'block'
+  debug.innerHTML = 'Deleting...'
 
-    if (!delRes.ok || deletedCount === 0) {
-      throw new Error('Delete blocked by database policy. Run the DELETE RLS policy SQL in Supabase dashboard.')
+  try {
+    const { data, error } = await sb.from('location_history').delete().in('id', ids).select()
+    if (error) throw new Error(error.message)
+
+    const deletedCount = data ? data.length : 0
+    if (deletedCount === 0) {
+      throw new Error('No rows deleted. Run this SQL in your Supabase SQL editor:\n\nDROP POLICY IF EXISTS "enable delete for anon" ON location_history;\nCREATE POLICY "enable delete for anon" ON location_history FOR DELETE USING (true);')
     }
 
     selectionMode = false
@@ -118,13 +114,9 @@ async function deleteSelected() {
     lastSelectedIndex = -1
     document.getElementById('bulk-toggle').textContent = 'Bulk Delete'
     document.getElementById('bulk-bar').style.display = 'none'
-    const debug = document.getElementById('debug-result')
-    debug.style.display = 'block'
     debug.innerHTML = 'Deleted ' + deletedCount + ' point' + (deletedCount > 1 ? 's' : '')
     await loadHistory()
   } catch (e) {
-    const debug = document.getElementById('debug-result')
-    debug.style.display = 'block'
     debug.innerHTML = 'Delete error: ' + e.message
   }
 }
