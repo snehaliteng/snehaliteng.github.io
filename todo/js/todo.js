@@ -416,13 +416,17 @@ async function loadDailySchedule() {
   if (tasks && tasks.length) {
     selectedTaskIds.clear();
     document.getElementById('delete-selected-btn').style.display = 'none';
-    html += tasks.map(t => '<div class="task-item">' +
-      '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
-      '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
-      '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
-      '<span class="task-title' + (t.is_completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
-      '<span class="task-status-dot ' + (t.is_completed ? 'done' : 'pending') + '"></span>' +
-      '<button class="btn btn-sm btn-danger" onclick="deleteTaskInstance(' + t.id + ')" title="Remove task" style="font-size:11px;padding:2px 6px;">X</button></div>').join('');
+    var nowTime = new Date().toTimeString().substring(0, 5);
+    html += tasks.map(function(t) {
+      var isCurrent = !t.is_completed && nowTime >= t.start_time && nowTime < t.end_time;
+      return '<div class="task-item' + (isCurrent ? ' current-task' : '') + '">' +
+        '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
+        '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
+        '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
+        '<span class="task-title' + (t.is_completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
+        '<span class="task-status-dot ' + (t.is_completed ? 'done' : 'pending') + '"></span>' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteTaskInstance(' + t.id + ')" title="Remove task" style="font-size:11px;padding:2px 6px;">X</button></div>';
+    }).join('');
   } else {
     html += '<p style="color:#999;font-size:13px;">No tasks yet.</p>';
   }
@@ -980,6 +984,11 @@ document.addEventListener('click', function(e) {
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
 });
+
+// Auto-refresh daily schedule every 60s to keep current-task highlight updated
+setInterval(function() {
+  if (currentView === 'daily' && currentUser) loadDailySchedule();
+}, 60000);
 
 // Init
 checkAuth();
