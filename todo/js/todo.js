@@ -255,6 +255,7 @@ function showTemplateModal(id) {
     }
     const html = '<h3>' + title + '</h3>' +
       '<label>Template Name</label><input id="mt-name" value="' + (template ? escHtml(template.name) : '') + '" placeholder="e.g. Work Day">' +
+      (id ? '' : '<button class="btn btn-sm btn-secondary" style="margin-top:8px;font-size:12px;" onclick="loadJobSearchSchedule()">Load Job Search Routine</button>') +
       '<label style="margin-top:16px;">Tasks (24-hour schedule)</label>' +
       '<div id="task-rows">' + taskHtml + '</div>' +
       '<button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="addTaskRow()">+ Add Task</button>' +
@@ -281,6 +282,41 @@ function addTaskRow() {
 function removeTaskRow(btn) {
   const row = btn.closest('.ttask-row');
   row.parentNode.removeChild(row);
+}
+
+function loadJobSearchSchedule() {
+  const nameInput = document.getElementById('mt-name');
+  if (nameInput && !nameInput.value) nameInput.value = 'Job Search Daily Routine';
+  const schedule = [
+    { start: '08:00', end: '08:30', title: 'Quick exercise or walk' },
+    { start: '08:30', end: '09:00', title: 'Review job boards (LinkedIn, Indeed, Glassdoor)' },
+    { start: '09:00', end: '10:30', title: 'Apply to 2-3 targeted jobs (customize resume + cover letter)' },
+    { start: '10:30', end: '11:00', title: 'Track applications in spreadsheet (role, company, date, status)' },
+    { start: '11:00', end: '12:00', title: 'Networking outreach (connect with recruiters, LinkedIn messages)' },
+    { start: '12:00', end: '13:00', title: 'Lunch + short break' },
+    { start: '13:00', end: '14:00', title: 'Study system design concepts (draw diagrams, review handbook)' },
+    { start: '14:00', end: '15:00', title: 'Practice DSA/LeetCode (FAANG-style questions)' },
+    { start: '15:00', end: '16:00', title: 'Work on portfolio (personal website, projects)' },
+    { start: '16:00', end: '17:00', title: 'Mock interview practice (system design or behavioral)' },
+    { start: '17:00', end: '18:00', title: 'Skill refresh (ML/NLP, cloud architecture, or LLM serving)' },
+    { start: '18:00', end: '19:00', title: 'Review industry news & trends (AI, cloud, DevOps)' },
+    { start: '19:00', end: '20:00', title: 'Write LinkedIn post or blog (share insights, boost visibility)' },
+    { start: '20:00', end: '21:00', title: 'Relaxation or family time' },
+    { start: '21:00', end: '21:30', title: 'Quick recap: What did you achieve today?' },
+    { start: '21:30', end: '22:30', title: 'Light reading (tech blogs, interview experiences, architecture books)' },
+  ];
+  const container = document.getElementById('task-rows');
+  container.innerHTML = '';
+  schedule.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'ttask-row';
+    div.dataset.idx = i;
+    div.innerHTML = '<input type="time" class="tt-start" value="' + s.start + '">' +
+      '<input type="time" class="tt-end" value="' + s.end + '">' +
+      '<input type="text" class="tt-title" value="' + escHtml(s.title) + '" placeholder="Task description">' +
+      '<button class="btn btn-sm btn-danger" onclick="removeTaskRow(this)">X</button>';
+    container.appendChild(div);
+  });
 }
 
 async function saveTemplate(id) {
