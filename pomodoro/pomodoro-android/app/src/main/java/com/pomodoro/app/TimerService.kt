@@ -97,7 +97,14 @@ class TimerService : Service() {
         isRunning = true
 
         val notification = createNotification()
-        startForeground(NOTIFICATION_ID, notification)
+        try {
+            startForeground(NOTIFICATION_ID, notification)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            isRunning = false
+            running = false
+            return
+        }
 
         timerThread = Thread {
             try {
