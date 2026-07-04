@@ -32,15 +32,20 @@
                         <a href="index.html" class="nav-link active px-3 py-2 rounded-md text-sm font-medium">Home</a>
                         <a href="services.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Services</a>
                         <a href="portfolio.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
-                        <a href="tutorials/" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Tutorials</a>
-                        <a href="blog/" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Blog</a>
-                        <a href="shop/" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Shop</a>
+                        <div class="dropdown">
+                            <a href="#" class="nav-link dropdown-toggle px-3 py-2 rounded-md text-sm font-medium">Applications</a>
+                            <div class="dropdown-menu">
+                                <a href="tutorials/">Tutorials</a>
+                                <a href="blog/">Blog</a>
+                                <a href="shop/">Shop</a>
+                                <a href="todo/index.html">Todo</a>
+                            </div>
+                        </div>
                         <a href="ecommerce/index.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Marketplace</a>
                         <a href="about.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">About</a>
                         <a href="careers.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Careers</a>
                         <a href="contact.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Contact</a>
                         <a href="qna/index.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">QNA</a>
-                        <a href="todo/index.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Todo</a>
                     </div>
                 </div>
                 <div class="md:hidden">
@@ -58,15 +63,20 @@
                 <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link active">Home</a>
                 <a href="services.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Services</a>
                 <a href="portfolio.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Portfolio</a>
-                <a href="tutorials/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Tutorials</a>
-                <a href="blog/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Blog</a>
-                <a href="shop/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Shop</a>
+                <div>
+                    <a href="#" id="mobile-apps-toggle" class="block px-3 py-2 rounded-md text-base font-medium nav-link" onclick="toggleMobileApps(event)">Applications ▸</a>
+                    <div id="mobile-apps-submenu" class="mobile-submenu">
+                        <a href="tutorials/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Tutorials</a>
+                        <a href="blog/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Blog</a>
+                        <a href="shop/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Shop</a>
+                        <a href="todo/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Todo</a>
+                    </div>
+                </div>
                 <a href="ecommerce/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Marketplace</a>
                 <a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">About</a>
                 <a href="careers.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Careers</a>
                 <a href="contact.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Contact</a>
                 <a href="qna/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">QNA</a>
-                <a href="todo/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Todo</a>
             </div>
         </div>
     </nav>
@@ -574,6 +584,15 @@
         </div>
     </footer>
 
+    <script>
+    function toggleMobileApps(e) {
+        e.preventDefault();
+        var sub = document.getElementById('mobile-apps-submenu');
+        var toggle = document.getElementById('mobile-apps-toggle');
+        sub.classList.toggle('open');
+        toggle.textContent = sub.classList.contains('open') ? 'Applications ▾' : 'Applications ▸';
+    }
+    </script>
     <script src="js/main.js"></script>
     <script src="js/version.js"></script>
 </body>
