@@ -126,6 +126,7 @@ CREATE TABLE IF NOT EXISTS todo_contacts (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   number TEXT NOT NULL DEFAULT '',
+  hidden BOOLEAN NOT NULL DEFAULT false,
   order_index INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL
 );

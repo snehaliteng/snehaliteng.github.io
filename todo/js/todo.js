@@ -692,6 +692,15 @@ async function loadMonthlySummary(templateId) {
 
 // ======= Contact Management =======
 var contactsSortState = 'name';
+var contactFilter = 'active';
+
+function setContactFilter(filter) {
+  contactFilter = filter;
+  document.querySelectorAll('.contact-filter-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.filter === filter);
+  });
+  loadContacts();
+}
 
 async function loadContacts() {
   if (!currentUser) return;
@@ -704,6 +713,15 @@ async function loadContacts() {
   var container = document.getElementById('contacts-container');
   if (!contacts || !contacts.length) {
     container.innerHTML = '<p style="color:#666;text-align:center;padding:30px;">No contacts yet. Add one to get started.</p>';
+    return;
+  }
+
+  // Filter by visibility
+  if (contactFilter === 'active') contacts = contacts.filter(function(c) { return !c.hidden; });
+  else if (contactFilter === 'hidden') contacts = contacts.filter(function(c) { return c.hidden; });
+
+  if (!contacts.length) {
+    container.innerHTML = '<p style="color:#666;text-align:center;padding:30px;">No ' + contactFilter + ' contacts.</p>';
     return;
   }
 
@@ -727,11 +745,12 @@ async function loadContacts() {
     var badgeClass = count === 0 ? 'background:#fef2f2;color:#d93025;' : 'background:#e8f4fd;color:#1a73e8;';
     html += '<div class="contact-item" draggable="true" data-id="' + c.id + '" data-idx="' + ci + '" ' +
       'ondragstart="contactDragStart(event)" ondragover="contactDragOver(event)" ondrop="contactDrop(event)" ondragend="contactDragEnd(event)" ' +
-      'onclick="toggleContactPanel(' + c.id + ', event)">' +
+      'onclick="toggleContactPanel(' + c.id + ', event)"' + (c.hidden ? ' style="opacity:0.5;"' : '') + '>' +
       '<span class="contact-handle" onclick="event.stopPropagation();">&#x2630;</span>' +
-      '<span class="contact-name">' + escHtml(c.name) + (c.number ? ' <span style="color:#999;font-size:12px;font-weight:400;">' + escHtml(c.number) + '</span>' : '') + '</span>' +
+      '<span class="contact-name">' + escHtml(c.name) + (c.number ? ' <span style="color:#999;font-size:12px;font-weight:400;">' + escHtml(c.number) + '</span>' : '') + (c.hidden ? ' <span style="color:#999;font-size:10px;">(hidden)</span>' : '') + '</span>' +
       '<span class="contact-call-badge" style="' + badgeClass + '">' + count + ' calls</span>' +
-      '<span class="contact-expand-icon" id="expand-icon-' + c.id + '">&#x25B6;</span></div>' +
+      '<span class="contact-expand-icon" id="expand-icon-' + c.id + '">&#x25B6;</span>' +
+      '<span class="contact-delete-icon" onclick="event.stopPropagation();if(confirm(\'Delete this contact?\'))deleteContact(' + c.id + ')" title="Delete contact">&#x2716;</span></div>' +
       '<div class="contact-panel" id="contact-panel-' + c.id + '" style="display:none;"></div>';
   }
   container.innerHTML = html;
@@ -794,6 +813,10 @@ async function loadContactPanel(contactId) {
   var panel = document.getElementById('contact-panel-' + contactId);
   if (!panel) return;
 
+  // Load contact data
+  var { data: contactData } = await sb.from('todo_contacts').select('hidden').eq('id', contactId).single();
+  var isHidden = contactData ? contactData.hidden : false;
+
   // Load notes
   var { data: notes } = await sb.from('todo_contact_notes').select('*').eq('contact_id', contactId).order('created_at', { ascending: false });
   // Load calls
@@ -826,10 +849,16 @@ async function loadContactPanel(contactId) {
 
   html += '</div>';
 
-  // Delete contact button
-  html += '<div style="margin-top:12px;text-align:right;"><button class="btn btn-sm btn-danger" onclick="deleteContact(' + contactId + ')">Delete Contact</button></div>';
+  // Hide/Unhide and Delete buttons
+  html += '<div style="margin-top:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end;">' +
+    '<button class="btn btn-sm btn-secondary" id="hide-btn-' + contactId + '" onclick="toggleContactVisibility(' + contactId + ')"></button>' +
+    '<button class="btn btn-sm btn-danger" onclick="deleteContact(' + contactId + ')">Delete Contact</button></div>';
 
   panel.innerHTML = html;
+
+  // Set hide/unhide button text
+  var hideBtn = document.getElementById('hide-btn-' + contactId);
+  if (hideBtn) hideBtn.textContent = isHidden ? 'Unhide' : 'Hide';
 }
 
 function showAddContactModal() {
@@ -870,6 +899,14 @@ async function deleteContact(contactId) {
   await sb.from('todo_contact_notes').delete().eq('contact_id', contactId);
   await sb.from('todo_contact_calls').delete().eq('contact_id', contactId);
   await sb.from('todo_contacts').delete().eq('id', contactId);
+  loadContacts();
+}
+
+async function toggleContactVisibility(contactId) {
+  var { data: c } = await sb.from('todo_contacts').select('hidden').eq('id', contactId).single();
+  if (!c) return;
+  var newVal = !c.hidden;
+  await sb.from('todo_contacts').update({ hidden: newVal }).eq('id', contactId);
   loadContacts();
 }
 
