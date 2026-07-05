@@ -5,7 +5,8 @@
 
   var path = decodeURIComponent(window.location.pathname);
   var parts = path.split('/');
-  var slug = parts[2];
+  var tutIdx = parts.indexOf('tutorials');
+  var slug = tutIdx >= 0 ? parts[tutIdx + 1] : null;
 
   if (!slug) return;
 
@@ -25,14 +26,16 @@
     'project-management':'project-management-tutorial','interpersonal-skills':'interpersonal-skills-tutorial',
     'ml':'ml-tutorial','dsa':'dsa-tutorial','dsa-leetcode-roadmap':'dsa-leetcode-roadmap-tutorial',
     'system-design-fundamentals':'system-design-fundamentals-tutorial',
-    'ai-system-design':'ai-system-design-tutorial','ml-system-design':'ml-system-design-tutorial'
+    'ai-system-design':'ai-system-design-tutorial','ml-system-design':'ml-system-design-tutorial',
+    'mindset-mastery':'mindset-mastery-tutorial'
   };
 
   var productSlug = PRODUCT_SLUGS[slug];
   if (!productSlug) return;
 
   var MAX_FREE = 5;
-  var pageNum = parseInt((parts[4] || '').match(/^\d+/)?.[0], 10);
+  var filename = parts[parts.length - 1] || '';
+  var pageNum = parseInt((filename || '').match(/^\d+/)?.[0], 10);
 
   if (!pageNum || pageNum <= MAX_FREE) return;
 

@@ -136,4 +136,6 @@ INSERT INTO shop_products (title, slug, description, price, pdf_url, cover_image
 ('Progressive Web Apps Tutorial - Complete Guide', 'pwa-tutorial', 'Build reliable, fast, and installable PWAs. Service Workers, caching, offline, manifest, and push notifications.', 500.00, '/tutorials/pwa/pwa-tutorial-complete-guide.pdf', '', 'pwa'),
 ('Snowflake Tutorial - Complete Guide', 'snowflake-tutorial', 'Complete guide: architecture, virtual warehouses, data loading, time travel, caching, external integrations.', 500.00, '/tutorials/snowflake-tutorial/snowflake-tutorial-tutorial-complete-guide.pdf', '', 'snowflake-tutorial'),
 ('System Design Fundamentals Tutorial - Complete Guide', 'system-design-fundamentals-tutorial', 'Complete guide: networking, protocols, architecture patterns, scalability, storage, performance, reliability, security.', 500.00, '/tutorials/system-design-fundamentals/system-design-fundamentals-tutorial-complete-guide.pdf', '', 'system-design-fundamentals')
+,
+('Mindset Mastery E-Book', 'mindset-mastery-tutorial', '53 chapters across 5 parts covering focus, discipline, resilience, emotional intelligence, leadership, and personal growth — by Snehal Kadiya.', 500.00, '/tutorials/mindset-mastery/mindset-mastery-ebook.pdf', '', 'mindset-mastery')
 ON CONFLICT (slug) DO UPDATE SET price = EXCLUDED.price, description = EXCLUDED.description;
