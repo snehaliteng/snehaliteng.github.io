@@ -101,6 +101,7 @@ document.querySelectorAll('.nav-item').forEach(el => {
     if (view === 'templates') loadTemplates();
     if (view === 'daily') { setDefaultDate(); loadDailySchedule(); }
     if (view === 'permanent') loadPermanentTasks();
+    if (view === 'contacts') loadContacts();
     if (view === 'monthly') { setDefaultDate(); loadSummaryTabs(); }
     if (view === 'yearly') { setDefaultDate(); loadYearlySummary(); }
   });
@@ -689,6 +690,226 @@ async function loadMonthlySummary(templateId) {
   document.getElementById('summary-content').innerHTML = html;
 }
 
+// ======= Contact Management =======
+var contactsSortState = 'name';
+
+async function loadContacts() {
+  if (!currentUser) return;
+  var tf = document.getElementById('contact-timeframe');
+  var timeframe = tf ? parseInt(tf.value) : 30;
+  var cutDate = timeframe ? new Date(Date.now() - timeframe * 86400000).toISOString().substring(0, 19) : '1970-01-01';
+  if (timeframe === 'all' || isNaN(timeframe)) cutDate = '1970-01-01';
+
+  var { data: contacts } = await sb.from('todo_contacts').select('*').eq('user_id', currentUser.id).order('order_index');
+  var container = document.getElementById('contacts-container');
+  if (!contacts || !contacts.length) {
+    container.innerHTML = '<p style="color:#666;text-align:center;padding:30px;">No contacts yet. Add one to get started.</p>';
+    return;
+  }
+
+  // Gather call counts
+  var contactIds = contacts.map(function(c) { return c.id; });
+  var { data: allCalls } = await sb.from('todo_contact_calls').select('contact_id').in('contact_id', contactIds).gte('called_at', cutDate);
+  var callCounts = {};
+  if (allCalls) { allCalls.forEach(function(c) { callCounts[c.contact_id] = (callCounts[c.contact_id] || 0) + 1; }); }
+
+  // Append count to each contact for sorting
+  contacts.forEach(function(c) { c._callCount = callCounts[c.id] || 0; });
+
+  if (contactsSortState === 'least-called') {
+    contacts.sort(function(a,b) { return (a._callCount || 999) - (b._callCount || 999); });
+  }
+
+  var html = '';
+  for (var ci = 0; ci < contacts.length; ci++) {
+    var c = contacts[ci];
+    var count = c._callCount || 0;
+    var badgeClass = count === 0 ? 'background:#fef2f2;color:#d93025;' : 'background:#e8f4fd;color:#1a73e8;';
+    html += '<div class="contact-item" draggable="true" data-id="' + c.id + '" data-idx="' + ci + '" ' +
+      'ondragstart="contactDragStart(event)" ondragover="contactDragOver(event)" ondrop="contactDrop(event)" ondragend="contactDragEnd(event)" ' +
+      'onclick="toggleContactPanel(' + c.id + ', event)">' +
+      '<span class="contact-handle" onclick="event.stopPropagation();">&#x2630;</span>' +
+      '<span class="contact-name">' + escHtml(c.name) + '</span>' +
+      '<span class="contact-call-badge" style="' + badgeClass + '">' + count + ' calls</span>' +
+      '<span class="contact-expand-icon" id="expand-icon-' + c.id + '">&#x25B6;</span></div>' +
+      '<div class="contact-panel" id="contact-panel-' + c.id + '" style="display:none;"></div>';
+  }
+  container.innerHTML = html;
+}
+
+function contactDragStart(e) {
+  e.dataTransfer.setData('text/plain', e.currentTarget.dataset.id);
+  e.currentTarget.classList.add('dragging');
+}
+function contactDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function contactDragEnd(e) {
+  document.querySelectorAll('.contact-item').forEach(function(el) { el.classList.remove('dragging', 'drag-over'); });
+}
+function contactDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  var draggedId = parseInt(e.dataTransfer.getData('text/plain'));
+  var targetEl = e.currentTarget;
+  var items = Array.from(document.querySelectorAll('.contact-item'));
+  var draggedIdx = items.findIndex(function(el) { return parseInt(el.dataset.id) === draggedId; });
+  var targetIdx = items.indexOf(targetEl);
+  if (draggedIdx === -1 || draggedIdx === targetIdx) return;
+
+  if (draggedIdx < targetIdx) { targetEl.parentNode.insertBefore(items[draggedIdx], targetEl.nextSibling); }
+  else { targetEl.parentNode.insertBefore(items[draggedIdx], targetEl); }
+
+  // Re-save order
+  var newItems = document.querySelectorAll('.contact-item .contact-name');
+  var updates = [];
+  newItems.forEach(function(el, idx) {
+    var contactItem = el.closest('.contact-item');
+    var id = parseInt(contactItem.dataset.id);
+    updates.push(sb.from('todo_contacts').update({ order_index: idx }).eq('id', id));
+  });
+  Promise.all(updates).catch(function(){});
+}
+
+function toggleContactPanel(contactId, event) {
+  if (event) {
+    var handle = event.target.closest('.contact-handle');
+    if (handle) return;
+  }
+  var panel = document.getElementById('contact-panel-' + contactId);
+  var icon = document.getElementById('expand-icon-' + contactId);
+  if (!panel) return;
+  if (panel.style.display !== 'block') {
+    panel.style.display = 'block';
+    if (icon) icon.classList.add('open');
+    loadContactPanel(contactId);
+  } else {
+    panel.style.display = 'none';
+    if (icon) icon.classList.remove('open');
+  }
+}
+
+async function loadContactPanel(contactId) {
+  var panel = document.getElementById('contact-panel-' + contactId);
+  if (!panel) return;
+
+  // Load notes
+  var { data: notes } = await sb.from('todo_contact_notes').select('*').eq('contact_id', contactId).order('created_at', { ascending: false });
+  // Load calls
+  var { data: calls } = await sb.from('todo_contact_calls').select('*').eq('contact_id', contactId).order('called_at', { ascending: false });
+
+  var html = '<div style="display:flex;gap:16px;flex-wrap:wrap;">';
+
+  // Notes section
+  html += '<div style="flex:1;min-width:200px;"><h4>Notes</h4>';
+  if (notes && notes.length) {
+    notes.forEach(function(n) {
+      html += '<div class="entry-row"><span class="entry-text">' + escHtml(n.text) + '</span>' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteContactNote(' + n.id + ',' + contactId + ')">X</button></div>';
+    });
+  } else { html += '<p style="font-size:12px;color:#999;">No notes yet.</p>'; }
+  html += '<div class="add-row"><input type="text" id="new-note-' + contactId + '" placeholder="Add note..." onkeydown="if(event.key===\'Enter\')addContactNote(' + contactId + ')">' +
+    '<button class="btn btn-sm btn-primary" onclick="addContactNote(' + contactId + ')">Add</button></div></div>';
+
+  // Calls section
+  html += '<div style="flex:1;min-width:200px;"><h4>Call History</h4>';
+  if (calls && calls.length) {
+    calls.forEach(function(cl) {
+      var dt = cl.called_at.substring(0, 16).replace('T', ' ');
+      html += '<div class="entry-row"><span class="entry-time">' + escHtml(dt) + '</span>' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteContactCall(' + cl.id + ',' + contactId + ')">X</button></div>';
+    });
+  } else { html += '<p style="font-size:12px;color:#999;">No calls logged yet.</p>'; }
+  html += '<div class="add-row"><input type="datetime-local" id="new-call-' + contactId + '" value="' + new Date().toISOString().substring(0, 16) + '">' +
+    '<button class="btn btn-sm btn-primary" onclick="addContactCall(' + contactId + ')">Log</button></div></div>';
+
+  html += '</div>';
+
+  // Delete contact button
+  html += '<div style="margin-top:12px;text-align:right;"><button class="btn btn-sm btn-danger" onclick="deleteContact(' + contactId + ')">Delete Contact</button></div>';
+
+  panel.innerHTML = html;
+}
+
+function showAddContactModal() {
+  var html = '<h3>Add Contact</h3>' +
+    '<label>Name</label><input id="new-contact-name" placeholder="Contact name" onkeydown="if(event.key===\'Enter\')saveContact()">' +
+    '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="saveContact()">Add</button></div>';
+  showModal(html);
+  setTimeout(function() { var inp = document.getElementById('new-contact-name'); if (inp) inp.focus(); }, 100);
+}
+
+async function saveContact() {
+  var name = document.getElementById('new-contact-name').value.trim();
+  if (!name) return alert('Name is required');
+  closeModal();
+
+  var { data: existing } = await sb.from('todo_contacts').select('order_index').eq('user_id', currentUser.id).order('order_index', { ascending: false }).limit(1);
+  var nextOrder = (existing && existing.length) ? existing[0].order_index + 1 : 0;
+  var { data: idExist } = await sb.from('todo_contacts').select('id').order('id', { ascending: false }).limit(1);
+  var newId = (idExist && idExist.length) ? idExist[0].id + 1 : 1;
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  var { error } = await sb.from('todo_contacts').insert({ id: newId, name: name, order_index: nextOrder, user_id: currentUser.id, created_at: now });
+  if (error) return alert('Error: ' + error.message);
+  loadContacts();
+}
+
+async function deleteContact(contactId) {
+  if (!confirm('Delete this contact and all associated notes & calls?')) return;
+  await sb.from('todo_contact_notes').delete().eq('contact_id', contactId);
+  await sb.from('todo_contact_calls').delete().eq('contact_id', contactId);
+  await sb.from('todo_contacts').delete().eq('id', contactId);
+  loadContacts();
+}
+
+async function addContactNote(contactId) {
+  var input = document.getElementById('new-note-' + contactId);
+  var text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  var { data: idExist } = await sb.from('todo_contact_notes').select('id').order('id', { ascending: false }).limit(1);
+  var newId = (idExist && idExist.length) ? idExist[0].id + 1 : 1;
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  await sb.from('todo_contact_notes').insert({ id: newId, contact_id: contactId, text: text, created_at: now });
+  loadContactPanel(contactId);
+}
+
+async function deleteContactNote(noteId, contactId) {
+  if (!confirm('Delete this note?')) return;
+  await sb.from('todo_contact_notes').delete().eq('id', noteId);
+  loadContactPanel(contactId);
+}
+
+async function addContactCall(contactId) {
+  var input = document.getElementById('new-call-' + contactId);
+  var datetime = input.value;
+  if (!datetime) return;
+  var calledAt = datetime.replace('T', ' ') + ':00';
+  var { data: idExist } = await sb.from('todo_contact_calls').select('id').order('id', { ascending: false }).limit(1);
+  var newId = (idExist && idExist.length) ? idExist[0].id + 1 : 1;
+  var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  await sb.from('todo_contact_calls').insert({ id: newId, contact_id: contactId, called_at: calledAt, created_at: now });
+  loadContactPanel(contactId);
+  loadContacts();
+}
+
+async function deleteContactCall(callId, contactId) {
+  if (!confirm('Delete this call entry?')) return;
+  await sb.from('todo_contact_calls').delete().eq('id', callId);
+  loadContactPanel(contactId);
+  loadContacts();
+}
+
+function sortLeastCalled() {
+  contactsSortState = contactsSortState === 'least-called' ? 'name' : 'least-called';
+  var btn = document.getElementById('sort-least-called');
+  if (btn) btn.textContent = contactsSortState === 'least-called' ? 'Sort: Name' : 'Sort: Least Called';
+  loadContacts();
+}
+
 // ======= Modal =======
 function showModal(html) {
   document.getElementById('modal-content').innerHTML = html;
@@ -1010,7 +1231,9 @@ document.addEventListener('click', function(e) {
 
 // Auto-refresh daily schedule every 60s to keep current-task highlight updated
 setInterval(function() {
-  if (currentView === 'daily' && currentUser) loadDailySchedule();
+  if (!currentUser) return;
+  if (currentView === 'daily') loadDailySchedule();
+  if (currentView === 'contacts') loadContacts();
 }, 60000);
 
 // Init

@@ -119,6 +119,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   .ttask-row input[type="time"] { width: 80px; }
   #daily-date { max-width: 160px !important; }
   #daily-template { min-width: 120px !important; }
+  .contact-item { flex-wrap:wrap; padding:8px 10px; }
+  .contact-panel { padding:10px 12px; }
+  .contact-panel .add-row { flex-wrap:wrap; }
+  .contact-panel .add-row input[type="datetime-local"] { width:100%; }
 }
 
   .summary-table th, .summary-table td { border: 1px solid #e0e0e0; padding: 6px 4px; text-align: center; }
@@ -142,6 +146,29 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .ttask-row .btn-sm { flex-shrink: 0; }
 /* Yearly Summary */
 .yearly-cell { font-weight: 700; font-size: 15px; }
+
+/* Contacts */
+.contact-item { display:flex; align-items:center; padding:10px 12px; border-bottom:1px solid #f0f0f0; gap:10px; cursor:pointer; background:#fff; border-radius:8px; margin-bottom:4px; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:box-shadow .15s; }
+.contact-item:hover { box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+.contact-item.dragging { opacity:0.5; }
+.contact-item.drag-over { border-top:2px solid #1a73e8; }
+.contact-name { flex:1; font-weight:500; font-size:14px; }
+.contact-call-badge { background:#e8f4fd; color:#1a73e8; border-radius:12px; padding:2px 10px; font-size:12px; font-weight:600; white-space:nowrap; }
+.contact-expand-icon { color:#999; font-size:12px; transition:transform .2s; }
+.contact-expand-icon.open { transform:rotate(90deg); }
+.contact-handle { color:#ccc; cursor:grab; font-size:16px; padding:0 4px; user-select:none; }
+.contact-handle:active { cursor:grabbing; }
+
+.contact-panel { background:#f8f9fa; border-radius:0 0 8px 8px; padding:12px 16px 16px; margin:-4px 0 4px; border:1px solid #e8e8e8; border-top:none; }
+.contact-panel h4 { font-size:13px; font-weight:600; color:#555; margin-bottom:8px; }
+.contact-panel .entry-row { display:flex; align-items:center; gap:6px; padding:4px 0; font-size:13px; border-bottom:1px solid #eee; }
+.contact-panel .entry-row:last-child { border-bottom:none; }
+.contact-panel .entry-text { flex:1; }
+.contact-panel .entry-time { color:#666; font-size:12px; min-width:140px; }
+.contact-panel .btn-sm { font-size:11px; padding:2px 8px; }
+.contact-panel .add-row { display:flex; gap:6px; margin-top:8px; align-items:center; }
+.contact-panel .add-row input[type="text"] { flex:1; padding:6px 8px; border:1px solid #ddd; border-radius:4px; font-size:13px; }
+.contact-panel .add-row input[type="datetime-local"] { padding:6px 8px; border:1px solid #ddd; border-radius:4px; font-size:13px; }
 </style>
 </head>
 <body>
@@ -174,6 +201,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <div class="nav-item active" data-view="permanent"><span>&#128204;</span> <span>Todo</span></div>
       <div class="nav-item" data-view="templates"><span>&#128203;</span> <span>Templates</span></div>
       <div class="nav-item" data-view="daily"><span>&#128197;</span> <span>Daily Schedule</span></div>
+      <div class="nav-item" data-view="contacts"><span>&#128231;</span> <span>Contacts</span></div>
       <div class="nav-item" data-view="monthly"><span>&#128200;</span> <span>Monthly</span></div>
       <div class="nav-item" data-view="yearly"><span>&#128202;</span> <span>Yearly</span></div>
     </nav>
@@ -217,6 +245,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <div id="daily-tasks"></div>
         <div id="daily-permanent" style="margin-top:16px;border-top:2px dashed #ccc;padding-top:12px;"></div>
       </div>
+    </div>
+
+    <!-- Contacts Panel -->
+    <div class="panel" id="panel-contacts">
+      <div class="top-bar">
+        <h1>Contacts</h1>
+        <button class="btn btn-primary btn-sm" onclick="showAddContactModal()">+ Add Contact</button>
+        <select id="contact-timeframe" class="filter-select" onchange="loadContacts()" style="max-width:150px;">
+          <option value="7">Last 7 days</option>
+          <option value="30" selected>Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last year</option>
+          <option value="all">All time</option>
+        </select>
+        <button class="btn btn-sm btn-secondary" id="sort-least-called" onclick="sortLeastCalled()" style="font-size:12px;">Sort: Least Called</button>
+      </div>
+      <p class="subtitle">Manage contacts, track calls, and take notes.</p>
+      <div id="contacts-container" style="max-height:calc(100vh - 220px);overflow-y:auto;"></div>
     </div>
 
     <!-- Monthly Summary Panel -->

@@ -120,6 +120,41 @@ CREATE INDEX IF NOT EXISTS idx_ptl_task_date ON todo_permanent_task_logs(task_id
 ALTER TABLE todo_permanent_task_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "users own permanent task logs" ON todo_permanent_task_logs FOR ALL USING (user_id = auth.uid());
 
+-- ======= Contact Management =======
+CREATE TABLE IF NOT EXISTS todo_contacts (
+  id INTEGER PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  order_index INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+ALTER TABLE todo_contacts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users own contacts" ON todo_contacts FOR ALL USING (user_id = auth.uid());
+
+CREATE TABLE IF NOT EXISTS todo_contact_notes (
+  id INTEGER PRIMARY KEY,
+  contact_id INTEGER NOT NULL REFERENCES todo_contacts(id) ON DELETE CASCADE,
+  text TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tcn_contact ON todo_contact_notes(contact_id);
+ALTER TABLE todo_contact_notes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users own contact notes" ON todo_contact_notes FOR ALL USING (
+  EXISTS (SELECT 1 FROM todo_contacts WHERE id = todo_contact_notes.contact_id AND user_id = auth.uid())
+);
+
+CREATE TABLE IF NOT EXISTS todo_contact_calls (
+  id INTEGER PRIMARY KEY,
+  contact_id INTEGER NOT NULL REFERENCES todo_contacts(id) ON DELETE CASCADE,
+  called_at TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tcc_contact ON todo_contact_calls(contact_id);
+ALTER TABLE todo_contact_calls ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "users own contact calls" ON todo_contact_calls FOR ALL USING (
+  EXISTS (SELECT 1 FROM todo_contacts WHERE id = todo_contact_calls.contact_id AND user_id = auth.uid())
+);
+
 GRANT ALL ON todo_templates TO authenticated;
 GRANT ALL ON todo_template_tasks TO authenticated;
 GRANT ALL ON todo_daily_schedules TO authenticated;
@@ -129,5 +164,8 @@ GRANT ALL ON todo_permanent_task_logs TO authenticated;
 GRANT SELECT ON todo_plans TO anon, authenticated;
 GRANT ALL ON todo_plans TO authenticated;
 GRANT ALL ON todo_user_plans TO authenticated;
+GRANT ALL ON todo_contacts TO authenticated;
+GRANT ALL ON todo_contact_notes TO authenticated;
+GRANT ALL ON todo_contact_calls TO authenticated;
 GRANT USAGE ON SEQUENCE todo_plans_id_seq TO authenticated;
 GRANT USAGE ON SEQUENCE todo_user_plans_id_seq TO authenticated;
