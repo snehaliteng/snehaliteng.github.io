@@ -693,6 +693,9 @@ async function loadMonthlySummary(templateId) {
 // ======= Contact Management =======
 var contactsSortState = 'name';
 var contactFilter = 'active';
+var contactPage = 1;
+var contactPageSize = 20;
+var contactSearch = '';
 
 function setContactFilter(filter) {
   contactFilter = filter;
@@ -720,8 +723,14 @@ async function loadContacts() {
   if (contactFilter === 'active') contacts = contacts.filter(function(c) { return !c.hidden; });
   else if (contactFilter === 'hidden') contacts = contacts.filter(function(c) { return c.hidden; });
 
+  // Search filter
+  if (contactSearch) {
+    var q = contactSearch.toLowerCase();
+    contacts = contacts.filter(function(c) { return (c.name || '').toLowerCase().includes(q) || (c.number || '').toLowerCase().includes(q); });
+  }
+
   if (!contacts.length) {
-    container.innerHTML = '<p style="color:#666;text-align:center;padding:30px;">No ' + contactFilter + ' contacts.</p>';
+    container.innerHTML = '<p style="color:#666;text-align:center;padding:30px;">No ' + contactFilter + ' contacts' + (contactSearch ? ' matching "' + escHtml(contactSearch) + '"' : '') + '.</p>';
     return;
   }
 
@@ -738,21 +747,38 @@ async function loadContacts() {
     contacts.sort(function(a,b) { return (a._callCount || 999) - (b._callCount || 999); });
   }
 
-  var html = '';
-  for (var ci = 0; ci < contacts.length; ci++) {
-    var c = contacts[ci];
+  // Paginate
+  var totalPages = Math.ceil(contacts.length / contactPageSize);
+  if (contactPage > totalPages) contactPage = totalPages;
+  var startIdx = (contactPage - 1) * contactPageSize;
+  var pageContacts = contacts.slice(startIdx, startIdx + contactPageSize);
+
+  var html = '<div class="contact-page-info">Page ' + contactPage + ' of ' + totalPages + ' (' + contacts.length + ' contacts)</div>';
+  for (var ci = 0; ci < pageContacts.length; ci++) {
+    var c = pageContacts[ci];
+    var rowNum = startIdx + ci + 1;
     var count = c._callCount || 0;
     var badgeClass = count === 0 ? 'background:#fef2f2;color:#d93025;' : 'background:#e8f4fd;color:#1a73e8;';
-    html += '<div class="contact-item" draggable="true" data-id="' + c.id + '" data-idx="' + ci + '" ' +
+    html += '<div class="contact-item" draggable="true" data-id="' + c.id + '" data-idx="' + (startIdx + ci) + '" ' +
       'ondragstart="contactDragStart(event)" ondragover="contactDragOver(event)" ondrop="contactDrop(event)" ondragend="contactDragEnd(event)" ' +
       'onclick="toggleContactPanel(' + c.id + ', event)"' + (c.hidden ? ' style="opacity:0.5;"' : '') + '>' +
+      '<input type="checkbox" class="contact-select-cb" onclick="event.stopPropagation();updateBulkSendBtn()" data-id="' + c.id + '">' +
+      '<span class="contact-row-num">' + rowNum + '</span>' +
       '<span class="contact-handle" onclick="event.stopPropagation();">&#x2630;</span>' +
       '<span class="contact-name">' + escHtml(c.name) + (c.number ? ' <span style="color:#999;font-size:12px;font-weight:400;">' + escHtml(c.number) + '</span>' : '') + (c.hidden ? ' <span style="color:#999;font-size:10px;">(hidden)</span>' : '') + '</span>' +
       '<span class="contact-call-badge" style="' + badgeClass + '">' + count + ' calls</span>' +
+      (c.number ? '<span class="contact-wa-icon" onclick="event.stopPropagation();sendWhatsApp(\'' + escHtml(c.number) + '\')" title="Send WhatsApp">&#x1F4AC;</span>' : '') +
       '<span class="contact-expand-icon" id="expand-icon-' + c.id + '">&#x25B6;</span>' +
       '<span class="contact-delete-icon" onclick="event.stopPropagation();if(confirm(\'Delete this contact?\'))deleteContact(' + c.id + ')" title="Delete contact">&#x2716;</span></div>' +
       '<div class="contact-panel" id="contact-panel-' + c.id + '" style="display:none;"></div>';
   }
+  // Pagination controls
+  html += '<div class="contact-pagination">';
+  if (contactPage > 1) html += '<button class="btn btn-sm btn-secondary" onclick="contactPage--;loadContacts()">&#x25C0; Prev</button> ';
+  html += '<span class="contact-page-num">' + contactPage + ' / ' + totalPages + '</span>';
+  if (contactPage < totalPages) html += ' <button class="btn btn-sm btn-secondary" onclick="contactPage++;loadContacts()">Next &#x25B6;</button>';
+  html += '</div>';
+
   container.innerHTML = html;
 }
 
@@ -780,13 +806,13 @@ function contactDrop(e) {
   if (draggedIdx < targetIdx) { targetEl.parentNode.insertBefore(items[draggedIdx], targetEl.nextSibling); }
   else { targetEl.parentNode.insertBefore(items[draggedIdx], targetEl); }
 
-  // Re-save order
-  var newItems = document.querySelectorAll('.contact-item .contact-name');
+  // Re-save order using global indices
+  var newItems = document.querySelectorAll('.contact-item');
   var updates = [];
   newItems.forEach(function(el, idx) {
-    var contactItem = el.closest('.contact-item');
-    var id = parseInt(contactItem.dataset.id);
-    updates.push(sb.from('todo_contacts').update({ order_index: idx }).eq('id', id));
+    var id = parseInt(el.dataset.id);
+    var globalIdx = parseInt(el.dataset.idx);
+    updates.push(sb.from('todo_contacts').update({ order_index: globalIdx }).eq('id', id));
   });
   Promise.all(updates).catch(function(){});
 }
@@ -814,7 +840,7 @@ async function loadContactPanel(contactId) {
   if (!panel) return;
 
   // Load contact data
-  var { data: contactData } = await sb.from('todo_contacts').select('hidden').eq('id', contactId).single();
+  var { data: contactData } = await sb.from('todo_contacts').select('hidden, number').eq('id', contactId).single();
   var isHidden = contactData ? contactData.hidden : false;
 
   // Load notes
@@ -849,8 +875,9 @@ async function loadContactPanel(contactId) {
 
   html += '</div>';
 
-  // Hide/Unhide and Delete buttons
+  // Hide/Unhide, WhatsApp and Delete buttons
   html += '<div style="margin-top:12px;text-align:right;display:flex;gap:8px;justify-content:flex-end;">' +
+    (contactData && contactData.number ? '<button class="btn btn-sm btn-primary" onclick="sendWhatsApp(\'' + escHtml(contactData.number) + '\')" style="background:#25D366;border-color:#25D366;">&#x1F4AC; WhatsApp</button>' : '') +
     '<button class="btn btn-sm btn-secondary" id="hide-btn-' + contactId + '" onclick="toggleContactVisibility(' + contactId + ')"></button>' +
     '<button class="btn btn-sm btn-danger" onclick="deleteContact(' + contactId + ')">Delete Contact</button></div>';
 
@@ -910,6 +937,46 @@ async function toggleContactVisibility(contactId) {
   loadContacts();
 }
 
+function sendWhatsApp(number) {
+  var cleaned = number.replace(/[^\d+]/g, '');
+  window.open('https://wa.me/' + encodeURIComponent(cleaned), '_blank');
+}
+
+function updateBulkSendBtn() {
+  var btn = document.getElementById('bulk-send-btn');
+  if (!btn) return;
+  var checked = document.querySelectorAll('.contact-select-cb:checked').length;
+  btn.style.display = checked ? 'inline-flex' : 'none';
+  btn.textContent = '\u{1F4AC} Send to Selected (' + checked + ')';
+}
+
+function getSelectedContactIds() {
+  var ids = [];
+  document.querySelectorAll('.contact-select-cb:checked').forEach(function(cb) {
+    ids.push(parseInt(cb.dataset.id));
+  });
+  return ids;
+}
+
+async function sendBulkWhatsApp() {
+  var ids = getSelectedContactIds();
+  if (!ids.length) return;
+  var msg = prompt('Enter message to send to ' + ids.length + ' contact(s):');
+  if (!msg) return;
+  var { data: contacts } = await sb.from('todo_contacts').select('number').in('id', ids);
+  if (!contacts || !contacts.length) return;
+  var encoded = encodeURIComponent(msg);
+  contacts.forEach(function(c) {
+    if (c.number) {
+      var cleaned = c.number.replace(/[^\d+]/g, '');
+      window.open('https://wa.me/' + encodeURIComponent(cleaned) + '?text=' + encoded, '_blank');
+    }
+  });
+  // Uncheck all
+  document.querySelectorAll('.contact-select-cb:checked').forEach(function(cb) { cb.checked = false; });
+  updateBulkSendBtn();
+}
+
 async function addContactNote(contactId) {
   var input = document.getElementById('new-note-' + contactId);
   var text = input.value.trim();
@@ -953,13 +1020,17 @@ async function importLocationHistoryContacts() {
   if (btn) btn.disabled = true;
   try {
     var lhPhone = localStorage.getItem('lh_phone');
-    if (!lhPhone) { alert('No Location History phone found. Login to Location History app first.'); return; }
+    if (!lhPhone) { lhPhone = prompt('Enter your phone or email used in Location History:'); if (!lhPhone) return; localStorage.setItem('lh_phone', lhPhone); }
 
     var { data: existing } = await sb.from('todo_contacts').select('name, number').eq('user_id', currentUser.id);
     var existingNames = {};
+    var existingNumbers = {};
     var hasNumberCol = true;
     if (existing) {
-      existing.forEach(function(c) { existingNames[c.name.toLowerCase().trim()] = true; });
+      existing.forEach(function(c) {
+        existingNames[c.name.toLowerCase().trim()] = true;
+        if (c.number) existingNumbers[c.number.replace(/[^\d]/g, '')] = true;
+      });
       // Check if number column exists
       if (existing.length && existing[0].number === undefined) hasNumberCol = false;
     }
@@ -968,7 +1039,7 @@ async function importLocationHistoryContacts() {
     if (error) { alert('Error fetching from Location History: ' + error.message); return; }
     if (!lhContacts || !lhContacts.length) { alert('No contacts found in Location History.'); return; }
 
-    var inserted = 0, skipped = 0;
+    var inserted = 0, skipped = 0, lhSeen = {};
     var { data: idExist } = await sb.from('todo_contacts').select('id').order('id', { ascending: false }).limit(1);
     var nextId = (idExist && idExist.length) ? idExist[0].id + 1 : 1;
     var { data: orderExist } = await sb.from('todo_contacts').select('order_index').eq('user_id', currentUser.id).order('order_index', { ascending: false }).limit(1);
@@ -977,7 +1048,16 @@ async function importLocationHistoryContacts() {
 
     for (var i = 0; i < lhContacts.length; i++) {
       var c = lhContacts[i];
-      if (existingNames[c.name.toLowerCase().trim()]) { skipped++; continue; }
+      var nameKey = c.name.toLowerCase().trim();
+      var numKey = c.number ? c.number.replace(/[^\d]/g, '') : '';
+      // Skip if name or number already exists in todo_contacts
+      if (existingNames[nameKey]) { skipped++; continue; }
+      if (numKey && existingNumbers[numKey]) { skipped++; continue; }
+      // Skip if same name already imported from LH this batch
+      if (lhSeen[nameKey]) { skipped++; continue; }
+      if (numKey && lhSeen[numKey]) { skipped++; continue; }
+      lhSeen[nameKey] = true;
+      if (numKey) lhSeen[numKey] = true;
       var payload = { id: nextId++, name: c.name, order_index: nextOrder++, user_id: currentUser.id, created_at: now };
       if (hasNumberCol) payload.number = c.number || '';
       await sb.from('todo_contacts').insert(payload);
