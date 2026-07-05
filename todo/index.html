@@ -278,6 +278,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           <button class="contact-filter-btn" data-filter="hidden" onclick="setContactFilter('hidden')">Hidden</button>
           <button class="contact-filter-btn" data-filter="all" onclick="setContactFilter('all')">All</button>
         </span>
+        <input type="text" id="contact-search-input" placeholder="Search contacts..." onkeyup="contactSearch=this.value;contactPage=1;loadContacts()" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:12px;max-width:150px;">
+        <button class="btn btn-sm btn-secondary" onclick="mergeDuplicateContacts()" style="font-size:12px;">Merge Duplicates</button>
         <button class="btn btn-sm btn-primary" id="bulk-send-btn" onclick="sendBulkWhatsApp()" style="display:none;background:#25D366;border-color:#25D366;font-size:12px;"></button>
       </div>
       <p class="subtitle">Manage contacts, track calls, and take notes.</p>

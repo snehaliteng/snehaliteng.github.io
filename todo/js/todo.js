@@ -1019,8 +1019,7 @@ async function importLocationHistoryContacts() {
   var btn = document.getElementById('import-lh-btn');
   if (btn) btn.disabled = true;
   try {
-    var lhPhone = localStorage.getItem('lh_phone');
-    if (!lhPhone) { lhPhone = prompt('Enter your phone or email used in Location History:'); if (!lhPhone) return; localStorage.setItem('lh_phone', lhPhone); }
+    var lhPhone = currentUser ? currentUser.email : null;
 
     var { data: existing } = await sb.from('todo_contacts').select('name, number').eq('user_id', currentUser.id);
     var existingNames = {};
@@ -1074,6 +1073,94 @@ function sortLeastCalled() {
   contactsSortState = contactsSortState === 'least-called' ? 'name' : 'least-called';
   var btn = document.getElementById('sort-least-called');
   if (btn) btn.textContent = contactsSortState === 'least-called' ? 'Sort: Name' : 'Sort: Least Called';
+  loadContacts();
+}
+
+async function mergeDuplicateContacts() {
+  var { data: contacts } = await sb.from('todo_contacts').select('*').eq('user_id', currentUser.id);
+  if (!contacts || contacts.length < 2) { alert('Not enough contacts to merge.'); return; }
+
+  // Group duplicates by normalized name
+  var groups = [];
+  var seen = {};
+  contacts.forEach(function(c) {
+    var key = (c.name || '').toLowerCase().trim();
+    if (!key) return;
+    if (seen[key] !== undefined) { groups[seen[key]].push(c); }
+    else { seen[key] = groups.length; groups.push([c]); }
+  });
+
+  // Also group by number (across different names)
+  var numGroups = {};
+  contacts.forEach(function(c) {
+    if (!c.number) return;
+    var numKey = c.number.replace(/[^\d]/g, '');
+    if (!numKey) return;
+    if (!numGroups[numKey]) numGroups[numKey] = [];
+    numGroups[numKey].push(c);
+  });
+  Object.keys(numGroups).forEach(function(num) {
+    var g = numGroups[num];
+    if (g.length < 2) return;
+    // Check if this group is already covered by a name group
+    var alreadyCovered = groups.some(function(grp) {
+      return grp.length > 1 && g.every(function(c) { return grp.some(function(x) { return x.id === c.id; }); });
+    });
+    if (!alreadyCovered) groups.push(g);
+  });
+
+  var toMerge = groups.filter(function(g) { return g.length > 1; });
+  if (!toMerge.length) { alert('No duplicate contacts found.'); return; }
+
+  // Build summary HTML
+  var summary = '<h3>Merge Duplicate Contacts</h3><p style="font-size:13px;color:#666;margin-bottom:12px;">' + toMerge.length + ' duplicate group(s) found. Keep will retain notes & calls.</p>';
+  toMerge.forEach(function(g, gi) {
+    // Pick the best contact to keep: has number > has notes > first
+    var keep = g[0];
+    g.forEach(function(c) {
+      if (c.number && !keep.number) keep = c;
+      else if (c.number && keep.number && c.created_at < keep.created_at) keep = c;
+    });
+    summary += '<div style="border:1px solid #ddd;border-radius:6px;padding:10px;margin-bottom:8px;font-size:13px;">';
+    summary += '<div style="font-weight:600;margin-bottom:4px;">Group ' + (gi + 1) + '</div>';
+    g.forEach(function(c) {
+      var isKeep = c.id === keep.id;
+      summary += '<div style="padding:3px 6px;' + (isKeep ? 'background:#e8f4fd;border-radius:4px;' : '') + '">' +
+        escHtml(c.name) + (c.number ? ' - ' + escHtml(c.number) : '') + (isKeep ? ' <strong>(keep)</strong>' : '') + '</div>';
+    });
+    summary += '</div>';
+  });
+  summary += '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal();window._mergeData=null">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="closeModal();executeMerge(window._mergeData)">Merge ' + toMerge.length + ' Group(s)</button></div>';
+  window._mergeData = toMerge;
+
+  showModal(summary);
+}
+
+async function executeMerge(groups) {
+  var merged = 0, deleted = 0;
+  for (var gi = 0; gi < groups.length; gi++) {
+    var g = groups[gi];
+    // Pick keep: has number > has notes > first
+    var keep = g[0];
+    for (var ci = 0; ci < g.length; ci++) {
+      if (g[ci].number && !keep.number) keep = g[ci];
+      else if (g[ci].number && keep.number && g[ci].created_at < keep.created_at) keep = g[ci];
+    }
+    var toDelete = g.filter(function(c) { return c.id !== keep.id; });
+    for (var di = 0; di < toDelete.length; di++) {
+      var del = toDelete[di];
+      // Transfer notes
+      await sb.from('todo_contact_notes').update({ contact_id: keep.id }).eq('contact_id', del.id);
+      // Transfer calls
+      await sb.from('todo_contact_calls').update({ contact_id: keep.id }).eq('contact_id', del.id);
+      // Delete
+      await sb.from('todo_contacts').delete().eq('id', del.id);
+      deleted++;
+    }
+    merged++;
+  }
+  alert('Merged ' + merged + ' group(s), deleted ' + deleted + ' duplicate(s).');
   loadContacts();
 }
 
