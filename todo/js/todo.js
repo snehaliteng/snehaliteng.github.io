@@ -403,9 +403,32 @@ async function loadDailySchedule() {
     return;
   }
 
-  const schedule = schedules[0];
-  const { data: tasks } = await sb.from('todo_task_instances').select('*').eq('schedule_id', schedule.id).order('start_time');
+  // Merge tasks from all schedules for this date, deduplicate by title+time
+  var allTasks = [];
+  var seen = {};
+  for (var si = 0; si < schedules.length; si++) {
+    var { data: stasks } = await sb.from('todo_task_instances').select('*').eq('schedule_id', schedules[si].id);
+    if (stasks) {
+      for (var ti = 0; ti < stasks.length; ti++) {
+        var key = stasks[ti].start_time + '|' + stasks[ti].end_time + '|' + stasks[ti].title;
+        if (!seen[key]) {
+          seen[key] = true;
+          allTasks.push(stasks[ti]);
+        }
+      }
+    }
+  }
+  allTasks.sort(function(a,b) { return a.start_time.localeCompare(b.start_time); });
 
+  // Clean up duplicate schedules (keep first, delete rest)
+  if (schedules.length > 1) {
+    for (var si = 1; si < schedules.length; si++) {
+      sb.from('todo_task_instances').delete().eq('schedule_id', schedules[si].id).then(function(){});
+      sb.from('todo_daily_schedules').delete().eq('id', schedules[si].id).then(function(){});
+    }
+  }
+
+  const schedule = schedules[0];
   let templateName = '';
   if (schedule.template_id) {
     const { data: template } = await sb.from('todo_templates').select('name').eq('id', schedule.template_id).single();
@@ -413,11 +436,11 @@ async function loadDailySchedule() {
   }
   let html = '<div style="font-size:13px;color:#666;margin-bottom:12px;">' +
     (templateName ? 'Template: <strong>' + escHtml(templateName) + '</strong>' : '<em>Custom schedule</em>') + '</div>';
-  if (tasks && tasks.length) {
+  if (allTasks.length) {
     selectedTaskIds.clear();
     document.getElementById('delete-selected-btn').style.display = 'none';
     var nowTime = new Date().toTimeString().substring(0, 5);
-    html += tasks.map(function(t) {
+    html += allTasks.map(function(t) {
       var isCurrent = !t.is_completed && nowTime >= t.start_time && nowTime < t.end_time;
       return '<div class="task-item' + (isCurrent ? ' current-task' : '') + '">' +
         '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
