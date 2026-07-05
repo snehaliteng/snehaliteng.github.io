@@ -48,20 +48,26 @@ class MainActivity : AppCompatActivity() {
     private val pollingRunnable = object : Runnable {
         private var lastIsWork = true
         override fun run() {
-            if (!TimerService.isRunning()) {
-                pollingHandler.removeCallbacks(this)
-                return
-            }
+            val running = TimerService.isRunning()
             val remaining = TimerService.getRemainingSeconds()
             val isWork = TimerService.isWorkSession()
             val cycle = TimerService.getCycle()
-            timerText.text = TimerService.formatTime(remaining)
-            sessionLabel.text = if (isWork) "Focus" else "Break"
-            cycleCount.text = "Cycle #$cycle"
-            if (lastIsWork != isWork) {
-                showSessionEndDialog(if (lastIsWork) "Great focus! Take a break." else "Break is over, time to focus!")
+
+            updateUI(remaining, isWork, cycle)
+
+            if (running) {
+                startButton.isEnabled = false
+                pauseButton.isEnabled = true
+                if (lastIsWork != isWork) {
+                    showSessionEndDialog(if (isWork) "Focus time!" else "Break time!", isWork)
+                    lastIsWork = isWork
+                }
+            } else {
+                startButton.isEnabled = true
+                pauseButton.isEnabled = false
+                startButton.text = if (remaining < (if (isWork) workMinutes else breakMinutes) * 60 && remaining > 0) "Resume" else "Start"
             }
-            lastIsWork = isWork
+            
             pollingHandler.postDelayed(this, 500)
         }
     }
@@ -85,7 +91,6 @@ class MainActivity : AppCompatActivity() {
         initViews()
         setupListeners()
         requestNotificationPermission()
-        syncWithServiceState()
     }
 
     private fun initViews() {
@@ -125,8 +130,6 @@ class MainActivity : AppCompatActivity() {
                 putExtra(TimerService.EXTRA_BREAK_MINUTES, breakMinutes)
             }
             ContextCompat.startForegroundService(this, intent)
-            startButton.isEnabled = false
-            pauseButton.isEnabled = true
         }
 
         pauseButton.setOnClickListener {
@@ -134,8 +137,6 @@ class MainActivity : AppCompatActivity() {
                 action = TimerService.ACTION_PAUSE
             }
             startService(intent)
-            startButton.isEnabled = true
-            startButton.text = "Resume"
         }
 
         resetButton.setOnClickListener {
@@ -143,12 +144,6 @@ class MainActivity : AppCompatActivity() {
                 action = TimerService.ACTION_RESET
             }
             startService(intent)
-            timerText.text = TimerService.formatTime(workMinutes * 60)
-            sessionLabel.text = "Focus"
-            cycleCount.text = "Cycle #1"
-            startButton.isEnabled = true
-            startButton.text = "Start"
-            pauseButton.isEnabled = false
         }
 
         stopButton.setOnClickListener {
@@ -156,12 +151,6 @@ class MainActivity : AppCompatActivity() {
                 action = TimerService.ACTION_STOP
             }
             startService(intent)
-            timerText.text = TimerService.formatTime(workMinutes * 60)
-            sessionLabel.text = "Focus"
-            cycleCount.text = "Cycle #1"
-            startButton.isEnabled = true
-            startButton.text = "Start"
-            pauseButton.isEnabled = false
         }
 
         saveSettingsButton.setOnClickListener {
@@ -169,37 +158,18 @@ class MainActivity : AppCompatActivity() {
             breakMinutes = breakSlider.value.toInt()
             prefs.edit().putInt("work_minutes", workMinutes).putInt("break_minutes", breakMinutes).apply()
             if (!TimerService.isRunning()) {
-                timerText.text = TimerService.formatTime(workMinutes * 60)
-                sessionLabel.text = "Focus"
-                cycleCount.text = "Cycle #1"
+                updateUI(workMinutes * 60, true, 1)
             }
         }
     }
 
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            when {
-                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    == PackageManager.PERMISSION_GRANTED -> { }
-                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
-                    showPermissionRationale()
-                }
-                else -> {
-                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
-            }
-        }
-    }
-
-    private fun showPermissionRationale() {
-        AlertDialog.Builder(this)
-            .setTitle("Notification Permission")
-            .setMessage("The app needs notification permission to show timer updates and alerts.")
-            .setPositiveButton("Grant") { _, _ ->
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
-            .setNegativeButton("Deny", null)
-            .show()
+        }
     }
 
     private fun showPermissionDeniedDialog() {
@@ -210,7 +180,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showSessionEndDialog(message: String) {
+    private fun showSessionEndDialog(message: String, isWork: Boolean) {
         playAlarm()
         vibrate()
         AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog_Alert)
@@ -251,17 +221,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun syncWithServiceState() {
-        if (TimerService.isRunning()) {
-            val remaining = TimerService.getRemainingSeconds()
-            val isWork = TimerService.isWorkSession()
-            val cycle = TimerService.getCycle()
-            updateUI(remaining, isWork, cycle)
-            startButton.isEnabled = false
-            pauseButton.isEnabled = true
-        }
-    }
-
     private fun updateUI(remainingSeconds: Int, isWork: Boolean, cycle: Int) {
         timerText.text = TimerService.formatTime(remainingSeconds)
         sessionLabel.text = if (isWork) "Focus" else "Break"
@@ -270,7 +229,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        syncWithServiceState()
         pollingHandler.post(pollingRunnable)
     }
 

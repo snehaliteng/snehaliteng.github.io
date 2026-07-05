@@ -5,3 +5,7 @@ LocationHistory/android/LocationTracker/.idea/*
 LocationHistory/android/LocationTracker/app/build/*
 tutorials/ai/AI_Tutorial_Complete_Guide.docx
 tutorials/ai/ai-tutorial-complete-guide.pdf
+pomodoro/pomodoro-android/.gradle/*
+pomodoro/pomodoro-android/.idea/*
+pomodoro/pomodoro-android/app/build/*
+ZippyRide/android/driver/.gradle/*

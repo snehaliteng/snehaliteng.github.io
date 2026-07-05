@@ -5,11 +5,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.VibrationEffect
@@ -26,15 +26,9 @@ class TimerService : Service() {
         const val ACTION_PAUSE = "com.pomodoro.app.PAUSE"
         const val ACTION_RESET = "com.pomodoro.app.RESET"
         const val ACTION_STOP = "com.pomodoro.app.STOP"
-        const val ACTION_TICK = "com.pomodoro.app.TICK"
-        const val ACTION_SESSION_END = "com.pomodoro.app.SESSION_END"
-        const val ACTION_CYCLE_CHANGED = "com.pomodoro.app.CYCLE_CHANGED"
 
         const val EXTRA_WORK_MINUTES = "work_minutes"
         const val EXTRA_BREAK_MINUTES = "break_minutes"
-        const val EXTRA_REMAINING_SECONDS = "remaining_seconds"
-        const val EXTRA_IS_WORK = "is_work"
-        const val EXTRA_CYCLE = "cycle"
 
         private var isRunning = false
         private var isWorkSession = true
@@ -67,12 +61,16 @@ class TimerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                workSeconds = intent.getIntExtra(EXTRA_WORK_MINUTES, 25) * 60
-                breakSeconds = intent.getIntExtra(EXTRA_BREAK_MINUTES, 5) * 60
+                val newWork = intent.getIntExtra(EXTRA_WORK_MINUTES, 25) * 60
+                val newBreak = intent.getIntExtra(EXTRA_BREAK_MINUTES, 5) * 60
+                workSeconds = newWork
+                breakSeconds = newBreak
                 if (!isRunning) {
-                    isWorkSession = true
-                    remainingSeconds = workSeconds
-                    cycle = 1
+                    if (remainingSeconds <= 0) {
+                        isWorkSession = true
+                        remainingSeconds = workSeconds
+                        cycle = 1
+                    }
                 }
                 startTimer()
             }
@@ -98,7 +96,11 @@ class TimerService : Service() {
 
         val notification = createNotification()
         try {
-            startForeground(NOTIFICATION_ID, notification)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             isRunning = false
@@ -108,15 +110,13 @@ class TimerService : Service() {
 
         timerThread = Thread {
             try {
-                while (running && remainingSeconds > 0) {
-                    try {
-                        Thread.sleep(1000)
-                    } catch (e: InterruptedException) {
-                        break
-                    }
+                while (running) {
+                    Thread.sleep(1000)
                     if (!running) break
-                    remainingSeconds--
-                    sendTickBroadcast()
+                    
+                    if (remainingSeconds > 0) {
+                        remainingSeconds--
+                    }
 
                     if (remainingSeconds <= 0) {
                         playAlarm()
@@ -124,30 +124,21 @@ class TimerService : Service() {
                         if (isWorkSession) {
                             isWorkSession = false
                             remainingSeconds = breakSeconds
-                            sendSessionEndBroadcast("Break time!")
                         } else {
                             isWorkSession = true
                             cycle++
                             remainingSeconds = workSeconds
-                            sendSessionEndBroadcast("Focus time!")
                         }
-                        sendCycleChangedBroadcast()
-                        updateNotification()
-                    } else {
-                        updateNotification()
                     }
+                    updateNotification()
                 }
+            } catch (e: InterruptedException) {
+                // Normal exit
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                if (remainingSeconds <= 0) {
-                    isRunning = false
-                    running = false
-                    Handler(Looper.getMainLooper()).post {
-                        stopForegroundCompat()
-                        stopSelf()
-                    }
-                }
+                isRunning = false
+                running = false
             }
         }
         timerThread?.start()
@@ -161,14 +152,7 @@ class TimerService : Service() {
     }
 
     private fun resetTimer() {
-        running = false
-        isRunning = false
-        timerThread?.interrupt()
-        isWorkSession = true
-        remainingSeconds = workSeconds
-        cycle = 1
-        sendTickBroadcast()
-        sendCycleChangedBroadcast()
+        remainingSeconds = if (isWorkSession) workSeconds else breakSeconds
         updateNotification()
     }
 
@@ -177,32 +161,6 @@ class TimerService : Service() {
         isRunning = false
         timerThread?.interrupt()
         remainingSeconds = 0
-    }
-
-    private fun sendTickBroadcast() {
-        val intent = Intent(ACTION_TICK).apply {
-            putExtra(EXTRA_REMAINING_SECONDS, remainingSeconds)
-            putExtra(EXTRA_IS_WORK, isWorkSession)
-            putExtra(EXTRA_CYCLE, cycle)
-        }
-        sendBroadcast(intent)
-    }
-
-    private fun sendSessionEndBroadcast(message: String) {
-        val intent = Intent(ACTION_SESSION_END).apply {
-            putExtra(EXTRA_IS_WORK, isWorkSession)
-            putExtra(EXTRA_CYCLE, cycle)
-            putExtra("message", message)
-        }
-        sendBroadcast(intent)
-    }
-
-    private fun sendCycleChangedBroadcast() {
-        val intent = Intent(ACTION_CYCLE_CHANGED).apply {
-            putExtra(EXTRA_CYCLE, cycle)
-            putExtra(EXTRA_IS_WORK, isWorkSession)
-        }
-        sendBroadcast(intent)
     }
 
     private fun playAlarm() {
@@ -260,14 +218,13 @@ class TimerService : Service() {
 
     private fun updateNotification() {
         val nm = getSystemService(NotificationManager::class.java)
-        if (running) {
-            nm.notify(NOTIFICATION_ID, createNotification())
-        } else if (isRunning) {
+        if (isRunning) {
             val sessionType = if (isWorkSession) "Focus" else "Break"
             val timeStr = formatTime(remainingSeconds)
+            val title = if (running) "Pomodoro - $sessionType" else "Pomodoro - Paused"
             val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Pomodoro - Paused")
-                .setContentText("$sessionType: $timeStr  |  Cycle #$cycle")
+                .setContentTitle(title)
+                .setContentText("$timeStr  |  Cycle #$cycle")
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true)
@@ -283,6 +240,8 @@ class TimerService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         running = false
+        isRunning = false
+        timerThread?.interrupt()
         ringtone?.stop()
     }
 
