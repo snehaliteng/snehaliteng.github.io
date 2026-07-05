@@ -288,7 +288,9 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
           <option value="hidden">Hidden</option>
           <option value="unread">Unread</option>
         </select>
-        <button class="btn btn-primary" onclick="showQModal()">+ New</button>
+        <button class="btn btn-primary btn-sm" onclick="showQModal()">+ New</button>
+        <button class="btn btn-sm btn-secondary" onclick="exportQuestions()">&#x2913; Export</button>
+        <button class="btn btn-sm btn-secondary" onclick="readAloudAllQuestions()">&#128264; Read All</button>
         <span id="q-select-bar" class="hidden">
           <input type="checkbox" id="q-select-all" onchange="toggleAllQuestions(this.checked)" title="Select all">
           <button class="btn btn-sm btn-danger" id="q-delete-selected" onclick="deleteSelectedQuestions()" disabled>Delete Selected</button>

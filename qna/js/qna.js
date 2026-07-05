@@ -331,6 +331,7 @@ function renderQuestionList(questions, prefMap) {
       <span class="q-title">${escHtml(q.title)}${read ? '<span class="read-badge">Read</span>' : ''}</span>
       <span class="q-meta">${cat ? escHtml(cat.name) : ''}${q.is_hidden ? ' <span style="color:#d93025;">Hidden</span>' : ''}</span>
       <span class="q-actions">
+        <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();readAloudQuestion(${q.id})" title="Read aloud">&#128264;</button>
         <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();toggleHide(${q.id})" title="${q.is_hidden ? 'Unhide' : 'Hide'}">&#128065;</button>
         <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();showQModal(${q.id})">&#9998;</button>
         <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteQuestion(${q.id})">&#10005;</button>
@@ -447,6 +448,7 @@ async function toggleQDetail(questionId, el) {
     html += '<p style="color:#999;font-size:13px;">No answers yet.</p>';
   }
   html += `<button class="btn btn-sm btn-secondary" onclick="addAnswer(${questionId})">+ Add Answer</button>`;
+  html += ` <button class="btn btn-sm btn-secondary" onclick="readAloudQuestion(${questionId})">&#128264; Read Aloud</button>`;
   if (p) html += `<span style="margin-left:8px;font-size:12px;color:#999;">${p.is_read ? 'Read' : 'Unread'}</span>`;
   detail.innerHTML = html;
 }
@@ -922,6 +924,134 @@ async function deleteSelectedCategories() {
 }
 
 // Modal helpers
+async function exportQuestions() {
+  var catId = document.getElementById('q-cat-filter').value;
+  var catName = catId ? (catCache.find(function(c) { return c.id == catId; }) || {}).name : 'All Categories';
+
+  // Fetch all questions matching current filter (no pagination)
+  var qry = sb.from('qna_questions').select('id,title,description,category_id,created_at');
+  if (catId) qry = qry.eq('category_id', catId);
+  var { data: questions } = await qry.order('order_index');
+  if (!questions || !questions.length) { alert('No questions to export.'); return; }
+
+  // Fetch all answers for these questions
+  var qIds = questions.map(function(q) { return q.id; });
+  var { data: answers } = await sb.from('qna_answers').select('*').in('question_id', qIds).order('id');
+
+  // Build answer map
+  var ansMap = {};
+  if (answers) answers.forEach(function(a) {
+    if (!ansMap[a.question_id]) ansMap[a.question_id] = [];
+    ansMap[a.question_id].push(a);
+  });
+
+  // Build text
+  var lines = [];
+  var separator = '='.repeat(60);
+  lines.push(separator);
+  lines.push('Q&A Export - ' + catName);
+  lines.push('Generated: ' + new Date().toLocaleString());
+  lines.push(separator);
+  lines.push('');
+
+  questions.forEach(function(q, i) {
+    var cat = catCache.find(function(c) { return c.id === q.category_id; });
+    lines.push((i + 1) + '. ' + q.title);
+    if (cat) lines.push('   Category: ' + cat.name);
+    if (q.description) lines.push('   Description: ' + q.description.replace(/<[^>]*>/g, ''));
+    lines.push('');
+
+    var qa = ansMap[q.id] || [];
+    if (qa.length) {
+      qa.forEach(function(a, ai) {
+        lines.push('   Answer ' + (ai + 1) + ':');
+        var text = a.content_html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+        // Wrap long text
+        while (text.length > 0) {
+          lines.push('      ' + text.substring(0, 100));
+          text = text.substring(100);
+        }
+        lines.push('');
+      });
+    } else {
+      lines.push('   (No answers)');
+      lines.push('');
+    }
+    lines.push('---');
+    lines.push('');
+  });
+
+  var blob = new Blob([lines.join('\r\n')], { type: 'text/plain;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'qna-export-' + (catId ? catName.replace(/[^a-z0-9]/gi, '-').toLowerCase() : 'all') + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function readAloudAllQuestions() {
+  var search = document.getElementById('q-search').value.trim();
+  var catId = document.getElementById('q-cat-filter').value;
+  var hideFilter = document.getElementById('q-hide-filter').value;
+
+  var qry = sb.from('qna_questions').select('id,title,description');
+  if (search) qry = qry.or('title.ilike.%' + search + '%,description.ilike.%' + search + '%');
+  if (catId) qry = qry.eq('category_id', catId);
+  if (hideFilter === 'visible') qry = qry.eq('is_hidden', false);
+  if (hideFilter === 'hidden') qry = qry.eq('is_hidden', true);
+  var { data: questions } = await qry.order('order_index');
+  if (!questions || !questions.length) { alert('No questions to read.'); return; }
+
+  var qIds = questions.map(function(q) { return q.id; });
+  var { data: answers } = await sb.from('qna_answers').select('question_id,content_html').in('question_id', qIds);
+  var ansMap = {};
+  if (answers) answers.forEach(function(a) {
+    if (!ansMap[a.question_id]) ansMap[a.question_id] = [];
+    ansMap[a.question_id].push(a);
+  });
+
+  var text = '';
+  questions.forEach(function(q, i) {
+    text += 'Question ' + (i + 1) + ': ' + q.title + '. ';
+    if (q.description) text += q.description.replace(/<[^>]*>/g, '') + '. ';
+    var qa = ansMap[q.id] || [];
+    if (qa.length) {
+      text += 'Answers. ';
+      qa.forEach(function(a, ai) {
+        text += 'Answer ' + (ai + 1) + ': ' + a.content_html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ') + '. ';
+      });
+    }
+    text += '. ';
+  });
+  speakText(text);
+}
+
+async function readAloudQuestion(questionId) {
+  var { data: q } = await sb.from('qna_questions').select('title,description').eq('id', questionId).single();
+  if (!q) return;
+  var { data: answers } = await sb.from('qna_answers').select('content_html').eq('question_id', questionId);
+  var text = q.title + '. ' + (q.description ? q.description.replace(/<[^>]*>/g, '') + '. ' : '');
+  if (answers && answers.length) {
+    text += ' Answers. ';
+    answers.forEach(function(a, i) {
+      text += 'Answer ' + (i + 1) + ': ' + a.content_html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ') + '. ';
+    });
+  }
+  speakText(text);
+}
+
+function speakText(text) {
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  var utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 0.9;
+  utter.pitch = 1;
+  window.speechSynthesis.speak(utter);
+}
+
 function showModal(html) {
   document.getElementById('modal-content').innerHTML = html;
   document.getElementById('modal-overlay').classList.remove('hidden');
