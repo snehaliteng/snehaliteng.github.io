@@ -1044,8 +1044,8 @@ async function readAloudQuestion(questionId) {
 }
 
 function speakText(text) {
-  if (!text) return;
   window.speechSynthesis.cancel();
+  if (!text) return;
   var utter = new SpeechSynthesisUtterance(text);
   utter.rate = 0.9;
   utter.pitch = 1;
