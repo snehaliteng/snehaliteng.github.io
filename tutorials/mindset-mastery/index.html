@@ -31,9 +31,11 @@
     .part h2 { font-size: 1.3rem; font-weight: 700; color: #1e40af; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #dbeafe; }
     .part .desc { color: #64748b; font-size: .9rem; margin-bottom: 12px; }
     .part ol { list-style: none; padding: 0; }
-    .part li { padding: 8px 14px; border-radius: 8px; margin-bottom: 4px; display: flex; align-items: baseline; gap: 8px; }
+    .part li { padding: 8px 14px; border-radius: 8px; margin-bottom: 4px; display: flex; align-items: baseline; gap: 8px; transition: background .15s; }
+    .part li:hover { background: #f1f5f9; }
     .part li .num { font-weight: 600; color: #3b82f6; min-width: 32px; font-size: .9rem; }
-    .part li .ch-title { color: #1e293b; flex: 1; }
+    .part li .ch-link { color: #1e293b; text-decoration: none; flex: 1; }
+    .part li .ch-link:hover { color: #2563eb; text-decoration: underline; }
     .download-box { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-radius: 16px; padding: 32px; text-align: center; margin: 48px 0; border: 1px solid #bfdbfe; }
     .download-box h3 { font-size: 1.3rem; font-weight: 700; color: #1e3a5f; margin-bottom: 8px; }
     .download-box p { color: #475569; font-size: .95rem; margin-bottom: 20px; }
@@ -41,33 +43,45 @@
     .btn:hover { background: #1d4ed8; }
     .btn i { margin-right: 8px; }
     .intro-text { font-size: 1.05rem; color: #334155; margin-bottom: 40px; padding: 20px 24px; background: #f8fafc; border-left: 4px solid #3b82f6; border-radius: 0 12px 12px 0; }
+    nav.site-nav { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 12px 24px; }
     @media (max-width:600px) { h1 { font-size: 1.7rem; } .container { padding: 24px 16px 60px; } .part li { padding: 6px 10px; } }
   </style>
 </head>
 <body>
+  <nav class="site-nav">
+    <div style="max-width:1200px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center;">
+      <a href="../../index.html" style="font-weight:700;color:#2563eb;text-decoration:none;">SnehalITEng</a>
+      <a href="../" style="color:#64748b;text-decoration:none;font-size:.95rem;font-weight:500;">Tutorials</a>
+    </div>
+  </nav>
+
   <div class="container">
-    <a href="../" class="back-link">&larr; Back to Tutorials</span>
+    <a href="../" class="back-link">&larr; Back to Tutorials</a>
     
     <h1>Mindset Mastery</h1>
     <p class="author">by Snehal Kadiya</p>
     <p class="subtitle">100 Shifts for Lasting Success</p>
+
+    <div style="text-align:center;margin-bottom:24px;">
+      <span style="background:#fef2f2;color:#991b1b;padding:4px 14px;border-radius:20px;font-size:.85rem;font-weight:600;">Premium Book</span>
+    </div>
 
     <div class="intro-text">
       <strong>About This Book</strong><br><br>
       <em>Mindset Mastery: 100 Shifts for Lasting Success</em> is a practical guide to transforming how you think, work, and live. Across 53 chapters organized into 5 parts, you'll learn to build discipline over motivation, embrace failure as feedback, develop emotional intelligence, harness the power of consistency, and create lasting success — one shift at a time.
     </div>
 
-    <h2 style="font-size:1.2rem;font-weight:700;color:#0f172a;margin-bottom:20px;">Table of Contents</h2>
+    <h2 style="font-size:1.2rem;font-weight:700;color:#0f172a;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:10px;">Table of Contents</h2>
 
     <div class="part">
       <h2>Part I &middot; Foundations</h2>
       <p class="desc">Setting the stage — clarity, energy, and the power of a single focus.</p>
       <ol>
-        <li><span class="num">1.</span><span class="ch-title">The Power of One Big Idea</span></li>
-        <li><span class="num">2.</span><span class="ch-title">Clarity Before Action</span></li>
-        <li><span class="num">3.</span><span class="ch-title">Prioritize Your Core Task</span></li>
-        <li><span class="num">4.</span><span class="ch-title">The Myth of Multitasking</span></li>
-        <li><span class="num">5.</span><span class="ch-title">Energy is Everything</span></li>
+        <li><span class="num">1.</span><a href="mindset-mastery-full.html#ch1" class="ch-link">The Power of One Big Idea</a></li>
+        <li><span class="num">2.</span><a href="mindset-mastery-full.html#ch2" class="ch-link">Clarity Before Action</a></li>
+        <li><span class="num">3.</span><a href="mindset-mastery-full.html#ch3" class="ch-link">Prioritize Your Core Task</a></li>
+        <li><span class="num">4.</span><a href="mindset-mastery-full.html#ch4" class="ch-link">The Myth of Multitasking</a></li>
+        <li><span class="num">5.</span><a href="mindset-mastery-full.html#ch5" class="ch-link">Energy is Everything</a></li>
       </ol>
     </div>
 
@@ -75,11 +89,11 @@
       <h2>Part II &middot; Productivity Principles</h2>
       <p class="desc">Planning, breaking down goals, deadlines, and cutting through noise.</p>
       <ol>
-        <li><span class="num">6.</span><span class="ch-title">Plan Tomorrow Today</span></li>
-        <li><span class="num">7.</span><span class="ch-title">Break It Down</span></li>
-        <li><span class="num">8.</span><span class="ch-title">Deadlines Drive Discipline</span></li>
-        <li><span class="num">9.</span><span class="ch-title">Focus on High Value Work</span></li>
-        <li><span class="num">10.</span><span class="ch-title">Say No to Noise</span></li>
+        <li><span class="num">6.</span><a href="mindset-mastery-full.html#ch6" class="ch-link">Plan Tomorrow Today</a></li>
+        <li><span class="num">7.</span><a href="mindset-mastery-full.html#ch7" class="ch-link">Break It Down</a></li>
+        <li><span class="num">8.</span><a href="mindset-mastery-full.html#ch8" class="ch-link">Deadlines Drive Discipline</a></li>
+        <li><span class="num">9.</span><a href="mindset-mastery-full.html#ch9" class="ch-link">Focus on High Value Work</a></li>
+        <li><span class="num">10.</span><a href="mindset-mastery-full.html#ch10" class="ch-link">Say No to Noise</a></li>
       </ol>
     </div>
 
@@ -87,11 +101,11 @@
       <h2>Part III &middot; Practical Strategies</h2>
       <p class="desc">Momentum, time blocking, tech leverage, delegation, and automation.</p>
       <ol>
-        <li><span class="num">11.</span><span class="ch-title">Start Before You're Ready</span></li>
-        <li><span class="num">12.</span><span class="ch-title">Time Blocking Mastery</span></li>
-        <li><span class="num">13.</span><span class="ch-title">Leverage Technology Wisely</span></li>
-        <li><span class="num">14.</span><span class="ch-title">Delegate and Elevate</span></li>
-        <li><span class="num">15.</span><span class="ch-title">Automate the Routine</span></li>
+        <li><span class="num">11.</span><a href="mindset-mastery-full.html#ch11" class="ch-link">Start Before You're Ready</a></li>
+        <li><span class="num">12.</span><a href="mindset-mastery-full.html#ch12" class="ch-link">Time Blocking Mastery</a></li>
+        <li><span class="num">13.</span><a href="mindset-mastery-full.html#ch13" class="ch-link">Leverage Technology Wisely</a></li>
+        <li><span class="num">14.</span><a href="mindset-mastery-full.html#ch14" class="ch-link">Delegate and Elevate</a></li>
+        <li><span class="num">15.</span><a href="mindset-mastery-full.html#ch15" class="ch-link">Automate the Routine</a></li>
       </ol>
     </div>
 
@@ -99,11 +113,11 @@
       <h2>Part IV &middot; Mindset Shifts</h2>
       <p class="desc">Discipline, resilience, growth mindset, consistency, and bouncing back.</p>
       <ol>
-        <li><span class="num">16.</span><span class="ch-title">Discipline Over Motivation</span></li>
-        <li><span class="num">17.</span><span class="ch-title">Embrace Failure as Feedback</span></li>
-        <li><span class="num">18.</span><span class="ch-title">Growth Mindset in Action</span></li>
-        <li><span class="num">19.</span><span class="ch-title">The Power of Consistency</span></li>
-        <li><span class="num">20.</span><span class="ch-title">Resilience in the Face of Challenges</span></li>
+        <li><span class="num">16.</span><a href="mindset-mastery-full.html#ch16" class="ch-link">Discipline Over Motivation</a></li>
+        <li><span class="num">17.</span><a href="mindset-mastery-full.html#ch17" class="ch-link">Embrace Failure as Feedback</a></li>
+        <li><span class="num">18.</span><a href="mindset-mastery-full.html#ch18" class="ch-link">Growth Mindset in Action</a></li>
+        <li><span class="num">19.</span><a href="mindset-mastery-full.html#ch19" class="ch-link">The Power of Consistency</a></li>
+        <li><span class="num">20.</span><a href="mindset-mastery-full.html#ch20" class="ch-link">Resilience in the Face of Challenges</a></li>
       </ol>
     </div>
 
@@ -111,45 +125,46 @@
       <h2>Part V &middot; Long Term Success</h2>
       <p class="desc">Vision, balance, gratitude, adaptability, mindfulness, and the shifts that sustain lifelong achievement.</p>
       <ol>
-        <li><span class="num">21.</span><span class="ch-title">The Long Term Vision</span></li>
-        <li><span class="num">22.</span><span class="ch-title">Balance Hustle with Rest</span></li>
-        <li><span class="num">23.</span><span class="ch-title">Gratitude Fuels Growth</span></li>
-        <li><span class="num">24.</span><span class="ch-title">Adaptability in a Changing World</span></li>
-        <li><span class="num">25.</span><span class="ch-title">Mindfulness in Daily Life</span></li>
-        <li><span class="num">26.</span><span class="ch-title">Self Reflection and Journaling</span></li>
-        <li><span class="num">27.</span><span class="ch-title">Emotional Intelligence at Work</span></li>
-        <li><span class="num">28.</span><span class="ch-title">Confidence Through Competence</span></li>
-        <li><span class="num">29.</span><span class="ch-title">The Power of Focus</span></li>
-        <li><span class="num">30.</span><span class="ch-title">The Courage to Take Risks</span></li>
-        <li><span class="num">31.</span><span class="ch-title">The Habit of Lifelong Learning</span></li>
-        <li><span class="num">32.</span><span class="ch-title">The Strength of Patience</span></li>
-        <li><span class="num">33.</span><span class="ch-title">Optimism as a Strategy</span></li>
-        <li><span class="num">34.</span><span class="ch-title">The Discipline of Simplicity</span></li>
-        <li><span class="num">35.</span><span class="ch-title">Integrity as Your Foundation</span></li>
-        <li><span class="num">36.</span><span class="ch-title">The Joy of Contribution</span></li>
-        <li><span class="num">37.</span><span class="ch-title">Leadership Through Service</span></li>
-        <li><span class="num">38.</span><span class="ch-title">Resisting Comfort Zones</span></li>
-        <li><span class="num">39.</span><span class="ch-title">The Energy of Passion</span></li>
-        <li><span class="num">40.</span><span class="ch-title">The Mindset of Abundance</span></li>
-        <li><span class="num">41.</span><span class="ch-title">The Art of Letting Go</span></li>
-        <li><span class="num">42.</span><span class="ch-title">Building Mental Toughness</span></li>
-        <li><span class="num">43.</span><span class="ch-title">The Value of Humility</span></li>
-        <li><span class="num">44.</span><span class="ch-title">The Discipline of Consistent Action</span></li>
-        <li><span class="num">45.</span><span class="ch-title">The Strength of Self Belief</span></li>
-        <li><span class="num">46.</span><span class="ch-title">The Power of Adaptability in Leadership</span></li>
-        <li><span class="num">47.</span><span class="ch-title">The Balance of Ambition and Contentment</span></li>
-        <li><span class="num">48.</span><span class="ch-title">The Courage to Be Authentic</span></li>
-        <li><span class="num">49.</span><span class="ch-title">The Discipline of Reflection</span></li>
-        <li><span class="num">50.</span><span class="ch-title">The Strength of Perseverance</span></li>
-        <li><span class="num">51.</span><span class="ch-title">The Power of Hope</span></li>
-        <li><span class="num">52.</span><span class="ch-title">The Wisdom of Perspective</span></li>
-        <li><span class="num">53.</span><span class="ch-title">The Discipline of Patience in Progress</span></li>
+        <li><span class="num">21.</span><a href="mindset-mastery-full.html#ch21" class="ch-link">The Long Term Vision</a></li>
+        <li><span class="num">22.</span><a href="mindset-mastery-full.html#ch22" class="ch-link">Balance Hustle with Rest</a></li>
+        <li><span class="num">23.</span><a href="mindset-mastery-full.html#ch23" class="ch-link">Gratitude Fuels Growth</a></li>
+        <li><span class="num">24.</span><a href="mindset-mastery-full.html#ch24" class="ch-link">Adaptability in a Changing World</a></li>
+        <li><span class="num">25.</span><a href="mindset-mastery-full.html#ch25" class="ch-link">Mindfulness in Daily Life</a></li>
+        <li><span class="num">26.</span><a href="mindset-mastery-full.html#ch26" class="ch-link">Self Reflection and Journaling</a></li>
+        <li><span class="num">27.</span><a href="mindset-mastery-full.html#ch27" class="ch-link">Emotional Intelligence at Work</a></li>
+        <li><span class="num">28.</span><a href="mindset-mastery-full.html#ch28" class="ch-link">Confidence Through Competence</a></li>
+        <li><span class="num">29.</span><a href="mindset-mastery-full.html#ch29" class="ch-link">The Power of Focus</a></li>
+        <li><span class="num">30.</span><a href="mindset-mastery-full.html#ch30" class="ch-link">The Courage to Take Risks</a></li>
+        <li><span class="num">31.</span><a href="mindset-mastery-full.html#ch31" class="ch-link">The Habit of Lifelong Learning</a></li>
+        <li><span class="num">32.</span><a href="mindset-mastery-full.html#ch32" class="ch-link">The Strength of Patience</a></li>
+        <li><span class="num">33.</span><a href="mindset-mastery-full.html#ch33" class="ch-link">Optimism as a Strategy</a></li>
+        <li><span class="num">34.</span><a href="mindset-mastery-full.html#ch34" class="ch-link">The Discipline of Simplicity</a></li>
+        <li><span class="num">35.</span><a href="mindset-mastery-full.html#ch35" class="ch-link">Integrity as Your Foundation</a></li>
+        <li><span class="num">36.</span><a href="mindset-mastery-full.html#ch36" class="ch-link">The Joy of Contribution</a></li>
+        <li><span class="num">37.</span><a href="mindset-mastery-full.html#ch37" class="ch-link">Leadership Through Service</a></li>
+        <li><span class="num">38.</span><a href="mindset-mastery-full.html#ch38" class="ch-link">Resisting Comfort Zones</a></li>
+        <li><span class="num">39.</span><a href="mindset-mastery-full.html#ch39" class="ch-link">The Energy of Passion</a></li>
+        <li><span class="num">40.</span><a href="mindset-mastery-full.html#ch40" class="ch-link">The Mindset of Abundance</a></li>
+        <li><span class="num">41.</span><a href="mindset-mastery-full.html#ch41" class="ch-link">The Art of Letting Go</a></li>
+        <li><span class="num">42.</span><a href="mindset-mastery-full.html#ch42" class="ch-link">Building Mental Toughness</a></li>
+        <li><span class="num">43.</span><a href="mindset-mastery-full.html#ch43" class="ch-link">The Value of Humility</a></li>
+        <li><span class="num">44.</span><a href="mindset-mastery-full.html#ch44" class="ch-link">The Discipline of Consistent Action</a></li>
+        <li><span class="num">45.</span><a href="mindset-mastery-full.html#ch45" class="ch-link">The Strength of Self Belief</a></li>
+        <li><span class="num">46.</span><a href="mindset-mastery-full.html#ch46" class="ch-link">The Power of Adaptability in Leadership</a></li>
+        <li><span class="num">47.</span><a href="mindset-mastery-full.html#ch47" class="ch-link">The Balance of Ambition and Contentment</a></li>
+        <li><span class="num">48.</span><a href="mindset-mastery-full.html#ch48" class="ch-link">The Courage to Be Authentic</a></li>
+        <li><span class="num">49.</span><a href="mindset-mastery-full.html#ch49" class="ch-link">The Discipline of Reflection</a></li>
+        <li><span class="num">50.</span><a href="mindset-mastery-full.html#ch50" class="ch-link">The Strength of Perseverance</a></li>
+        <li><span class="num">51.</span><a href="mindset-mastery-full.html#ch51" class="ch-link">The Power of Hope</a></li>
+        <li><span class="num">52.</span><a href="mindset-mastery-full.html#ch52" class="ch-link">The Wisdom of Perspective</a></li>
+        <li><span class="num">53.</span><a href="mindset-mastery-full.html#ch53" class="ch-link">The Discipline of Patience in Progress</a></li>
       </ol>
     </div>
   </div>
 
   <footer style="border-top:1px solid #e2e8f0;padding:24px;text-align:center;color:#94a3b8;font-size:.85rem;">
-    &copy; 2026 Snehal Kadiya. All rights reserved. | <a href="../">Back to Tutorials</span>
+    &copy; 2026 Snehal Kadiya. All rights reserved. | <a href="../" style="color:#3b82f6;text-decoration:none;">Back to Tutorials</a>
   </footer>
 </body>
 </html>
+
