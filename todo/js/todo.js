@@ -745,6 +745,8 @@ async function loadContacts() {
 
   if (contactsSortState === 'least-called') {
     contacts.sort(function(a,b) { return (a._callCount || 999) - (b._callCount || 999); });
+  } else if (contactsSortState === 'most-called') {
+    contacts.sort(function(a,b) { return (b._callCount || 0) - (a._callCount || 0); });
   }
 
   // Paginate
@@ -1070,9 +1072,12 @@ async function importLocationHistoryContacts() {
 }
 
 function sortLeastCalled() {
-  contactsSortState = contactsSortState === 'least-called' ? 'name' : 'least-called';
+  if (contactsSortState === 'name') contactsSortState = 'least-called';
+  else if (contactsSortState === 'least-called') contactsSortState = 'most-called';
+  else contactsSortState = 'name';
+  var labels = { 'name': 'Sort: Name', 'least-called': 'Sort: Least Called', 'most-called': 'Sort: Most Called' };
   var btn = document.getElementById('sort-least-called');
-  if (btn) btn.textContent = contactsSortState === 'least-called' ? 'Sort: Name' : 'Sort: Least Called';
+  if (btn) btn.textContent = labels[contactsSortState] || 'Sort: Name';
   loadContacts();
 }
 
