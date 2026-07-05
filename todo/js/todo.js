@@ -729,7 +729,7 @@ async function loadContacts() {
       'ondragstart="contactDragStart(event)" ondragover="contactDragOver(event)" ondrop="contactDrop(event)" ondragend="contactDragEnd(event)" ' +
       'onclick="toggleContactPanel(' + c.id + ', event)">' +
       '<span class="contact-handle" onclick="event.stopPropagation();">&#x2630;</span>' +
-      '<span class="contact-name">' + escHtml(c.name) + '</span>' +
+      '<span class="contact-name">' + escHtml(c.name) + (c.number ? ' <span style="color:#999;font-size:12px;font-weight:400;">' + escHtml(c.number) + '</span>' : '') + '</span>' +
       '<span class="contact-call-badge" style="' + badgeClass + '">' + count + ' calls</span>' +
       '<span class="contact-expand-icon" id="expand-icon-' + c.id + '">&#x25B6;</span></div>' +
       '<div class="contact-panel" id="contact-panel-' + c.id + '" style="display:none;"></div>';
@@ -834,7 +834,8 @@ async function loadContactPanel(contactId) {
 
 function showAddContactModal() {
   var html = '<h3>Add Contact</h3>' +
-    '<label>Name</label><input id="new-contact-name" placeholder="Contact name" onkeydown="if(event.key===\'Enter\')saveContact()">' +
+    '<label>Name</label><input id="new-contact-name" placeholder="Contact name" onkeydown="if(event.key===\'Enter\')document.getElementById(\'new-contact-number\').focus()">' +
+    '<label>Phone (optional)</label><input id="new-contact-number" placeholder="Phone number" onkeydown="if(event.key===\'Enter\')saveContact()">' +
     '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
     '<button class="btn btn-primary" onclick="saveContact()">Add</button></div>';
   showModal(html);
@@ -844,6 +845,7 @@ function showAddContactModal() {
 async function saveContact() {
   var name = document.getElementById('new-contact-name').value.trim();
   if (!name) return alert('Name is required');
+  var number = document.getElementById('new-contact-number') ? document.getElementById('new-contact-number').value.trim() : '';
   closeModal();
 
   var { data: existing } = await sb.from('todo_contacts').select('order_index').eq('user_id', currentUser.id).order('order_index', { ascending: false }).limit(1);
@@ -852,8 +854,14 @@ async function saveContact() {
   var newId = (idExist && idExist.length) ? idExist[0].id + 1 : 1;
   var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
-  var { error } = await sb.from('todo_contacts').insert({ id: newId, name: name, order_index: nextOrder, user_id: currentUser.id, created_at: now });
-  if (error) return alert('Error: ' + error.message);
+  var payload = { id: newId, name: name, order_index: nextOrder, user_id: currentUser.id, created_at: now };
+  if (number) payload.number = number;
+  var { error } = await sb.from('todo_contacts').insert(payload);
+  if (error) {
+    // Retry without number if column doesn't exist
+    if (number) { delete payload.number; var { error: e2 } = await sb.from('todo_contacts').insert(payload); if (e2) return alert('Error: ' + e2.message); }
+    else return alert('Error: ' + error.message);
+  }
   loadContacts();
 }
 
@@ -901,6 +909,48 @@ async function deleteContactCall(callId, contactId) {
   await sb.from('todo_contact_calls').delete().eq('id', callId);
   loadContactPanel(contactId);
   loadContacts();
+}
+
+async function importLocationHistoryContacts() {
+  var btn = document.getElementById('import-lh-btn');
+  if (btn) btn.disabled = true;
+  try {
+    var lhPhone = localStorage.getItem('lh_phone');
+    if (!lhPhone) { alert('No Location History phone found. Login to Location History app first.'); return; }
+
+    var { data: existing } = await sb.from('todo_contacts').select('name, number').eq('user_id', currentUser.id);
+    var existingNames = {};
+    var hasNumberCol = true;
+    if (existing) {
+      existing.forEach(function(c) { existingNames[c.name.toLowerCase().trim()] = true; });
+      // Check if number column exists
+      if (existing.length && existing[0].number === undefined) hasNumberCol = false;
+    }
+
+    var { data: lhContacts, error } = await sb.from('phone_contacts').select('name, number').eq('phone', lhPhone);
+    if (error) { alert('Error fetching from Location History: ' + error.message); return; }
+    if (!lhContacts || !lhContacts.length) { alert('No contacts found in Location History.'); return; }
+
+    var inserted = 0, skipped = 0;
+    var { data: idExist } = await sb.from('todo_contacts').select('id').order('id', { ascending: false }).limit(1);
+    var nextId = (idExist && idExist.length) ? idExist[0].id + 1 : 1;
+    var { data: orderExist } = await sb.from('todo_contacts').select('order_index').eq('user_id', currentUser.id).order('order_index', { ascending: false }).limit(1);
+    var nextOrder = (orderExist && orderExist.length) ? orderExist[0].order_index + 1 : 0;
+    var now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+    for (var i = 0; i < lhContacts.length; i++) {
+      var c = lhContacts[i];
+      if (existingNames[c.name.toLowerCase().trim()]) { skipped++; continue; }
+      var payload = { id: nextId++, name: c.name, order_index: nextOrder++, user_id: currentUser.id, created_at: now };
+      if (hasNumberCol) payload.number = c.number || '';
+      await sb.from('todo_contacts').insert(payload);
+      inserted++;
+    }
+    alert('Imported ' + inserted + ' contacts' + (skipped ? ', skipped ' + skipped + ' duplicates' : '') + '.');
+    loadContacts();
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 function sortLeastCalled() {

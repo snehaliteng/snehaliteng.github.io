@@ -201,9 +201,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <div class="nav-item active" data-view="permanent"><span>&#128204;</span> <span>Todo</span></div>
       <div class="nav-item" data-view="templates"><span>&#128203;</span> <span>Templates</span></div>
       <div class="nav-item" data-view="daily"><span>&#128197;</span> <span>Daily Schedule</span></div>
-      <div class="nav-item" data-view="contacts"><span>&#128231;</span> <span>Contacts</span></div>
       <div class="nav-item" data-view="monthly"><span>&#128200;</span> <span>Monthly</span></div>
       <div class="nav-item" data-view="yearly"><span>&#128202;</span> <span>Yearly</span></div>
+      <div class="nav-item" data-view="contacts"><span>&#128231;</span> <span>Contacts</span></div>
     </nav>
     <div class="user-info"><span id="user-email"></span> <span id="plan-badge" style="background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:10px;font-size:11px;display:inline-block;"></span> <a id="logout-link">Logout</a></div>
   </div>
@@ -252,6 +252,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <div class="top-bar">
         <h1>Contacts</h1>
         <button class="btn btn-primary btn-sm" onclick="showAddContactModal()">+ Add Contact</button>
+        <button class="btn btn-sm btn-secondary" onclick="importLocationHistoryContacts()" style="font-size:12px;" id="import-lh-btn">Import from Location History</button>
         <select id="contact-timeframe" class="filter-select" onchange="loadContacts()" style="max-width:150px;">
           <option value="7">Last 7 days</option>
           <option value="30" selected>Last 30 days</option>
