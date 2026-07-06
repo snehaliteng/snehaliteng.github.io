@@ -527,7 +527,7 @@ async function loadAndRenderProducts(page) {
 }
 
 function renderProductCard(p) {
-  var defImg = p.tutorial_slug ? '/images/book-cover.svg' : 'https://placehold.co/300x300?text=No+Image';
+  var defImg = p.tutorial_slug ? '../images/book-cover.svg' : 'https://placehold.co/300x300?text=No+Image';
   var img = p.images && p.images.length > 0 ? p.images[0] : defImg;
   var price = ecMoney(p.price);
   var compare = p.compare_at_price ? ecMoney(p.compare_at_price) : null;
@@ -681,7 +681,7 @@ async function renderCartSidebar() {
       var item = items[i];
       var p = item.ec_products;
       if (!p) continue;
-      var stDefImg = p.tutorial_slug ? '/images/book-cover.svg' : 'https://placehold.co/60x60?text=N';
+      var stDefImg = p.tutorial_slug ? '../images/book-cover.svg' : 'https://placehold.co/60x60?text=N';
       var img = p.images && p.images.length > 0 ? p.images[0] : stDefImg;
       var subtotal = parseFloat(p.price) * item.quantity;
       total += subtotal;

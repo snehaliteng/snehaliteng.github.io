@@ -608,12 +608,9 @@ async function openProductModal(productId) {
     var p = await ecGetProduct(productId);
     var defaultImg = p.tutorial_slug ? '../images/book-cover.svg' : 'https://placehold.co/400x400?text=No+Image';
     var img = p.images && p.images.length > 0 ? p.images[0] : defaultImg;
-    var imagesHtml = '';
-    if (p.images && p.images.length) {
-      for (var i = 0; i < p.images.length; i++) {
-        imagesHtml += '<img src=\"' + ecEscape(p.images[i]) + '\" class=\"w-full h-48 object-cover rounded-lg\" onerror=\"this.src=\'https://placehold.co/400x400?text=No+Image\'\">';
-      }
-    }
+    var imagesHtml = p.images && p.images.length
+      ? p.images.map(function(src) { return '<img src=\"' + ecEscape(src) + '\" class=\"w-full h-48 object-cover rounded-lg\" onerror=\"this.src=\'https://placehold.co/400x400?text=No+Image\'\">'; }).join('')
+      : '<img src=\"' + defaultImg + '\" class=\"w-full h-48 object-cover rounded-lg\">';
     document.getElementById('product-modal-title').textContent = ecEscape(p.name);
     var price = ecMoney(p.price);
     var compare = p.compare_at_price ? ecMoney(p.compare_at_price) : null;
@@ -727,7 +724,7 @@ async function loadReviews(productId) {
       for (var s = 0; s < 5; s++) { starHtml += s < r.rating ? '<span class=\"text-yellow-500\">&#9733;</span>' : '<span class=\"text-gray-300\">&#9733;</span>'; }
       html += '<div class=\"border-b pb-3 mb-3\"><div class=\"flex items-center gap-2 mb-1\">' + starHtml + '<span class=\"text-sm font-medium text-gray-700\">' + ecEscape(r.title || '') + '</span></div>'
         + '<p class=\"text-sm text-gray-500\">' + ecEscape(r.comment || '') + '</p>'
-        + '<p class=\"text-xs text-gray-400 mt-1\">by ' + ecEscape((r.users && r.users.email) || 'Anonymous') + '</p></div>';
+        + '<p class=\"text-xs text-gray-400 mt-1\">' + ecEscape(r.user_email || 'Verified Buyer') + '</p></div>';
     }
     el.innerHTML = html;
   } catch (e) { el.innerHTML = '<p class=\"text-sm text-red-400\">Error loading reviews</p>'; }

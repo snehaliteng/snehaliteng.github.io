@@ -168,6 +168,7 @@ CREATE TABLE IF NOT EXISTS ec_reviews (
   id SERIAL PRIMARY KEY,
   product_id INTEGER NOT NULL REFERENCES ec_products(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_email TEXT,
   rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
   title TEXT,
   comment TEXT,

@@ -700,7 +700,7 @@ function ecGenerateInvoice(order) {
 async function ecLoadReviews(productId) {
   const { data, error } = await ec
     .from('ec_reviews')
-    .select('*, auth.users!inner(email)')
+    .select('*')
     .eq('product_id', productId)
     .eq('is_approved', true)
     .order('created_at', { ascending: false });
@@ -711,11 +711,13 @@ async function ecLoadReviews(productId) {
 async function ecSaveReview(productId, rating, title, comment) {
   const user = ecCurrentUser || await ecCheckAuth();
   if (!user) throw new Error('Please login');
+  const userEmail = user.email || '';
   const { data, error } = await ec
     .from('ec_reviews')
     .upsert({
       product_id: productId,
       user_id: user.id,
+      user_email: userEmail,
       rating,
       title,
       comment,

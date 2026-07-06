@@ -55,7 +55,7 @@
       '<div style="font-size:48px;margin-bottom:12px;">📘</div>' +
       '<h2 style="font-size:1.4rem;font-weight:700;margin-bottom:8px;color:#0f172a;">Unlock Full Tutorial</h2>' +
       '<p style="color:#64748b;margin-bottom:20px;line-height:1.6;font-size:.95rem;">You\'ve reached the free preview limit. Purchase the complete guide to access all chapters and the downloadable PDF.</p>' +
-      '<a href="/ecommerce/index.html" style="display:inline-block;background:#2563eb;color:#fff;padding:14px 36px;border-radius:10px;font-weight:600;font-size:1.05rem;text-decoration:none;margin-bottom:10px;">Buy for ₹500</a>' +
+      '<a href="' + '../'.repeat(parts.length - tutIdx - 1) + 'ecommerce/index.html" style="display:inline-block;background:#2563eb;color:#fff;padding:14px 36px;border-radius:10px;font-weight:600;font-size:1.05rem;text-decoration:none;margin-bottom:10px;">Buy for ₹500</a>' +
       '<p style="font-size:.8rem;color:#94a3b8;">One-time payment &bull; Lifetime access &bull; PDF included</p>' +
       '</div>';
     document.body.appendChild(paywallEl);
