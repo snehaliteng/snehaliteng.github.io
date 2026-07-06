@@ -422,7 +422,8 @@ async function loadAndRenderProducts(page) {
 }
 
 function renderProductCard(p) {
-  var img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/300x300?text=No+Image';
+  var defaultImg = p.tutorial_slug ? '../images/book-cover.svg' : 'https://placehold.co/300x300?text=No+Image';
+  var img = p.images && p.images.length > 0 ? p.images[0] : defaultImg;
   var price = ecMoney(p.price);
   var compare = p.compare_at_price ? ecMoney(p.compare_at_price) : null;
   var hasDiscount = compare && parseFloat(p.compare_at_price) > parseFloat(p.price);
@@ -438,6 +439,22 @@ function renderProductCard(p) {
     for (var s = 0; s < 5; s++) { starsHtml += '<span class=\"text-gray-300\">&#9733;</span>'; }
   }
   var reviewText = p.review_count ? '(' + p.review_count + ')' : '(0)';
+  var isTutorial = p.tutorial_slug ? true : false;
+  var FREE_SLUGS = ['html-tutorial','css-tutorial','nodejs-tutorial','pwa-tutorial','react-tutorial','android-tutorial','dotnetcore-tutorial','c-tutorial','python-tutorial','ios-tutorial','fastapi-tutorial','playwright-tutorial','angular-tutorial'];
+  var isFree = FREE_SLUGS.indexOf(p.slug) !== -1;
+  var tutorialUrl = p.tutorial_slug ? '../tutorials/' + p.tutorial_slug + '/' : '';
+  var btnHtml = '';
+  if (isTutorial && isFree) {
+    btnHtml = '<a href=\"' + tutorialUrl + '\" class=\"mt-3 w-full block text-center bg-green-600 text-white text-sm py-2 rounded-lg hover:bg-green-700 transition font-medium\">Start Reading &rarr;</a>';
+  } else if (isTutorial) {
+    btnHtml = '<a href=\"' + tutorialUrl + '\" class=\"mt-2 w-full block text-center bg-gray-100 text-gray-700 text-sm py-2 rounded-lg hover:bg-gray-200 transition font-medium border border-gray-300\">Read First 5 Chapters</a>'
+      + '<button class=\"add-to-cart-btn mt-2 w-full bg-blue-600 text-white text-sm py-2 rounded-lg hover:bg-blue-700 transition font-medium\" data-product-id=\"' + p.id + '\">Add to Cart</button>';
+  } else {
+    btnHtml = '<button class=\"add-to-cart-btn mt-3 w-full bg-blue-600 text-white text-sm py-2 rounded-lg hover:bg-blue-700 transition font-medium\" data-product-id=\"' + p.id + '\">Add to Cart</button>';
+  }
+  var priceHtml = isTutorial && isFree
+    ? '<span class=\"text-lg font-bold text-green-600\">FREE</span>'
+    : '<span class=\"text-lg font-bold text-gray-900\">' + price + '</span>';
   return '<div class=\"product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition flex flex-col\" data-product-id=\"' + p.id + '\">'
     + '<img src=\"' + ecEscape(img) + '\" alt=\"' + ecEscape(p.name) + '\" class=\"w-full h-48 object-cover\" onerror=\"this.src=\'https://placehold.co/300x300?text=No+Image\'\">'
     + '<div class=\"p-4 flex flex-col flex-1\">'
@@ -446,13 +463,9 @@ function renderProductCard(p) {
     + (p.brand ? '<p class=\"text-xs text-gray-400 mb-1\">' + ecEscape(p.brand) + '</p>' : '')
     + '<div class=\"flex items-center gap-1 mb-2\">' + starsHtml + '<span class=\"text-xs text-gray-500\">' + reviewText + '</span></div>'
     + '<div class=\"mt-auto\">'
-    + '<div class=\"flex items-center gap-2\"><span class=\"text-lg font-bold text-gray-900\">' + price + '</span>'
-    + (hasDiscount ? '<span class=\"text-sm text-gray-400 line-through\">' + compare + '</span>' : '') + '</div>'
-    + '<div class=\"flex items-center gap-2 mt-1\">'
-    + (hasDiscount ? '<span class=\"discount-badge\">' + discountPct + '% off</span>' : '')
-    + '<span class=\"gst-badge\">' + (p.gst_rate || 18) + '% GST</span>'
-    + '</div>'
-    + '<button class=\"add-to-cart-btn mt-3 w-full bg-blue-600 text-white text-sm py-2 rounded-lg hover:bg-blue-700 transition font-medium\" data-product-id=\"' + p.id + '\">Add to Cart</button>'
+    + '<div class=\"flex items-center gap-2\">' + priceHtml + (hasDiscount ? '<span class=\"text-sm text-gray-400 line-through\">' + compare + '</span>' : '') + '</div>'
+    + (isTutorial && isFree ? '' : '<div class=\"flex items-center gap-2 mt-1\">' + (hasDiscount ? '<span class=\"discount-badge\">' + discountPct + '% off</span>' : '') + '<span class=\"gst-badge\">' + (p.gst_rate || 18) + '% GST</span></div>')
+    + btnHtml
     + '</div></div></div>';
 }
 
@@ -524,7 +537,8 @@ async function renderCartSidebar() {
       var item = items[i];
       var p = item.ec_products;
       if (!p) continue;
-      var img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/60x60?text=N';
+      var cartDefault = p.tutorial_slug ? '../images/book-cover.svg' : 'https://placehold.co/60x60?text=N';
+      var img = p.images && p.images.length > 0 ? p.images[0] : cartDefault;
       var subtotal = parseFloat(p.price) * item.quantity;
       total += subtotal;
       html += '<div class=\"flex items-center gap-3 p-3 border-b\" data-product-id=\"' + p.id + '\">'
@@ -592,7 +606,8 @@ async function openProductModal(productId) {
   document.getElementById('product-modal-overlay').dataset.productId = productId;
   try {
     var p = await ecGetProduct(productId);
-    var img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x400?text=No+Image';
+    var defaultImg = p.tutorial_slug ? '../images/book-cover.svg' : 'https://placehold.co/400x400?text=No+Image';
+    var img = p.images && p.images.length > 0 ? p.images[0] : defaultImg;
     var imagesHtml = '';
     if (p.images && p.images.length) {
       for (var i = 0; i < p.images.length; i++) {
@@ -610,17 +625,33 @@ async function openProductModal(productId) {
     } else {
       for (var s = 0; s < 5; s++) { starsHtml += '<span class=\"text-gray-300 text-lg\">&#9733;</span>'; }
     }
+    var isTutorial = p.tutorial_slug ? true : false;
+    var FREE_SLUGS = ['html-tutorial','css-tutorial','nodejs-tutorial','pwa-tutorial','react-tutorial','android-tutorial','dotnetcore-tutorial','c-tutorial','python-tutorial','ios-tutorial','fastapi-tutorial','playwright-tutorial','angular-tutorial'];
+    var isFreeTutorial = isTutorial && FREE_SLUGS.indexOf(p.slug) !== -1;
+    var tutorialUrl = p.tutorial_slug ? '../tutorials/' + p.tutorial_slug + '/' : '';
+    var actionBtns = '';
+    if (isTutorial && isFreeTutorial) {
+      actionBtns = '<a href=\"' + tutorialUrl + '\" class=\"btn-primary w-full mb-4 text-center block\" style=\"background:#16a34a;\">Start Reading &rarr;</a>';
+    } else if (isTutorial) {
+      actionBtns = '<a href=\"' + tutorialUrl + '\" class=\"w-full mb-2 block text-center bg-gray-100 text-gray-700 text-sm py-2.5 rounded-lg hover:bg-gray-200 transition font-medium border border-gray-300\">Read First 5 Chapters</a>'
+        + '<button onclick=\"handleAddToCart(' + p.id + ')\" class=\"btn-primary w-full mb-4\">Add to Cart</button>';
+    } else {
+      actionBtns = '<button onclick=\"handleAddToCart(' + p.id + ')\" class=\"btn-primary w-full mb-4\">Add to Cart</button>';
+    }
+    var modalPrice = isTutorial && isFreeTutorial
+      ? '<span class=\"text-2xl font-bold text-green-600\">FREE</span>'
+      : '<span class=\"text-2xl font-bold text-gray-900\">' + price + '</span>';
     body.innerHTML = '<div class=\"grid md:grid-cols-2 gap-6\">'
       + '<div>' + imagesHtml + '</div>'
       + '<div><h3 class=\"text-xl font-bold text-gray-900 mb-2\">' + ecEscape(p.name) + '</h3>'
       + (p.brand ? '<p class=\"text-sm text-gray-500 mb-2\">Brand: ' + ecEscape(p.brand) + '</p>' : '')
       + (p.ec_vendors ? '<p class=\"text-sm text-gray-500 mb-2\">Sold by: ' + ecEscape(p.ec_vendors.store_name) + '</p>' : '')
       + '<div class=\"flex items-center gap-1 mb-3\">' + starsHtml + '<span class=\"text-sm text-gray-500 ml-1\">(' + (p.review_count || 0) + ' reviews)</span></div>'
-      + '<div class=\"flex items-center gap-2 mb-2\"><span class=\"text-2xl font-bold text-gray-900\">' + price + '</span>'
+      + '<div class=\"flex items-center gap-2 mb-2\">' + modalPrice
       + (hasDiscount ? '<span class=\"text-lg text-gray-400 line-through\">' + compare + '</span>' : '') + '</div>'
-      + (hasDiscount ? '<span class=\"discount-badge text-sm\">' + Math.round((1 - parseFloat(p.price) / parseFloat(p.compare_at_price)) * 100) + '% off</span>' : '')
+      + (isTutorial && isFreeTutorial ? '' : (hasDiscount ? '<span class=\"discount-badge text-sm\">' + Math.round((1 - parseFloat(p.price) / parseFloat(p.compare_at_price)) * 100) + '% off</span>' : ''))
       + '<p class=\"text-sm text-gray-600 mt-3 mb-4\">' + ecEscape(p.description || 'No description available.') + '</p>'
-      + '<button onclick=\"handleAddToCart(' + p.id + ')\" class=\"btn-primary w-full mb-4\">Add to Cart</button>'
+      + actionBtns
       + '</div></div>'
       + '<div class=\"md:col-span-2 mt-4\"><h4 class=\"font-semibold text-gray-800 mb-3 text-lg\">Reviews</h4><div id=\"product-reviews\">Loading reviews...</div></div>'
       + '<div class=\"md:col-span-2\" id=\"write-review-section\" style=\"display:none\"><h4 class=\"font-semibold text-gray-800 mb-3 text-lg\">Write a Review</h4>'
@@ -719,7 +750,8 @@ async function loadRelatedProducts(categoryId, excludeId) {
     var html = '';
     for (var i = 0; i < products.length; i++) {
       var p = products[i];
-      var img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/150x150?text=N';
+      var ppDefault = p.tutorial_slug ? '../images/book-cover.svg' : 'https://placehold.co/150x150?text=N';
+      var img = p.images && p.images.length > 0 ? p.images[0] : ppDefault;
       html += '<div class=\"product-card bg-white rounded border p-2\" data-product-id=\"' + p.id + '\" onclick=\"closeProductModal();openProductModal(' + p.id + ')\">'
         + '<img src=\"' + ecEscape(img) + '\" class=\"w-full h-24 object-cover rounded mb-2\" onerror=\"this.src=\'https://placehold.co/150x150?text=N\'\">'
         + '<p class=\"text-xs font-medium line-clamp-2\">' + ecEscape(p.name) + '</p>'

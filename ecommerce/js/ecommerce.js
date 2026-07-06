@@ -208,10 +208,13 @@ async function ecLoadProducts(page, filters) {
   return { data: data || [], count: count || 0 };
 }
 
+const EC_BOOK_PLACEHOLDER = '../images/book-cover.svg';
+
 function ecRenderProductCard(p) {
+  const defaultImg = p.tutorial_slug ? EC_BOOK_PLACEHOLDER : 'https://placehold.co/300x300?text=No+Image';
   const img = p.images && p.images.length > 0
     ? p.images[0]
-    : 'https://placehold.co/300x300?text=No+Image';
+    : defaultImg;
   const price = ecMoney(p.price);
   const compare = p.compare_at_price ? ecMoney(p.compare_at_price) : null;
   const hasDiscount = compare && parseFloat(p.compare_at_price) > parseFloat(p.price);
@@ -223,6 +226,16 @@ function ecRenderProductCard(p) {
     ? '<span class="text-yellow-500">' + '\u2605'.repeat(Math.round(p.average_rating)) + '</span>'
     : '';
   const reviewText = p.review_count ? `(${p.review_count})` : '';
+  const isTutorial = !!p.tutorial_slug;
+  const FREE_SLUGS = ['html-tutorial','css-tutorial','nodejs-tutorial','pwa-tutorial','react-tutorial','android-tutorial','dotnetcore-tutorial','c-tutorial','python-tutorial','ios-tutorial','fastapi-tutorial','playwright-tutorial','angular-tutorial'];
+  const isFree = FREE_SLUGS.indexOf(p.slug) !== -1;
+  const tutorialUrl = isTutorial ? '../tutorials/' + p.tutorial_slug + '/' : '';
+  let extraBtn = '';
+  if (isTutorial && isFree) {
+    extraBtn = `<a href="${tutorialUrl}" class="mt-2 block text-center bg-green-600 text-white text-xs py-1.5 rounded hover:bg-green-700 transition font-medium">Start Reading &rarr;</a>`;
+  } else if (isTutorial) {
+    extraBtn = `<a href="${tutorialUrl}" class="mt-2 block text-center bg-gray-100 text-gray-700 text-xs py-1.5 rounded hover:bg-gray-200 transition font-medium border border-gray-300">Read First 5 Chapters</a>`;
+  }
 
   return `
     <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition flex flex-col">
@@ -240,11 +253,11 @@ function ecRenderProductCard(p) {
         </div>
         <div class="mt-auto">
           <div class="flex items-center gap-2">
-            <span class="text-lg font-bold text-gray-900">${price}</span>
+            ${isTutorial && isFree ? '<span class="text-lg font-bold text-green-600">FREE</span>' : `<span class="text-lg font-bold text-gray-900">${price}</span>`}
             ${hasDiscount ? `<span class="text-sm text-gray-400 line-through">${compare}</span>` : ''}
           </div>
-          ${hasDiscount ? `<span class="text-xs text-green-600 font-medium">${discountPct}% off</span>` : ''}
-          <span class="inline-block mt-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">GST ${p.gst_rate || 18}%</span>
+          ${isTutorial && isFree ? '' : `<div class="flex items-center gap-2 mt-1">${hasDiscount ? `<span class="text-xs text-green-600 font-medium">${discountPct}% off</span>` : ''}<span class="inline-block text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">GST ${p.gst_rate || 18}%</span></div>`}
+          ${extraBtn}
         </div>
       </div>
     </div>`;
@@ -344,7 +357,8 @@ async function ecRenderCartSidebar() {
     for (const item of items) {
       const p = item.ec_products;
       if (!p) continue;
-      const img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/60x60?text=N';
+      const cartDefImg = p.tutorial_slug ? EC_BOOK_PLACEHOLDER : 'https://placehold.co/60x60?text=N';
+      const img = p.images && p.images.length > 0 ? p.images[0] : cartDefImg;
       const subtotal = parseFloat(p.price) * item.quantity;
       total += subtotal;
       html += `

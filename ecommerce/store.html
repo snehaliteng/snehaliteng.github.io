@@ -527,7 +527,8 @@ async function loadAndRenderProducts(page) {
 }
 
 function renderProductCard(p) {
-  var img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/300x300?text=No+Image';
+  var defImg = p.tutorial_slug ? '/images/book-cover.svg' : 'https://placehold.co/300x300?text=No+Image';
+  var img = p.images && p.images.length > 0 ? p.images[0] : defImg;
   var price = ecMoney(p.price);
   var compare = p.compare_at_price ? ecMoney(p.compare_at_price) : null;
   var hasDiscount = compare && parseFloat(p.compare_at_price) > parseFloat(p.price);
@@ -542,6 +543,12 @@ function renderProductCard(p) {
     for (var s = 0; s < 5; s++) { starsHtml += '<span class="text-gray-300">&#9733;</span>'; }
   }
   var reviewText = p.review_count ? '(' + p.review_count + ')' : '(0)';
+  var stIsTutorial = !!p.tutorial_slug;
+  var stFreeSlugs = ['html-tutorial','css-tutorial','nodejs-tutorial','pwa-tutorial','react-tutorial','android-tutorial','dotnetcore-tutorial','c-tutorial','python-tutorial','ios-tutorial','fastapi-tutorial','playwright-tutorial','angular-tutorial'];
+  var stIsFree = stIsTutorial && stFreeSlugs.indexOf(p.slug) !== -1;
+  var stPriceHtml = stIsFree
+    ? '<span class="text-lg font-bold text-green-600">FREE</span>'
+    : '<span class="text-lg font-bold text-gray-900">' + price + '</span>';
   return '<div class="product-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition flex flex-col cursor-pointer" data-product-id="' + p.id + '">'
     + '<img src="' + ecEscape(img) + '" alt="' + ecEscape(p.name) + '" class="w-full h-48 object-cover" onerror="this.src=\'https://placehold.co/300x300?text=No+Image\'">'
     + '<div class="p-4 flex flex-col flex-1">'
@@ -549,12 +556,8 @@ function renderProductCard(p) {
     + (p.brand ? '<p class="text-xs text-gray-400 mb-1">' + ecEscape(p.brand) + '</p>' : '')
     + '<div class="flex items-center gap-1 mb-2">' + starsHtml + '<span class="text-xs text-gray-500">' + reviewText + '</span></div>'
     + '<div class="mt-auto">'
-    + '<div class="flex items-center gap-2"><span class="text-lg font-bold text-gray-900">' + price + '</span>'
-    + (hasDiscount ? '<span class="text-sm text-gray-400 line-through">' + compare + '</span>' : '') + '</div>'
-    + '<div class="flex items-center gap-2 mt-1">'
-    + (hasDiscount ? '<span class="discount-badge">' + discountPct + '% off</span>' : '')
-    + '<span class="gst-badge">' + (p.gst_rate || 18) + '% GST</span>'
-    + '</div>'
+    + '<div class="flex items-center gap-2">' + stPriceHtml + (hasDiscount ? '<span class="text-sm text-gray-400 line-through">' + compare + '</span>' : '') + '</div>'
+    + (stIsFree ? '' : '<div class="flex items-center gap-2 mt-1">' + (hasDiscount ? '<span class="discount-badge">' + discountPct + '% off</span>' : '') + '<span class="gst-badge">' + (p.gst_rate || 18) + '% GST</span></div>')
     + '<button class="add-to-cart-btn mt-3 w-full bg-blue-600 text-white text-sm py-2 rounded-lg hover:bg-blue-700 transition font-medium" data-product-id="' + p.id + '">Add to Cart</button>'
     + '</div></div></div>';
 }
@@ -678,7 +681,8 @@ async function renderCartSidebar() {
       var item = items[i];
       var p = item.ec_products;
       if (!p) continue;
-      var img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/60x60?text=N';
+      var stDefImg = p.tutorial_slug ? '/images/book-cover.svg' : 'https://placehold.co/60x60?text=N';
+      var img = p.images && p.images.length > 0 ? p.images[0] : stDefImg;
       var subtotal = parseFloat(p.price) * item.quantity;
       total += subtotal;
       html += '<div class="flex items-center gap-3 p-3 border-b" data-product-id="' + p.id + '">'
