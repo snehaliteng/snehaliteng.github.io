@@ -156,6 +156,52 @@ function openSlideModal(title, contentHtml) {
 
 function closeSlideModal() { el('slide-modal-overlay').classList.remove('open'); }
 
+async function deleteRecord(table, id, label) {
+  if (!confirm(`Delete ${label}?`)) return;
+  try {
+    await erp.from(table).delete().eq('id', id);
+    showToast(`${label} deleted`, 'success');
+    navigate(currentPage);
+  } catch (e) {
+    showToast(`Cannot delete: ${e.message}`, 'error');
+  }
+}
+
+function filterTable(data, entity) {
+  const search = (document.getElementById(`fs-${entity}`)?.value || '').toLowerCase();
+  const filters = {};
+  document.querySelectorAll(`[data-ff="${entity}"]`).forEach(el => {
+    const v = el.value;
+    if (v) filters[el.dataset.fk] = v;
+  });
+  return data.filter(r => {
+    for (const [k, v] of Object.entries(filters)) {
+      if (String(r[k] ?? '') !== v) return false;
+    }
+    if (!search) return true;
+    const raw = document.getElementById(`fs-${entity}`)?.dataset.fields;
+    const searchFields = raw ? raw.split(',') : [];
+    if (!searchFields.length || (searchFields.length === 1 && !searchFields[0])) {
+      return Object.values(r).some(v => String(v ?? '').toLowerCase().includes(search));
+    }
+    return searchFields.some(f => String(r[f] ?? '').toLowerCase().includes(search));
+  });
+}
+
+function filterBar(entity, config) {
+  const searchField = config.find(c => c.type === 'search');
+  const searchHtml = searchField
+    ? `<input class="filter-input" id="fs-${entity}" data-fields="${searchField.fields.join(',')}" placeholder="${searchField.placeholder}" oninput="reRenderTable('${entity}')">`
+    : '';
+  const selectsHtml = (config.filter(c => c.type === 'select') || []).map(c =>
+    `<select data-ff="${entity}" data-fk="${c.key}" onchange="reRenderTable('${entity}')">
+      <option value="">${c.label}</option>
+      ${c.options.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
+    </select>`
+  ).join('');
+  return `<div class="filter-bar">${searchHtml}${selectsHtml}</div>`;
+}
+
 function getFormData(formId) {
   const fd = new FormData(el(formId));
   const data = {};
@@ -165,14 +211,37 @@ function getFormData(formId) {
 
 function renderTable(headers, rows, actions) {
   if (!rows.length) return '<div class="empty-state"><div class="icon">📭</div><p>No data found.</p></div>';
-  let h = headers.map(h => `<th>${h}</th>`).join('');
-  if (actions) h += '<th>Actions</th>';
-  let r = rows.map(row => {
-    let cells = headers.map(h => `<td>${row[h] ?? ''}</td>`).join('');
-    if (actions) cells += `<td>${actions(row)}</td>`;
-    return `<tr>${cells}</tr>`;
+  const h = headers.map(h => `<th>${h}</th>`).join('');
+  const actionsTh = actions ? '<th>Actions</th>' : '';
+  const r = rows.map(row => {
+    const cells = headers.map(h => `<td>${row[h] ?? ''}</td>`).join('');
+    return `<tr>${cells}${actions ? `<td>${actions(row)}</td>` : ''}</tr>`;
   }).join('');
-  return `<div class="table-wrap"><table><thead><tr>${h}</tr></thead><tbody>${r}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr>${h}${actionsTh}</tr></thead><tbody>${r}</tbody></table></div>`;
+}
+
+const _TC = {};
+window._TD = {};
+function regTable(entity, headers, mapper, actions, filterConfig) {
+  _TC[entity] = { headers, mapper, actions, filterConfig };
+}
+function reRenderTable(entity) {
+  const cfg = _TC[entity];
+  if (!cfg) return;
+  const data = window._TD[entity] || [];
+  const filtered = filterTable(data, entity);
+  const c = document.getElementById(`tbl-${entity}`);
+  if (c) c.innerHTML = renderTable(cfg.headers, filtered.map(cfg.mapper), cfg.actions);
+}
+function renderFilteredTable(entity, container, filters, title, headerButtons) {
+  const cfg = _TC[entity];
+  const data = window._TD[entity] || [];
+  const filtered = filterTable(data, entity);
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header"><h3>${title}</h3>${headerButtons || ''}</div>
+      <div class="card-body">${filterBar(entity, filters)}<div id="tbl-${entity}">${renderTable(cfg.headers, filtered.map(cfg.mapper), cfg.actions)}</div></div>
+    </div>`;
 }
 
 /* ============================================================
@@ -233,17 +302,17 @@ async function navigate(page) {
       'schools': renderSchools,
       'plans': renderPlans,
       'revenue': renderRevenue,
-      'payments': () => renderTablePage('payments', 'Payments'),
+      'payments': renderPayments,
       'students': renderStudents,
       'teachers': renderTeachers,
       'classes': renderClasses,
       'subjects': renderSubjects,
       'syllabus': renderSyllabus,
-      'attendance': () => renderTablePage('attendance', 'Attendance'),
+      'attendance': renderAttendance,
       'exams': renderExams,
       'fees': renderFees,
       'donations': renderDonations,
-      'expenses': () => renderTablePage('expenses', 'Expenses'),
+      'expenses': renderExpenses,
       'calendar': renderCalendar,
       'reports': renderReports,
       'my-classes': renderMyClasses,
@@ -259,23 +328,6 @@ async function navigate(page) {
     el('content-area').innerHTML = `<div class="empty-state"><p class="text-center" style="color:var(--danger)">Error: ${e.message}</p></div>`;
     showToast(e.message, 'error');
   }
-}
-
-/* ============================================================
-   GENERIC TABLE PAGE
-   ============================================================ */
-
-async function renderTablePage(table, label) {
-  const { data } = await erp.from(table).select('*').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
-  const cols = data && data.length ? Object.keys(data[0]).filter(k => !['org_id','created_at','updated_at'].includes(k)) : [];
-  const rows = (data || []).map(r => {
-    const row = {};
-    cols.forEach(c => { row[c] = r[c] != null ? String(r[c]) : ''; });
-    return row;
-  });
-  el('content-area').innerHTML = `<div class="card"><div class="card-header"><h3>${label}</h3></div><div class="card-body">${
-    renderTable(cols.map(c => c.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())), rows)
-  }</div></div>`;
 }
 
 /* ============================================================
@@ -421,23 +473,16 @@ async function renderStudentDashboard() {
 
 async function renderSchools() {
   const { data } = await erp.from('organizations').select('*, payments(amount,status)').order('created_at', { ascending: false });
-  el('content-area').innerHTML = `
-    <div class="card">
-      <div class="card-header"><h3>All Schools</h3></div>
-      <div class="card-body">${renderTable(
-        ['Name','Email','Plan','Status','Students','Teachers'],
-        (data || []).map(o => ({
-          _id: o.id,
-          'Name': o.name,
-          'Email': o.email || '-',
-          'Plan': `<span class="badge badge-info">${o.subscription_plan}</span>`,
-          'Status': `<span class="badge badge-${o.status === 'active' ? 'success' : o.status === 'pending' ? 'warning' : 'danger'}">${o.status}</span>`,
-          'Students': `${o.max_students}`,
-          'Teachers': `${o.max_teachers}`
-        })),
-        row => `<button class="btn btn-sm btn-primary" onclick="editOrg(${row._id})">Edit</button>`
-      )}</div>
-    </div>`;
+  window._TD['schools'] = data || [];
+  regTable('schools', ['Name','Email','Plan','Status','Students','Teachers'],
+    o => ({ _id: o.id, 'Name': o.name, 'Email': o.email || '-', 'Plan': `<span class="badge badge-info">${o.subscription_plan}</span>`, 'Status': `<span class="badge badge-${o.status === 'active' ? 'success' : o.status === 'pending' ? 'warning' : 'danger'}">${o.status}</span>`, 'Students': `${o.max_students}`, 'Teachers': `${o.max_teachers}` }),
+    row => `<button class="btn btn-sm btn-primary" onclick="editOrg(${row._id})">Edit</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('organizations',${row._id},'School')">Delete</button>`
+  );
+  renderFilteredTable('schools', el('content-area'), [
+    { type: 'search', fields: ['name','email'], placeholder: 'Search school...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'active',label:'Active'},{value:'pending',label:'Pending'},{value:'suspended',label:'Suspended'},{value:'rejected',label:'Rejected'}] },
+    { type: 'select', key: 'subscription_plan', label: 'All Plans', options: [{value:'basic',label:'Basic'},{value:'standard',label:'Standard'},{value:'premium',label:'Premium'}] }
+  ], 'All Schools');
 }
 
 async function editOrg(id) {
@@ -479,22 +524,15 @@ async function editOrg(id) {
 
 async function renderPlans() {
   const { data } = await erp.from('plans').select('*').order('price');
-  el('content-area').innerHTML = `
-    <div class="card">
-      <div class="card-header"><h3>Subscription Plans</h3><button class="btn btn-primary btn-sm" onclick="showAddPlan()">+ Add Plan</button></div>
-      <div class="card-body">${renderTable(
-        ['Name','Price','Billing','Max Students','Status'],
-        (data || []).map(p => ({
-          _id: p.id,
-          'Name': p.name,
-          'Price': `₹${p.price}`,
-          'Billing': p.billing_cycle,
-          'Max Students': String(p.max_students),
-          'Status': `<span class="badge badge-${p.is_active ? 'success' : 'danger'}">${p.is_active ? 'Active' : 'Inactive'}</span>`
-        })),
-        row => `<button class="btn btn-sm btn-outline" onclick="editPlan(${row._id})">Edit</button>`
-      )}</div>
-    </div>`;
+  window._TD['plans'] = data || [];
+  regTable('plans', ['Name','Price','Billing','Max Students','Status'],
+    p => ({ _id: p.id, 'Name': p.name, 'Price': `₹${p.price}`, 'Billing': p.billing_cycle, 'Max Students': String(p.max_students), 'Status': `<span class="badge badge-${p.is_active ? 'success' : 'danger'}">${p.is_active ? 'Active' : 'Inactive'}</span>` }),
+    row => `<button class="btn btn-sm btn-outline" onclick="editPlan(${row._id})">Edit</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('plans',${row._id},'Plan')">Delete</button>`
+  );
+  renderFilteredTable('plans', el('content-area'), [
+    { type: 'search', fields: ['name'], placeholder: 'Search plan...' },
+    { type: 'select', key: 'is_active', label: 'All Status', options: [{value:'true',label:'Active'},{value:'false',label:'Inactive'}] }
+  ], 'Subscription Plans', `<button class="btn btn-primary btn-sm" onclick="showAddPlan()">+ Add Plan</button>`);
 }
 
 function showAddPlan() {
@@ -540,20 +578,17 @@ async function renderRevenue() {
       <div class="stat-card"><div class="label">Total Revenue</div><div class="value">₹${totalRevenue.toLocaleString()}</div></div>
       <div class="stat-card"><div class="label">Subscription Revenue</div><div class="value">₹${subsRevenue.toLocaleString()}</div></div>
       <div class="stat-card"><div class="label">Completed Payments</div><div class="value">${completedPayments}</div></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><h3>All Payments</h3></div>
-      <div class="card-body">${renderTable(
-        ['Organization','Amount','Type','Status','Date'],
-        (payments.data || []).map(p => ({
-          'Organization': p.organizations?.name || '-',
-          'Amount': `₹${p.amount}`,
-          'Type': p.type,
-          'Status': `<span class="badge badge-${p.status === 'completed' ? 'success' : p.status === 'pending' ? 'warning' : 'danger'}">${p.status}</span>`,
-          'Date': new Date(p.created_at).toLocaleDateString()
-        }))
-      )}</div>
     </div>`;
+  window._TD['revenue'] = payments.data || [];
+  regTable('revenue', ['Organization','Amount','Type','Status','Date'],
+    p => ({ _id: p.id, 'Organization': p.organizations?.name || '-', 'Amount': `₹${p.amount}`, 'Type': p.type, 'Status': `<span class="badge badge-${p.status === 'completed' ? 'success' : p.status === 'pending' ? 'warning' : 'danger'}">${p.status}</span>`, 'Date': new Date(p.created_at).toLocaleDateString() }),
+    row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('payments',${row._id},'Payment')">Delete</button>`
+  );
+  renderFilteredTable('revenue', el('content-area'), [
+    { type: 'search', fields: [], placeholder: 'Search organization...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'completed',label:'Completed'},{value:'pending',label:'Pending'},{value:'failed',label:'Failed'}] },
+    { type: 'select', key: 'type', label: 'All Types', options: [{value:'subscription',label:'Subscription'},{value:'donation',label:'Donation'},{value:'fee',label:'Fee'}] }
+  ], 'All Payments');
 }
 
 /* ============================================================
@@ -562,22 +597,15 @@ async function renderRevenue() {
 
 async function renderStudents() {
   const { data } = await erp.from('students').select('*').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
-  el('content-area').innerHTML = `
-    <div class="card">
-      <div class="card-header"><h3>Students</h3><button class="btn btn-primary btn-sm" onclick="showAddStudent()">+ Add Student</button></div>
-      <div class="card-body">${renderTable(
-        ['Roll No','Name','Email','Phone','Status'],
-        (data || []).map(s => ({
-          _id: s.id,
-          'Roll No': s.roll_number || '-',
-          'Name': `${s.first_name} ${s.last_name}`,
-          'Email': s.email || '-',
-          'Phone': s.phone || '-',
-          'Status': `<span class="badge badge-${s.status === 'active' ? 'success' : 'danger'}">${s.status}</span>`
-        })),
-        row => `<button class="btn btn-sm btn-outline" onclick="showEditStudent(${row._id})">Edit</button>`
-      )}</div>
-    </div>`;
+  window._TD['students'] = data || [];
+  regTable('students', ['Roll No','Name','Email','Phone','Status'],
+    s => ({ _id: s.id, 'Roll No': s.roll_number || '-', 'Name': `${s.first_name} ${s.last_name}`, 'Email': s.email || '-', 'Phone': s.phone || '-', 'Status': `<span class="badge badge-${s.status === 'active' ? 'success' : 'danger'}">${s.status}</span>` }),
+    row => `<button class="btn btn-sm btn-outline" onclick="showEditStudent(${row._id})">Edit</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('students',${row._id},'Student')">Delete</button>`
+  );
+  renderFilteredTable('students', el('content-area'), [
+    { type: 'search', fields: ['first_name','last_name','roll_number'], placeholder: 'Search name or roll...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'active',label:'Active'},{value:'inactive',label:'Inactive'},{value:'graduated',label:'Graduated'}] }
+  ], 'Students', `<button class="btn btn-primary btn-sm" onclick="showAddStudent()">+ Add Student</button>`);
 }
 
 function showAddStudent() {
@@ -657,22 +685,15 @@ async function showEditStudent(id) {
 
 async function renderTeachers() {
   const { data } = await erp.from('teachers').select('*').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
-  el('content-area').innerHTML = `
-    <div class="card">
-      <div class="card-header"><h3>Teachers</h3><button class="btn btn-primary btn-sm" onclick="showAddTeacher()">+ Add Teacher</button></div>
-      <div class="card-body">${renderTable(
-        ['Employee ID','Name','Email','Qualification','Status'],
-        (data || []).map(t => ({
-          _id: t.id,
-          'Employee ID': t.employee_id || '-',
-          'Name': `${t.first_name} ${t.last_name}`,
-          'Email': t.email || '-',
-          'Qualification': t.qualification || '-',
-          'Status': `<span class="badge badge-${t.status === 'active' ? 'success' : 'danger'}">${t.status}</span>`
-        })),
-        row => `<button class="btn btn-sm btn-outline" onclick="showEditTeacher(${row._id})">Edit</button>`
-      )}</div>
-    </div>`;
+  window._TD['teachers'] = data || [];
+  regTable('teachers', ['Employee ID','Name','Email','Qualification','Status'],
+    t => ({ _id: t.id, 'Employee ID': t.employee_id || '-', 'Name': `${t.first_name} ${t.last_name}`, 'Email': t.email || '-', 'Qualification': t.qualification || '-', 'Status': `<span class="badge badge-${t.status === 'active' ? 'success' : 'danger'}">${t.status}</span>` }),
+    row => `<button class="btn btn-sm btn-outline" onclick="showEditTeacher(${row._id})">Edit</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('teachers',${row._id},'Teacher')">Delete</button>`
+  );
+  renderFilteredTable('teachers', el('content-area'), [
+    { type: 'search', fields: ['first_name','last_name','employee_id'], placeholder: 'Search name or ID...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'active',label:'Active'},{value:'inactive',label:'Inactive'}] }
+  ], 'Teachers', `<button class="btn btn-primary btn-sm" onclick="showAddTeacher()">+ Add Teacher</button>`);
 }
 
 function showAddTeacher() {
@@ -742,22 +763,16 @@ async function showEditTeacher(id) {
 
 async function renderClasses() {
   const { data } = await erp.from('classes').select('*, teachers(first_name,last_name)').eq('org_id', erpOrg.id).order('name');
-  el('content-area').innerHTML = `
-    <div class="card">
-      <div class="card-header"><h3>Classes</h3><button class="btn btn-primary btn-sm" onclick="showAddClass()">+ Add Class</button></div>
-      <div class="card-body">${renderTable(
-        ['Name','Section','Teacher','Room','Academic Year'],
-        (data || []).map(c => ({
-          _id: c.id,
-          'Name': c.name,
-          'Section': c.section || '-',
-          'Teacher': c.teachers ? `${c.teachers.first_name} ${c.teachers.last_name}` : '-',
-          'Room': c.room || '-',
-          'Academic Year': c.academic_year || '-'
-        })),
-        row => `<button class="btn btn-sm btn-outline" onclick="showEditClass(${row._id})">Edit</button>`
-      )}</div>
-    </div>`;
+  window._TD['classes'] = data || [];
+  regTable('classes', ['Name','Section','Teacher','Room','Academic Year'],
+    c => ({ _id: c.id, 'Name': c.name, 'Section': c.section || '-', 'Teacher': c.teachers ? `${c.teachers.first_name} ${c.teachers.last_name}` : '-', 'Room': c.room || '-', 'Academic Year': c.academic_year || '-' }),
+    row => `<button class="btn btn-sm btn-outline" onclick="showEditClass(${row._id})">Edit</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('classes',${row._id},'Class')">Delete</button>`
+  );
+  const years = [...new Set((data || []).filter(c => c.academic_year).map(c => c.academic_year))];
+  renderFilteredTable('classes', el('content-area'), [
+    { type: 'search', fields: ['name'], placeholder: 'Search class name...' },
+    { type: 'select', key: 'academic_year', label: 'All Years', options: years.map(y => ({value:y, label:y})) }
+  ], 'Classes', `<button class="btn btn-primary btn-sm" onclick="showAddClass()">+ Add Class</button>`);
 }
 
 async function showAddClass() {
@@ -800,21 +815,16 @@ async function showEditClass(id) { showToast('Edit via the edit button in the ta
 
 async function renderSubjects() {
   const { data } = await erp.from('subjects').select('*, classes(name), teachers(first_name,last_name)').eq('org_id', erpOrg.id).order('name');
-  el('content-area').innerHTML = `
-    <div class="card">
-      <div class="card-header"><h3>Subjects</h3><button class="btn btn-primary btn-sm" onclick="showAddSubject()">+ Add Subject</button></div>
-      <div class="card-body">${renderTable(
-        ['Subject','Code','Class','Teacher'],
-        (data || []).map(s => ({
-          _id: s.id,
-          'Subject': s.name,
-          'Code': s.code || '-',
-          'Class': s.classes?.name || '-',
-          'Teacher': s.teachers ? `${s.teachers.first_name} ${s.teachers.last_name}` : '-'
-        })),
-        row => `<button class="btn btn-sm btn-outline" onclick="showEditSubject(${row._id})">Edit</button>`
-      )}</div>
-    </div>`;
+  window._TD['subjects'] = data || [];
+  regTable('subjects', ['Subject','Code','Class','Teacher'],
+    s => ({ _id: s.id, 'Subject': s.name, 'Code': s.code || '-', 'Class': s.classes?.name || '-', 'Teacher': s.teachers ? `${s.teachers.first_name} ${s.teachers.last_name}` : '-' }),
+    row => `<button class="btn btn-sm btn-outline" onclick="showEditSubject(${row._id})">Edit</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('subjects',${row._id},'Subject')">Delete</button>`
+  );
+  const classOpts = [...new Map((data || []).filter(s => s.classes).map(s => [s.classes.id, s.classes.name]))];
+  renderFilteredTable('subjects', el('content-area'), [
+    { type: 'search', fields: ['name','code'], placeholder: 'Search subject...' },
+    { type: 'select', key: 'class_id', label: 'All Classes', options: classOpts.map(([id,name]) => ({value:String(id), label:name})) }
+  ], 'Subjects', `<button class="btn btn-primary btn-sm" onclick="showAddSubject()">+ Add Subject</button>`);
 }
 
 async function showAddSubject() {
@@ -856,20 +866,18 @@ function showEditSubject(id) { showToast('Feature coming soon.', 'info'); }
 
 async function renderSyllabus() {
   const { data } = await erp.from('syllabus').select('*, classes(name), subjects(name)').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
-  el('content-area').innerHTML = `
-    <div class="card">
-      <div class="card-header"><h3>Syllabus</h3><button class="btn btn-primary btn-sm" onclick="showAddSyllabus()">+ Add Syllabus</button></div>
-      <div class="card-body">${renderTable(
-        ['Title','Class','Subject','Topics'],
-        (data || []).map(s => ({
-          'Title': s.title,
-          'Class': s.classes?.name || '-',
-          'Subject': s.subjects?.name || '-',
-          'Topics': Array.isArray(s.topics) ? s.topics.join(', ') : '-'
-        })),
-        row => `<button class="btn btn-sm btn-outline">View</button>`
-      )}</div>
-    </div>`;
+  window._TD['syllabus'] = data || [];
+  regTable('syllabus', ['Title','Class','Subject','Topics'],
+    s => ({ _id: s.id, 'Title': s.title, 'Class': s.classes?.name || '-', 'Subject': s.subjects?.name || '-', 'Topics': Array.isArray(s.topics) ? s.topics.join(', ') : '-' }),
+    row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('syllabus',${row._id},'Syllabus entry')">Delete</button>`
+  );
+  const classOpts = [...new Map((data || []).filter(s => s.classes).map(s => [s.classes.id, s.classes.name]))];
+  const subjOpts = [...new Map((data || []).filter(s => s.subjects).map(s => [s.subjects.id, s.subjects.name]))];
+  renderFilteredTable('syllabus', el('content-area'), [
+    { type: 'search', fields: ['title'], placeholder: 'Search title...' },
+    { type: 'select', key: 'class_id', label: 'All Classes', options: classOpts.map(([id,n]) => ({value:String(id), label:n})) },
+    { type: 'select', key: 'subject_id', label: 'All Subjects', options: subjOpts.map(([id,n]) => ({value:String(id), label:n})) }
+  ], 'Syllabus', `<button class="btn btn-primary btn-sm" onclick="showAddSyllabus()">+ Add Syllabus</button>`);
 }
 
 async function showAddSyllabus() {
@@ -908,23 +916,15 @@ async function showAddSyllabus() {
 
 async function renderExams() {
   const { data } = await erp.from('exams').select('*, classes(name), subjects(name)').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
-  el('content-area').innerHTML = `
-    <div class="card">
-      <div class="card-header"><h3>Exams</h3><button class="btn btn-primary btn-sm" onclick="showAddExam()">+ Create Exam</button></div>
-      <div class="card-body">${renderTable(
-        ['Title','Class','Subject','Total Marks','Pass %','Status'],
-        (data || []).map(e => ({
-          _id: e.id,
-          'Title': e.title,
-          'Class': e.classes?.name || '-',
-          'Subject': e.subjects?.name || '-',
-          'Total Marks': String(e.total_marks),
-          'Pass %': `${e.pass_percentage}%`,
-          'Status': `<span class="badge badge-${e.status === 'published' ? 'success' : e.status === 'completed' ? 'info' : 'warning'}">${e.status}</span>`
-        })),
-        row => `<button class="btn btn-sm btn-outline" onclick="manageExam(${row._id})">Manage</button>`
-      )}</div>
-    </div>`;
+  window._TD['exams'] = data || [];
+  regTable('exams', ['Title','Class','Subject','Total Marks','Pass %','Status'],
+    e => ({ _id: e.id, 'Title': e.title, 'Class': e.classes?.name || '-', 'Subject': e.subjects?.name || '-', 'Total Marks': String(e.total_marks), 'Pass %': `${e.pass_percentage}%`, 'Status': `<span class="badge badge-${e.status === 'published' ? 'success' : e.status === 'completed' ? 'info' : 'warning'}">${e.status}</span>` }),
+    row => `<button class="btn btn-sm btn-outline" onclick="manageExam(${row._id})">Manage</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('exams',${row._id},'Exam')">Delete</button>`
+  );
+  renderFilteredTable('exams', el('content-area'), [
+    { type: 'search', fields: ['title'], placeholder: 'Search exam...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'draft',label:'Draft'},{value:'published',label:'Published'},{value:'completed',label:'Completed'}] }
+  ], 'Exams', `<button class="btn btn-primary btn-sm" onclick="showAddExam()">+ Create Exam</button>`);
 }
 
 async function showAddExam() {
@@ -1031,27 +1031,23 @@ async function renderFees() {
   const { data } = await erp.from('fees').select('*, students(first_name,last_name)').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
   const total = data?.reduce((s, f) => s + Number(f.amount), 0) || 0;
   const collected = data?.filter(f => f.status === 'paid').reduce((s, f) => s + Number(f.amount), 0) || 0;
+  window._TD['fees'] = data || [];
+  regTable('fees', ['Student','Amount','Due Date','Status','Type'],
+    f => ({ _id: f.id, 'Student': f.students ? `${f.students.first_name} ${f.students.last_name}` : '-', 'Amount': `₹${f.amount}`, 'Due Date': new Date(f.due_date).toLocaleDateString(), 'Status': `<span class="badge badge-${f.status === 'paid' ? 'success' : f.status === 'pending' ? 'warning' : 'danger'}">${f.status}</span>`, 'Type': f.type }),
+    row => `<button class="btn btn-sm btn-success" onclick="markFeePaid(${row._id})">Mark Paid</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('fees',${row._id},'Fee record')">Delete</button>`
+  );
+  const fTypes = [...new Set((data || []).filter(f => f.type).map(f => f.type))];
   el('content-area').innerHTML = `
     <div class="stats-grid">
       <div class="stat-card"><div class="label">Total Fees</div><div class="value">₹${total.toLocaleString()}</div></div>
       <div class="stat-card"><div class="label">Collected</div><div class="value">₹${collected.toLocaleString()}</div></div>
       <div class="stat-card"><div class="label">Pending</div><div class="value">₹${(total - collected).toLocaleString()}</div></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><h3>Fees Records</h3><button class="btn btn-primary btn-sm" onclick="showAddFee()">+ Add Fee</button></div>
-      <div class="card-body">${renderTable(
-        ['Student','Amount','Due Date','Status','Type'],
-        (data || []).map(f => ({
-          _id: f.id,
-          'Student': f.students ? `${f.students.first_name} ${f.students.last_name}` : '-',
-          'Amount': `₹${f.amount}`,
-          'Due Date': new Date(f.due_date).toLocaleDateString(),
-          'Status': `<span class="badge badge-${f.status === 'paid' ? 'success' : f.status === 'pending' ? 'warning' : 'danger'}">${f.status}</span>`,
-          'Type': f.type
-        })),
-        row => `<button class="btn btn-sm btn-success" onclick="markFeePaid(${row._id})">Mark Paid</button>`
-      )}</div>
     </div>`;
+  renderFilteredTable('fees', el('content-area'), [
+    { type: 'search', fields: [], placeholder: 'Search student...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'paid',label:'Paid'},{value:'pending',label:'Pending'},{value:'overdue',label:'Overdue'}] },
+    { type: 'select', key: 'type', label: 'All Types', options: fTypes.map(t => ({value:t, label:t.charAt(0).toUpperCase()+t.slice(1)})) }
+  ], 'Fees Records', `<button class="btn btn-primary btn-sm" onclick="showAddFee()">+ Add Fee</button>`);
 }
 
 async function showAddFee() {
@@ -1093,24 +1089,21 @@ async function markFeePaid(id) {
 async function renderDonations() {
   const { data } = await erp.from('donations').select('*').eq('org_id', erpOrg.id).order('date', { ascending: false });
   const total = data?.reduce((s, d) => s + Number(d.amount), 0) || 0;
+  window._TD['donations'] = data || [];
+  regTable('donations', ['Donor','Amount','Date','Method','Status'],
+    d => ({ _id: d.id, 'Donor': d.donor_name, 'Amount': `₹${d.amount}`, 'Date': new Date(d.date).toLocaleDateString(), 'Method': d.payment_method || '-', 'Status': `<span class="badge badge-${d.status === 'completed' ? 'success' : 'warning'}">${d.status}</span>` }),
+    row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('donations',${row._id},'Donation')">Delete</button>`
+  );
   el('content-area').innerHTML = `
     <div class="stats-grid">
       <div class="stat-card"><div class="label">Total Donations</div><div class="value">₹${total.toLocaleString()}</div></div>
       <div class="stat-card"><div class="label">Donors</div><div class="value">${data?.length || 0}</div></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><h3>Donations</h3><button class="btn btn-primary btn-sm" onclick="showAddDonation()">+ Record Donation</button></div>
-      <div class="card-body">${renderTable(
-        ['Donor','Amount','Date','Method','Status'],
-        (data || []).map(d => ({
-          'Donor': d.donor_name,
-          'Amount': `₹${d.amount}`,
-          'Date': new Date(d.date).toLocaleDateString(),
-          'Method': d.payment_method || '-',
-          'Status': `<span class="badge badge-${d.status === 'completed' ? 'success' : 'warning'}">${d.status}</span>`
-        }))
-      )}</div>
     </div>`;
+  renderFilteredTable('donations', el('content-area'), [
+    { type: 'search', fields: ['donor_name'], placeholder: 'Search donor...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'completed',label:'Completed'},{value:'pending',label:'Pending'}] },
+    { type: 'select', key: 'payment_method', label: 'All Methods', options: [{value:'cash',label:'Cash'},{value:'bank',label:'Bank Transfer'},{value:'online',label:'Online'},{value:'cheque',label:'Cheque'}] }
+  ], 'Donations', `<button class="btn btn-primary btn-sm" onclick="showAddDonation()">+ Record Donation</button>`);
 }
 
 function showAddDonation() {
@@ -1143,29 +1136,142 @@ function showAddDonation() {
 }
 
 /* ============================================================
+   SCHOOL ADMIN: ATTENDANCE
+   ============================================================ */
+
+async function renderAttendance() {
+  const { data } = await erp.from('attendance').select('*, students(first_name,last_name), classes(name)').eq('org_id', erpOrg.id).order('date', { ascending: false });
+  window._TD['attendance'] = data || [];
+  regTable('attendance', ['Student','Class','Date','Status'],
+    a => ({ _id: a.id, 'Student': a.students ? `${a.students.first_name} ${a.students.last_name}` : '-', 'Class': a.classes?.name || '-', 'Date': new Date(a.date).toLocaleDateString(), 'Status': `<span class="badge badge-${a.status === 'present' ? 'success' : a.status === 'late' ? 'warning' : 'danger'}">${a.status}</span>` }),
+    row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('attendance',${row._id},'Attendance record')">Delete</button>`
+  );
+  renderFilteredTable('attendance', el('content-area'), [
+    { type: 'search', fields: [], placeholder: 'Search student...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'present',label:'Present'},{value:'absent',label:'Absent'},{value:'late',label:'Late'},{value:'leave',label:'Leave'}] }
+  ], 'Attendance Records');
+}
+
+/* ============================================================
+   SCHOOL ADMIN: EXPENSES
+   ============================================================ */
+
+async function renderExpenses() {
+  const { data } = await erp.from('expenses').select('*').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
+  window._TD['expenses'] = data || [];
+  regTable('expenses', ['Description','Category','Amount','Date','Status'],
+    e => ({ _id: e.id, 'Description': e.description, 'Category': e.category || '-', 'Amount': `₹${Number(e.amount).toLocaleString()}`, 'Date': new Date(e.date || e.created_at).toLocaleDateString(), 'Status': `<span class="badge badge-${e.status === 'approved' ? 'success' : e.status === 'pending' ? 'warning' : 'danger'}">${e.status || 'pending'}</span>` }),
+    row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('expenses',${row._id},'Expense')">Delete</button>`
+  );
+  const categories = [...new Set((data || []).filter(e => e.category).map(e => e.category))];
+  renderFilteredTable('expenses', el('content-area'), [
+    { type: 'search', fields: ['description'], placeholder: 'Search description...' },
+    { type: 'select', key: 'category', label: 'All Categories', options: categories.map(c => ({value:c, label:c.charAt(0).toUpperCase()+c.slice(1)})) },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'approved',label:'Approved'},{value:'pending',label:'Pending'},{value:'rejected',label:'Rejected'}] }
+  ], 'Expenses', `<button class="btn btn-primary btn-sm" onclick="showAddExpense()">+ Add Expense</button>`);
+}
+
+function showAddExpense() {
+  openSlideModal('Add Expense', `
+    <form id="expense-form">
+      <div class="form-group"><label>Description</label><input name="description" required></div>
+      <div class="form-row">
+        <div class="form-group"><label>Amount (₹)</label><input type="number" name="amount" step="0.01" required></div>
+        <div class="form-group"><label>Category</label><select name="category"><option value="salary">Salary</option><option value="supplies">Supplies</option><option value="maintenance">Maintenance</option><option value="utilities">Utilities</option><option value="other">Other</option></select></div>
+      </div>
+      <div class="form-group"><label>Vendor</label><input name="vendor"></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>`);
+  el('slide-modal-body').querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = getFormData('expense-form');
+    fd.org_id = erpOrg.id;
+    fd.date = new Date().toISOString().split('T')[0];
+    await erp.from('expenses').insert(fd);
+    showToast('Expense added!', 'success');
+    closeSlideModal();
+    navigate('expenses');
+  });
+}
+
+/* ============================================================
+   SUPER ADMIN: PAYMENTS
+   ============================================================ */
+
+async function renderPayments() {
+  const { data } = await erp.from('payments').select('*, organizations(name)').order('created_at', { ascending: false });
+  window._TD['payments'] = data || [];
+  regTable('payments', ['Organization','Amount','Type','Status','Date'],
+    p => ({ _id: p.id, 'Organization': p.organizations?.name || '-', 'Amount': `₹${p.amount}`, 'Type': p.type, 'Status': `<span class="badge badge-${p.status === 'completed' ? 'success' : p.status === 'pending' ? 'warning' : 'danger'}">${p.status}</span>`, 'Date': new Date(p.created_at).toLocaleDateString() }),
+    row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('payments',${row._id},'Payment')">Delete</button>`
+  );
+  renderFilteredTable('payments', el('content-area'), [
+    { type: 'search', fields: [], placeholder: 'Search organization...' },
+    { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'completed',label:'Completed'},{value:'pending',label:'Pending'},{value:'failed',label:'Failed'}] },
+    { type: 'select', key: 'type', label: 'All Types', options: [{value:'subscription',label:'Subscription'},{value:'donation',label:'Donation'},{value:'fee',label:'Fee'}] }
+  ], 'Payments');
+}
+
+/* ============================================================
    SCHOOL ADMIN: CALENDAR
    ============================================================ */
 
 async function renderCalendar() {
   const { data } = await erp.from('events').select('*').eq('org_id', erpOrg.id).order('event_date');
+  window._TD['events'] = data || [];
+  regTable('events', ['Date','Title','Type'],
+    e => ({ _id: e.id, 'Date': new Date(e.event_date).toLocaleDateString(), 'Title': e.title, 'Type': `<span class="badge badge-info">${e.event_type}</span>` }),
+    row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('events',${row._id},'Event')">Delete</button>`
+  );
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const filtered = filterTable(window._TD['events'], 'events');
   const grouped = {};
-  (data || []).forEach(e => {
+  filtered.forEach(e => {
     const m = new Date(e.event_date).getMonth();
     if (!grouped[m]) grouped[m] = [];
     grouped[m].push(e);
   });
   let html = `<div class="card"><div class="card-header"><h3>Calendar</h3><button class="btn btn-primary btn-sm" onclick="showAddEvent()">+ Add Event</button></div><div class="card-body">`;
+  html += `<div class="filter-bar">
+    <input class="filter-input" id="fs-events" data-fields="title" placeholder="Search event..." oninput="reRenderCalendar()">
+    <select data-ff="events" data-fk="event_type" onchange="reRenderCalendar()">
+      <option value="">All Types</option>
+      <option value="general">General</option><option value="exam">Exam</option><option value="holiday">Holiday</option><option value="meeting">Meeting</option><option value="deadline">Deadline</option>
+    </select>
+  </div>`;
   for (const m of Object.keys(grouped)) {
     html += `<h4 style="margin:16px 0 8px;color:var(--primary)">${months[parseInt(m)]}</h4>`;
-    html += renderTable(['Date','Title','Type'], grouped[m].map(e => ({
-      'Date': new Date(e.event_date).toLocaleDateString(),
-      'Title': e.title,
-      'Type': `<span class="badge badge-info">${e.event_type}</span>`
-    })));
+    html += `<div id="tbl-events">${renderTable(['Date','Title','Type'], grouped[m].map(e => ({ _id: e.id, 'Date': new Date(e.event_date).toLocaleDateString(), 'Title': e.title, 'Type': `<span class="badge badge-info">${e.event_type}</span>` })), row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('events',${row._id},'Event')">Delete</button>`)}</div>`;
   }
   html += `</div></div>`;
   el('content-area').innerHTML = html;
+}
+function reRenderCalendar() {
+  const data = window._TD['events'] || [];
+  const search = (document.getElementById('fs-events')?.value || '').toLowerCase();
+  const typeFilter = document.querySelector('[data-ff="events"][data-fk="event_type"]')?.value || '';
+  const filtered = data.filter(e => {
+    if (typeFilter && e.event_type !== typeFilter) return false;
+    if (search && !e.title.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const grouped = {};
+  filtered.forEach(e => {
+    const m = new Date(e.event_date).getMonth();
+    if (!grouped[m]) grouped[m] = [];
+    grouped[m].push(e);
+  });
+  let html = '';
+  for (const m of Object.keys(grouped)) {
+    html += `<h4 style="margin:16px 0 8px;color:var(--primary)">${months[parseInt(m)]}</h4>`;
+    html += renderTable(['Date','Title','Type'], grouped[m].map(e => ({ _id: e.id, 'Date': new Date(e.event_date).toLocaleDateString(), 'Title': e.title, 'Type': `<span class="badge badge-info">${e.event_type}</span>` })), row => `<button class="btn btn-sm btn-danger" onclick="deleteRecord('events',${row._id},'Event')">Delete</button>`);
+  }
+  const c = document.querySelector('.card:last-child .card-body');
+  if (c) c.innerHTML = html;
 }
 
 function showAddEvent() {
