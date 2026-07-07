@@ -889,7 +889,37 @@ async function showAddSubject() {
   });
 }
 
-function showEditSubject(id) { showToast('Feature coming soon.', 'info'); }
+async function showEditSubject(id) {
+  const { data } = await erp.from('subjects').select('*').eq('id', id).single();
+  if (!data) return;
+  const [classes, teachers] = await Promise.all([
+    erp.from('classes').select('*').eq('org_id', erpOrg.id),
+    erp.from('teachers').select('*').eq('org_id', erpOrg.id).eq('status', 'active'),
+  ]);
+  openSlideModal('Edit Subject', `
+    <form id="subject-form">
+      <div class="form-row">
+        <div class="form-group"><label>Subject Name</label><input name="name" value="${data.name}" required></div>
+        <div class="form-group"><label>Code</label><input name="code" value="${data.code || ''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Class</label><select name="class_id">${(classes.data || []).map(c => `<option value="${c.id}" ${data.class_id === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Teacher</label><select name="teacher_id"><option value="">Select</option>${(teachers.data || []).map(t => `<option value="${t.id}" ${data.teacher_id === t.id ? 'selected' : ''}>${t.first_name} ${t.last_name}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update</button>
+      </div>
+    </form>`);
+  el('slide-modal-body').querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = getFormData('subject-form');
+    await erp.from('subjects').update(fd).eq('id', id);
+    showToast('Subject updated!', 'success');
+    closeSlideModal();
+    navigate('subjects');
+  });
+}
 
 /* ============================================================
    SCHOOL ADMIN: SYLLABUS
