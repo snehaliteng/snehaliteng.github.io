@@ -807,7 +807,38 @@ async function showAddClass() {
   });
 }
 
-async function showEditClass(id) { showToast('Edit via the edit button in the table.', 'info'); }
+async function showEditClass(id) {
+  const { data } = await erp.from('classes').select('*').eq('id', id).single();
+  if (!data) return;
+  const { data: teachers } = await erp.from('teachers').select('*').eq('org_id', erpOrg.id).eq('status', 'active');
+  openSlideModal('Edit Class', `
+    <form id="class-form">
+      <div class="form-row">
+        <div class="form-group"><label>Class Name</label><input name="name" value="${data.name}" required></div>
+        <div class="form-group"><label>Section</label><input name="section" value="${data.section || ''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Teacher</label><select name="teacher_id">
+          <option value="">Select</option>
+          ${(teachers || []).map(t => `<option value="${t.id}" ${data.teacher_id === t.id ? 'selected' : ''}>${t.first_name} ${t.last_name}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label>Room</label><input name="room" value="${data.room || ''}"></div>
+      </div>
+      <div class="form-group"><label>Academic Year</label><input name="academic_year" value="${data.academic_year || ''}"></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update</button>
+      </div>
+    </form>`);
+  el('slide-modal-body').querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = getFormData('class-form');
+    await erp.from('classes').update(fd).eq('id', id);
+    showToast('Class updated!', 'success');
+    closeSlideModal();
+    navigate('classes');
+  });
+}
 
 /* ============================================================
    SCHOOL ADMIN: SUBJECTS
