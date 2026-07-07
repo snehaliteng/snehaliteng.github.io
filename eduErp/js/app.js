@@ -52,7 +52,8 @@ const NAV = {
         { id: 'dashboard', icon: '📊', label: 'Dashboard' },
         { id: 'my-classes', icon: '📚', label: 'My Classes' },
         { id: 'take-attendance', icon: '✅', label: 'Attendance' },
-        { id: 'exams', icon: '📝', label: 'Exams' },
+        { id: 'assignments', icon: '📝', label: 'Assignments' },
+        { id: 'exams', icon: '📋', label: 'Exams' },
         { id: 'syllabus', icon: '📄', label: 'Syllabus' },
       ]},
     ]
@@ -62,7 +63,8 @@ const NAV = {
       { label: 'Main', items: [
         { id: 'dashboard', icon: '📊', label: 'Dashboard' },
         { id: 'my-attendance', icon: '✅', label: 'Attendance' },
-        { id: 'my-exams', icon: '📝', label: 'Exams' },
+        { id: 'my-assignments', icon: '📝', label: 'Assignments' },
+        { id: 'my-exams', icon: '📋', label: 'Exams' },
         { id: 'my-fees', icon: '💵', label: 'Fees' },
         { id: 'calendar', icon: '📅', label: 'Calendar' },
       ]},
@@ -317,6 +319,8 @@ async function navigate(page) {
       'reports': renderReports,
       'my-classes': renderMyClasses,
       'take-attendance': renderTakeAttendance,
+      'assignments': renderTeacherAssignments,
+      'my-assignments': renderStudentAssignments,
       'my-attendance': renderMyAttendance,
       'my-exams': renderMyExams,
       'my-fees': renderMyFees,
@@ -416,14 +420,27 @@ async function renderTeacherDashboard() {
   const teacherData = await erp.from('teachers').select('*').eq('profile_id', profId).single();
   if (!teacherData.data) { el('content-area').innerHTML = '<div class="empty-state"><p>Teacher profile not found.</p></div>'; return; }
   const teacher = teacherData.data;
-  const [subjects, exams] = await Promise.all([
+  const [classes, subjects, exams, assignments] = await Promise.all([
+    erp.from('classes').select('*', { count: 'exact', head: true }).eq('teacher_id', teacher.id),
     erp.from('subjects').select('*, classes(*)').eq('teacher_id', teacher.id),
     erp.from('exams').select('*').eq('created_by', teacher.id),
+    erp.from('assignments').select('*', { count: 'exact', head: true }).eq('teacher_id', teacher.id).eq('status', 'active'),
   ]);
   el('content-area').innerHTML = `
     <div class="stats-grid">
+      <div class="stat-card"><div class="label">My Classes</div><div class="value">${classes.count || 0}</div></div>
       <div class="stat-card"><div class="label">My Subjects</div><div class="value">${subjects.data?.length || 0}</div></div>
-      <div class="stat-card"><div class="label">My Exams</div><div class="value">${exams.data?.length || 0}</div></div>
+      <div class="stat-card"><div class="label">Active Assignments</div><div class="value">${assignments.count || 0}</div></div>
+      <div class="stat-card"><div class="label">Exams</div><div class="value">${exams.data?.length || 0}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Quick Actions</h3></div>
+      <div class="card-body flex gap-2" style="flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="navigate('my-classes')">View Classes</button>
+        <button class="btn btn-primary" onclick="navigate('take-attendance')">Take Attendance</button>
+        <button class="btn btn-success" onclick="navigate('assignments')">Assignments</button>
+        <button class="btn btn-warning" onclick="navigate('exams')">Exams</button>
+      </div>
     </div>
     <div class="card">
       <div class="card-header"><h3>My Subjects</h3></div>
@@ -436,12 +453,13 @@ async function renderTeacherDashboard() {
 
 async function renderStudentDashboard() {
   const profId = erpProfile.id;
-  const studentData = await erp.from('students').select('*').eq('profile_id', profId).single();
+  const studentData = await erp.from('students').select('*, classes(name)').eq('profile_id', profId).single();
   if (!studentData.data) { el('content-area').innerHTML = '<div class="empty-state"><p>Student profile not found.</p></div>'; return; }
   const student = studentData.data;
-  const [attendance, results] = await Promise.all([
+  const [attendance, results, assignments] = await Promise.all([
     erp.from('attendance').select('*').eq('student_id', student.id),
     erp.from('exam_results').select('*, exams(*)').eq('student_id', student.id),
+    erp.from('assignments').select('*', { count: 'exact', head: true }).eq('class_id', student.class_id).eq('status', 'active'),
   ]);
   const total = attendance.data?.length || 0;
   const present = attendance.data?.filter(a => a.status === 'present').length || 0;
@@ -449,9 +467,19 @@ async function renderStudentDashboard() {
   const avgScore = results.data?.length ? Math.round(results.data.reduce((s, r) => s + Number(r.percentage), 0) / results.data.length) : 0;
   el('content-area').innerHTML = `
     <div class="stats-grid">
+      <div class="stat-card"><div class="label">My Class</div><div class="value" style="font-size:1.1rem">${student.classes?.name || 'Not assigned'}</div></div>
       <div class="stat-card"><div class="label">Attendance</div><div class="value">${pct}%</div><div class="sub">${present}/${total} days</div></div>
+      <div class="stat-card"><div class="label">Pending Assignments</div><div class="value">${assignments.count || 0}</div></div>
       <div class="stat-card"><div class="label">Average Score</div><div class="value">${avgScore}%</div></div>
-      <div class="stat-card"><div class="label">Exams Taken</div><div class="value">${results.data?.length || 0}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Quick Links</h3></div>
+      <div class="card-body flex gap-2" style="flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="navigate('my-attendance')">Attendance</button>
+        <button class="btn btn-success" onclick="navigate('my-assignments')">Assignments</button>
+        <button class="btn btn-warning" onclick="navigate('my-exams')">Exams</button>
+        <button class="btn btn-info" onclick="navigate('my-fees')">Fees</button>
+      </div>
     </div>
     <div class="card">
       <div class="card-header"><h3>Recent Exam Results</h3></div>
@@ -596,10 +624,10 @@ async function renderRevenue() {
    ============================================================ */
 
 async function renderStudents() {
-  const { data } = await erp.from('students').select('*').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
+  const { data } = await erp.from('students').select('*, classes(name)').eq('org_id', erpOrg.id).order('created_at', { ascending: false });
   window._TD['students'] = data || [];
-  regTable('students', ['Roll No','Name','Email','Phone','Status'],
-    s => ({ _id: s.id, 'Roll No': s.roll_number || '-', 'Name': `${s.first_name} ${s.last_name}`, 'Email': s.email || '-', 'Phone': s.phone || '-', 'Status': `<span class="badge badge-${s.status === 'active' ? 'success' : 'danger'}">${s.status}</span>` }),
+  regTable('students', ['Roll No','Name','Class','Email','Phone','Status'],
+    s => ({ _id: s.id, 'Roll No': s.roll_number || '-', 'Name': `${s.first_name} ${s.last_name}`, 'Class': s.classes?.name || '-', 'Email': s.email || '-', 'Phone': s.phone || '-', 'Status': `<span class="badge badge-${s.status === 'active' ? 'success' : 'danger'}">${s.status}</span>` }),
     row => `<button class="btn btn-sm btn-outline" onclick="showEditStudent(${row._id})">Edit</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('students',${row._id},'Student')">Delete</button>`
   );
   renderFilteredTable('students', el('content-area'), [
@@ -608,7 +636,8 @@ async function renderStudents() {
   ], 'Students', `<button class="btn btn-primary btn-sm" onclick="showAddStudent()">+ Add Student</button>`);
 }
 
-function showAddStudent() {
+async function showAddStudent() {
+  const { data: classes } = await erp.from('classes').select('*').eq('org_id', erpOrg.id);
   openSlideModal('Add Student', `
     <form id="student-form">
       <div class="form-row">
@@ -620,13 +649,14 @@ function showAddStudent() {
         <div class="form-group"><label>Phone</label><input name="phone"></div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label>Class</label><select name="class_id"><option value="">No Class</option>${(classes || []).map(c => `<option value="${c.id}">${c.name} ${c.section || ''}</option>`).join('')}</select></div>
         <div class="form-group"><label>Roll Number</label><input name="roll_number"></div>
-        <div class="form-group"><label>Gender</label><select name="gender"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label>Gender</label><select name="gender"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
         <div class="form-group"><label>Guardian Name</label><input name="guardian_name"></div>
-        <div class="form-group"><label>Guardian Phone</label><input name="guardian_phone"></div>
       </div>
+      <div class="form-group"><label>Guardian Phone</label><input name="guardian_phone"></div>
       <div class="form-actions">
         <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
         <button type="submit" class="btn btn-primary">Save</button>
@@ -646,6 +676,7 @@ function showAddStudent() {
 async function showEditStudent(id) {
   const { data } = await erp.from('students').select('*').eq('id', id).single();
   if (!data) return;
+  const { data: classes } = await erp.from('classes').select('*').eq('org_id', erpOrg.id);
   openSlideModal('Edit Student', `
     <form id="student-form">
       <div class="form-row">
@@ -657,7 +688,11 @@ async function showEditStudent(id) {
         <div class="form-group"><label>Phone</label><input name="phone" value="${data.phone || ''}"></div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label>Class</label><select name="class_id"><option value="">No Class</option>${(classes || []).map(c => `<option value="${c.id}" ${data.class_id === c.id ? 'selected' : ''}>${c.name} ${c.section || ''}</option>`).join('')}</select></div>
         <div class="form-group"><label>Roll Number</label><input name="roll_number" value="${data.roll_number || ''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Gender</label><select name="gender"><option value="">Select</option><option value="male" ${data.gender === 'male' ? 'selected' : ''}>Male</option><option value="female" ${data.gender === 'female' ? 'selected' : ''}>Female</option><option value="other" ${data.gender === 'other' ? 'selected' : ''}>Other</option></select></div>
         <div class="form-group"><label>Status</label><select name="status">
           <option value="active" ${data.status === 'active' ? 'selected' : ''}>Active</option>
           <option value="inactive" ${data.status === 'inactive' ? 'selected' : ''}>Inactive</option>
@@ -762,17 +797,61 @@ async function showEditTeacher(id) {
    ============================================================ */
 
 async function renderClasses() {
-  const { data } = await erp.from('classes').select('*, teachers(first_name,last_name)').eq('org_id', erpOrg.id).order('name');
-  window._TD['classes'] = data || [];
-  regTable('classes', ['Name','Section','Teacher','Room','Academic Year'],
-    c => ({ _id: c.id, 'Name': c.name, 'Section': c.section || '-', 'Teacher': c.teachers ? `${c.teachers.first_name} ${c.teachers.last_name}` : '-', 'Room': c.room || '-', 'Academic Year': c.academic_year || '-' }),
-    row => `<button class="btn btn-sm btn-outline" onclick="showEditClass(${row._id})">Edit</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('classes',${row._id},'Class')">Delete</button>`
+  const { data: classData } = await erp.from('classes').select('*, teachers(first_name,last_name)').eq('org_id', erpOrg.id).order('name');
+  const { data: counts } = await erp.from('students').select('class_id').eq('org_id', erpOrg.id).eq('status', 'active');
+  const studentCounts = {};
+  (counts || []).forEach(s => { const k = s.class_id; if (k) studentCounts[k] = (studentCounts[k] || 0) + 1; });
+  window._TD['classes'] = classData || [];
+  regTable('classes', ['Name','Section','Teacher','Students','Room','Academic Year'],
+    c => ({ _id: c.id, 'Name': c.name, 'Section': c.section || '-', 'Teacher': c.teachers ? `${c.teachers.first_name} ${c.teachers.last_name}` : '-', 'Students': String(studentCounts[c.id] || 0), 'Room': c.room || '-', 'Academic Year': c.academic_year || '-' }),
+    row => `<button class="btn btn-sm btn-outline" onclick="showEditClass(${row._id})">Edit</button><button class="btn btn-sm btn-primary ms-1" onclick="assignStudents(${row._id})">Students</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('classes',${row._id},'Class')">Delete</button>`
   );
-  const years = [...new Set((data || []).filter(c => c.academic_year).map(c => c.academic_year))];
+  const years = [...new Set((classData || []).filter(c => c.academic_year).map(c => c.academic_year))];
   renderFilteredTable('classes', el('content-area'), [
     { type: 'search', fields: ['name'], placeholder: 'Search class name...' },
     { type: 'select', key: 'academic_year', label: 'All Years', options: years.map(y => ({value:y, label:y})) }
   ], 'Classes', `<button class="btn btn-primary btn-sm" onclick="showAddClass()">+ Add Class</button>`);
+}
+
+async function assignStudents(classId) {
+  const { data: classData } = await erp.from('classes').select('*, teachers(first_name,last_name)').eq('id', classId).single();
+  const { data: allStudents } = await erp.from('students').select('*').eq('org_id', erpOrg.id).eq('status', 'active');
+  const assignedIds = new Set((allStudents || []).filter(s => s.class_id === classId).map(s => s.id));
+  let html = `<div class="card"><div class="card-header"><h3>Students in ${classData?.name || 'Class'}</h3></div><div class="card-body">`;
+  if (!allStudents || !allStudents.length) { html += '<p class="empty-state">No active students.</p>'; } else {
+    html += `<div style="max-height:400px;overflow-y:auto">`;
+    allStudents.forEach(s => {
+      const checked = assignedIds.has(s.id) ? 'checked' : '';
+      html += `<label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--gray-100);cursor:pointer">
+        <input type="checkbox" class="assign-chk" data-sid="${s.id}" ${checked}>
+        <span>${s.first_name} ${s.last_name} (${s.roll_number || 'no roll'})</span>
+      </label>`;
+    });
+    html += `</div>`;
+  }
+  html += `<div class="form-actions mt-2">
+    <button class="btn btn-outline" onclick="navigate('classes')">Back</button>
+    <button class="btn btn-primary" onclick="saveAssignStudents(${classId})">Save</button>
+  </div></div></div>`;
+  el('content-area').innerHTML = html;
+}
+
+async function saveAssignStudents(classId) {
+  const sids = [];
+  document.querySelectorAll('.assign-chk:checked').forEach(cb => sids.push(parseInt(cb.dataset.sid)));
+  const unassigned = [];
+  document.querySelectorAll('.assign-chk:not(:checked)').forEach(cb => unassigned.push(parseInt(cb.dataset.sid)));
+  for (const sid of sids) {
+    await erp.from('students').update({ class_id: classId }).eq('id', sid);
+  }
+  for (const sid of unassigned) {
+    const s = await erp.from('students').select('class_id').eq('id', sid).single();
+    if (s.data?.class_id === classId) {
+      await erp.from('students').update({ class_id: null }).eq('id', sid);
+    }
+  }
+  showToast(`Assigned ${sids.length} students to class`, 'success');
+  navigate('classes');
 }
 
 async function showAddClass() {
@@ -1405,10 +1484,23 @@ async function renderMyClasses() {
   const teacherData = await erp.from('teachers').select('*').eq('profile_id', erpProfile.id).single();
   if (!teacherData.data) { el('content-area').innerHTML = '<div class="empty-state"><p>Teacher profile not linked.</p></div>'; return; }
   const { data: classes } = await erp.from('classes').select('*').eq('teacher_id', teacherData.data.id);
+  const { data: allStudents } = await erp.from('students').select('class_id').eq('org_id', erpOrg.id).eq('status', 'active');
+  const counts = {};
+  (allStudents || []).forEach(s => { if (s.class_id) counts[s.class_id] = (counts[s.class_id] || 0) + 1; });
   el('content-area').innerHTML = `
     <div class="card"><div class="card-header"><h3>My Classes</h3></div>
-    <div class="card-body">${renderTable(['Name','Section','Room','Academic Year'], (classes || []).map(c => ({
-      'Name': c.name, 'Section': c.section || '-', 'Room': c.room || '-', 'Academic Year': c.academic_year || '-'
+    <div class="card-body">${renderTable(['Name','Section','Students','Room','Academic Year'], (classes || []).map(c => ({
+      'Name': c.name, 'Section': c.section || '-', 'Students': String(counts[c.id] || 0), 'Room': c.room || '-', 'Academic Year': c.academic_year || '-'
+    })), row => `<button class="btn btn-sm btn-outline" onclick="viewClassStudents(${row._id})">View Students</button>`)}</div></div>`;
+}
+
+async function viewClassStudents(classId) {
+  const { data: students } = await erp.from('students').select('*, classes(name)').eq('class_id', classId).eq('org_id', erpOrg.id).eq('status', 'active');
+  const cls = students?.[0]?.classes;
+  el('content-area').innerHTML = `
+    <div class="card"><div class="card-header"><h3>Students - ${cls?.name || 'Class'}</h3><button class="btn btn-sm btn-outline" onclick="navigate('my-classes')">Back</button></div>
+    <div class="card-body">${renderTable(['Roll No','Name','Email','Phone'], (students || []).map(s => ({
+      'Roll No': s.roll_number || '-', 'Name': `${s.first_name} ${s.last_name}`, 'Email': s.email || '-', 'Phone': s.phone || '-'
     })))}</div></div>`;
 }
 
@@ -1476,6 +1568,90 @@ async function submitAttendance() {
 }
 
 /* ============================================================
+   TEACHER: ASSIGNMENTS
+   ============================================================ */
+
+async function renderTeacherAssignments() {
+  const teacherData = await erp.from('teachers').select('*').eq('profile_id', erpProfile.id).single();
+  if (!teacherData.data) { el('content-area').innerHTML = '<div class="empty-state"><p>Teacher profile not linked.</p></div>'; return; }
+  const teacher = teacherData.data;
+  const { data: assignments } = await erp.from('assignments').select('*, classes(name), subjects(name)').eq('teacher_id', teacher.id).order('created_at', { ascending: false });
+  window._TD['teacher-assignments'] = assignments || [];
+  regTable('teacher-assignments', ['Title','Class','Subject','Due Date','Status'],
+    a => ({ _id: a.id, 'Title': a.title, 'Class': a.classes?.name || '-', 'Subject': a.subjects?.name || '-', 'Due Date': new Date(a.due_date).toLocaleDateString(), 'Status': `<span class="badge badge-${a.status === 'active' ? 'success' : 'danger'}">${a.status}</span>` }),
+    row => `<button class="btn btn-sm btn-outline" onclick="viewAssignment(${row._id})">View</button><button class="btn btn-sm btn-danger ms-1" onclick="deleteRecord('assignments',${row._id},'Assignment')">Delete</button>`
+  );
+  renderFilteredTable('teacher-assignments', el('content-area'), [
+    { type: 'search', fields: ['title'], placeholder: 'Search assignment...' },
+    { type: 'select', key: 'status', label: 'All Status', options: [{value:'active',label:'Active'},{value:'closed',label:'Closed'}] }
+  ], 'My Assignments', `<button class="btn btn-primary btn-sm" onclick="showAddAssignment()">+ Create Assignment</button>`);
+}
+
+async function showAddAssignment() {
+  const teacherData = await erp.from('teachers').select('*').eq('profile_id', erpProfile.id).single();
+  if (!teacherData.data) return;
+  const [classes, subjects] = await Promise.all([
+    erp.from('classes').select('*').eq('teacher_id', teacherData.data.id),
+    erp.from('subjects').select('*').eq('teacher_id', teacherData.data.id),
+  ]);
+  openSlideModal('Create Assignment', `
+    <form id="assignment-form">
+      <div class="form-group"><label>Title</label><input name="title" required></div>
+      <div class="form-group"><label>Description</label><textarea name="description" rows="3"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Class</label><select name="class_id" required>${(classes.data || []).map(c => `<option value="${c.id}">${c.name} ${c.section || ''}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Subject</label><select name="subject_id"><option value="">General</option>${(subjects.data || []).map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Due Date</label><input type="date" name="due_date" required></div>
+        <div class="form-group"><label>Max Score</label><input type="number" name="max_score" step="0.5" value="100"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create</button>
+      </div>
+    </form>`);
+  el('slide-modal-body').querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = getFormData('assignment-form');
+    fd.org_id = erpOrg.id;
+    fd.teacher_id = teacherData.data.id;
+    await erp.from('assignments').insert(fd);
+    showToast('Assignment created!', 'success');
+    closeSlideModal();
+    navigate('assignments');
+  });
+}
+
+async function viewAssignment(id) {
+  const [assignment, submissions] = await Promise.all([
+    erp.from('assignments').select('*, classes(name), subjects(name)').eq('id', id).single(),
+    erp.from('assignment_submissions').select('*, students(first_name,last_name)').eq('assignment_id', id),
+  ]);
+  const a = assignment.data;
+  const subs = submissions.data || [];
+  let html = `<div class="card"><div class="card-header"><h3>${a.title}</h3><button class="btn btn-sm btn-outline" onclick="navigate('assignments')">Back</button></div>
+    <div class="card-body"><p>${a.description || ''}</p>
+    <div class="flex gap-4 mt-2" style="flex-wrap:wrap;color:var(--gray-600);font-size:.85rem">
+      <span>Class: <strong>${a.classes?.name || '-'}</strong></span>
+      <span>Subject: <strong>${a.subjects?.name || 'General'}</strong></span>
+      <span>Due: <strong>${new Date(a.due_date).toLocaleDateString()}</strong></span>
+      <span>Max Score: <strong>${a.max_score || '-'}</strong></span>
+    </div></div></div>`;
+  const headers = ['Student','Status','Score','Submitted'];
+  const rows = subs.map(s => ({
+    _id: s.id,
+    'Student': s.students ? `${s.students.first_name} ${s.students.last_name}` : '-',
+    'Status': `<span class="badge badge-${s.status === 'graded' ? 'success' : s.status === 'submitted' ? 'info' : 'warning'}">${s.status}</span>`,
+    'Score': s.score != null ? `${s.score}/${a.max_score || '-'}` : '-',
+    'Submitted': new Date(s.submitted_at).toLocaleDateString()
+  }));
+  html += `<div class="card mt-2"><div class="card-header"><h3>Submissions (${subs.length})</h3></div>
+    <div class="card-body">${renderTable(headers, rows)}</div></div>`;
+  el('content-area').innerHTML = html;
+}
+
+/* ============================================================
    STUDENT: MY ATTENDANCE
    ============================================================ */
 
@@ -1535,4 +1711,74 @@ async function renderMyFees() {
       'Due Date': new Date(f.due_date).toLocaleDateString(),
       'Status': `<span class="badge badge-${f.status === 'paid' ? 'success' : f.status === 'overdue' ? 'danger' : 'warning'}">${f.status}</span>`
     })))}</div></div>`;
+}
+
+/* ============================================================
+   STUDENT: MY ASSIGNMENTS
+   ============================================================ */
+
+async function renderStudentAssignments() {
+  const studentData = await erp.from('students').select('*, classes(name)').eq('profile_id', erpProfile.id).single();
+  if (!studentData.data) { el('content-area').innerHTML = '<div class="empty-state"><p>Student profile not linked to a class.</p></div>'; return; }
+  const student = studentData.data;
+  const { data: assignments } = await erp.from('assignments').select('*, subjects(name), teachers(first_name,last_name)').eq('class_id', student.class_id).order('due_date');
+  window._TD['student-assignments'] = assignments || [];
+  regTable('student-assignments', ['Title','Subject','Teacher','Due Date','Status'],
+    a => ({ _id: a.id, 'Title': a.title, 'Subject': a.subjects?.name || 'General', 'Teacher': a.teachers ? `${a.teachers.first_name} ${a.teachers.last_name}` : '-', 'Due Date': new Date(a.due_date).toLocaleDateString(), 'Status': `<span class="badge badge-${a.status === 'active' ? 'success' : 'danger'}">${a.status}</span>` }),
+    row => `<button class="btn btn-sm btn-outline" onclick="viewStudentAssignment(${row._id})">View</button>`
+  );
+  renderFilteredTable('student-assignments', el('content-area'), [
+    { type: 'search', fields: ['title'], placeholder: 'Search assignments...' },
+    { type: 'select', key: 'status', label: 'All Status', options: [{value:'active',label:'Active'},{value:'closed',label:'Closed'}] }
+  ], `My Assignments ${student.classes ? `- ${student.classes.name}` : ''}`);
+}
+
+async function viewStudentAssignment(id) {
+  const studentData = await erp.from('students').select('id').eq('profile_id', erpProfile.id).single();
+  if (!studentData.data) return;
+  const [assignment, submission] = await Promise.all([
+    erp.from('assignments').select('*, subjects(name), teachers(first_name,last_name)').eq('id', id).single(),
+    erp.from('assignment_submissions').select('*').eq('assignment_id', id).eq('student_id', studentData.data.id).maybeSingle(),
+  ]);
+  const a = assignment.data;
+  const sub = submission.data;
+  let html = `<div class="card"><div class="card-header"><h3>${a.title}</h3><button class="btn btn-sm btn-outline" onclick="navigate('my-assignments')">Back</button></div>
+    <div class="card-body"><p>${a.description || 'No description.'}</p>
+    <div class="flex gap-4 mt-2" style="flex-wrap:wrap;color:var(--gray-600);font-size:.85rem">
+      <span>Subject: <strong>${a.subjects?.name || 'General'}</strong></span>
+      <span>Teacher: <strong>${a.teachers ? `${a.teachers.first_name} ${a.teachers.last_name}` : '-'}</strong></span>
+      <span>Due: <strong>${new Date(a.due_date).toLocaleDateString()}</strong></span>
+      <span>Max Score: <strong>${a.max_score || '-'}</strong></span>
+    </div></div></div>`;
+  if (sub) {
+    const statusBadge = sub.status === 'graded' ? 'success' : sub.status === 'submitted' ? 'info' : 'warning';
+    html += `<div class="card mt-2"><div class="card-header"><h3>My Submission</h3></div>
+      <div class="card-body"><p>${sub.submission_text || 'No text submitted.'}</p>
+      <div class="flex gap-4 mt-2" style="font-size:.85rem;color:var(--gray-600)">
+        <span>Status: <span class="badge badge-${statusBadge}">${sub.status}</span></span>
+        ${sub.score != null ? `<span>Score: <strong>${sub.score}/${a.max_score || '-'}</strong></span>` : ''}
+        ${sub.feedback ? `<span>Feedback: ${sub.feedback}</span>` : ''}
+        <span>Submitted: ${new Date(sub.submitted_at).toLocaleString()}</span>
+      </div></div></div>`;
+  } else if (a.status === 'active') {
+    html += `<div class="card mt-2"><div class="card-header"><h3>Submit Assignment</h3></div>
+      <div class="card-body"><form id="submit-form">
+        <div class="form-group"><label>Your Answer / Notes</label><textarea name="submission_text" rows="5"></textarea></div>
+        <div class="form-actions"><button type="submit" class="btn btn-primary">Submit</button></div>
+      </form></div></div>`;
+    setTimeout(() => {
+      const form = document.getElementById('submit-form');
+      if (form) form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = getFormData('submit-form');
+        await erp.from('assignment_submissions').insert({
+          assignment_id: id, student_id: studentData.data.id,
+          submission_text: fd.submission_text, status: 'submitted'
+        });
+        showToast('Assignment submitted!', 'success');
+        viewStudentAssignment(id);
+      });
+    }, 50);
+  }
+  el('content-area').innerHTML = html;
 }

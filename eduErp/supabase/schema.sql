@@ -288,6 +288,57 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 -- ============================================================
+-- ASSIGNMENTS MODULE
+-- ============================================================
+
+ALTER TABLE students ADD COLUMN IF NOT EXISTS class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS assignments (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  class_id INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  subject_id INTEGER REFERENCES subjects(id) ON DELETE SET NULL,
+  teacher_id INTEGER NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  due_date DATE NOT NULL,
+  max_score DECIMAL(10,2),
+  status TEXT DEFAULT 'active' CHECK (status IN ('active','closed')),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS assignment_submissions (
+  id SERIAL PRIMARY KEY,
+  assignment_id INTEGER NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  submission_text TEXT,
+  file_url TEXT,
+  score DECIMAL(10,2),
+  feedback TEXT,
+  status TEXT DEFAULT 'submitted' CHECK (status IN ('pending','submitted','graded','returned')),
+  submitted_at TIMESTAMPTZ DEFAULT now(),
+  graded_at TIMESTAMPTZ,
+  graded_by INTEGER REFERENCES teachers(id) ON DELETE SET NULL,
+  UNIQUE(assignment_id, student_id)
+);
+
+ALTER TABLE assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assignment_submissions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "org_access_assignments" ON assignments FOR ALL USING (
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
+);
+CREATE POLICY "org_access_assignment_submissions" ON assignment_submissions FOR ALL USING (
+  assignment_id IN (SELECT id FROM assignments WHERE org_id = get_user_org_id(auth.uid()))
+);
+CREATE POLICY "student_self_assignments" ON assignments FOR SELECT USING (
+  class_id IN (SELECT class_id FROM students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
+);
+CREATE POLICY "student_self_submissions" ON assignment_submissions FOR ALL USING (
+  student_id IN (SELECT id FROM students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
+);
+
+-- ============================================================
 -- INDEXES
 -- ============================================================
 
