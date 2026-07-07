@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduERP - Education ERP System</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+</head>
+<body>
+
+<!-- Login Page -->
+<div id="login-page" class="login-page">
+  <div class="login-card">
+    <h1>EduERP</h1>
+    <p>Education ERP System — Sign in to your account</p>
+    <form onsubmit="event.preventDefault(); handleLogin()">
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" placeholder="you@school.edu" required>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" placeholder="••••••••" required>
+      </div>
+      <div id="login-error" style="display:none;color:var(--danger);font-size:.85rem;margin-bottom:12px;"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Sign In</button>
+    </form>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200);font-size:.8rem;color:var(--gray-500);text-align:center;">
+      <strong>Demo Account:</strong><br>
+      Email: <code>demo@edu-erp.com</code><br>
+      Password: <code>Demo@123</code>
+    </div>
+  </div>
+</div>
+
+<!-- App Shell -->
+<div id="app-shell" style="display:none">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>EduERP</h2>
+      <p id="sidebar-org-name"></p>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <strong id="sidebar-user-name"></strong>
+        <span id="sidebar-user-role"></span>
+      </div>
+      <a href="#" onclick="erpLogout()" style="display:block;margin-top:8px;font-size:.8rem;color:rgba(255,255,255,.5)">Sign Out</a>
+    </div>
+  </div>
+  <div class="main-content">
+    <header class="top-bar">
+      <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" style="display:none;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--gray-700);padding:4px 8px">☰</button>
+      <h2 class="page-title" id="page-title">Dashboard</h2>
+    </header>
+    <div class="content" id="content-area">
+      <div class="loading">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Modal -->
+<div id="modal-overlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title"></h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="modal-confirm" style="display:none">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Slide Modal -->
+<div id="slide-modal-overlay" class="slide-modal-overlay" onclick="if(event.target===this)closeSlideModal()">
+  <div class="slide-modal">
+    <div class="slide-modal-header">
+      <h3 id="slide-modal-title"></h3>
+      <button class="modal-close" onclick="closeSlideModal()">✕</button>
+    </div>
+    <div class="slide-modal-body" id="slide-modal-body"></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+function handleLogin() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+  errorEl.style.display = 'none';
+  erpLogin(email, password).catch(err => {
+    errorEl.textContent = err.message || 'Login failed. Please check your credentials.';
+    errorEl.style.display = 'block';
+  });
+}
+</script>
+</body>
+</html>
