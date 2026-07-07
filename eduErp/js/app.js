@@ -427,6 +427,7 @@ async function renderSchools() {
       <div class="card-body">${renderTable(
         ['Name','Email','Plan','Status','Students','Teachers'],
         (data || []).map(o => ({
+          _id: o.id,
           'Name': o.name,
           'Email': o.email || '-',
           'Plan': `<span class="badge badge-info">${o.subscription_plan}</span>`,
@@ -484,6 +485,7 @@ async function renderPlans() {
       <div class="card-body">${renderTable(
         ['Name','Price','Billing','Max Students','Status'],
         (data || []).map(p => ({
+          _id: p.id,
           'Name': p.name,
           'Price': `₹${p.price}`,
           'Billing': p.billing_cycle,
@@ -566,6 +568,7 @@ async function renderStudents() {
       <div class="card-body">${renderTable(
         ['Roll No','Name','Email','Phone','Status'],
         (data || []).map(s => ({
+          _id: s.id,
           'Roll No': s.roll_number || '-',
           'Name': `${s.first_name} ${s.last_name}`,
           'Email': s.email || '-',
@@ -660,6 +663,7 @@ async function renderTeachers() {
       <div class="card-body">${renderTable(
         ['Employee ID','Name','Email','Qualification','Status'],
         (data || []).map(t => ({
+          _id: t.id,
           'Employee ID': t.employee_id || '-',
           'Name': `${t.first_name} ${t.last_name}`,
           'Email': t.email || '-',
@@ -744,6 +748,7 @@ async function renderClasses() {
       <div class="card-body">${renderTable(
         ['Name','Section','Teacher','Room','Academic Year'],
         (data || []).map(c => ({
+          _id: c.id,
           'Name': c.name,
           'Section': c.section || '-',
           'Teacher': c.teachers ? `${c.teachers.first_name} ${c.teachers.last_name}` : '-',
@@ -801,6 +806,7 @@ async function renderSubjects() {
       <div class="card-body">${renderTable(
         ['Subject','Code','Class','Teacher'],
         (data || []).map(s => ({
+          _id: s.id,
           'Subject': s.name,
           'Code': s.code || '-',
           'Class': s.classes?.name || '-',
@@ -908,6 +914,7 @@ async function renderExams() {
       <div class="card-body">${renderTable(
         ['Title','Class','Subject','Total Marks','Pass %','Status'],
         (data || []).map(e => ({
+          _id: e.id,
           'Title': e.title,
           'Class': e.classes?.name || '-',
           'Subject': e.subjects?.name || '-',
@@ -1035,6 +1042,7 @@ async function renderFees() {
       <div class="card-body">${renderTable(
         ['Student','Amount','Due Date','Status','Type'],
         (data || []).map(f => ({
+          _id: f.id,
           'Student': f.students ? `${f.students.first_name} ${f.students.last_name}` : '-',
           'Amount': `₹${f.amount}`,
           'Due Date': new Date(f.due_date).toLocaleDateString(),
