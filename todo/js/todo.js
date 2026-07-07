@@ -12,6 +12,7 @@ let userPlan = null;
 let planLimits = { max_templates: 3, max_schedules_per_month: 30 };
 let selectedTaskIds = new Set();
 let selectedPermTaskIds = new Set();
+let expandedPermTaskIds = new Set();
 
 // Auth
 async function checkAuth() {
@@ -1186,7 +1187,6 @@ function escHtml(s) {
 }
 
 // ======= Permament Tasks =======
-let permTodayCache = null;
 
 async function loadPermanentTasks() {
   const { data } = await sb.from('todo_permanent_tasks').select('*').eq('user_id', currentUser.id).order('order_index');
@@ -1218,8 +1218,11 @@ async function loadPermanentTasks() {
     const completed = log ? log.is_completed : 0;
     const hasChildren = children[t.id] && children[t.id].length;
     const indent = depth * 24;
-    return '<div class="card" style="margin-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
-      '<div class="task-item">' +
+    const isExpanded = expandedPermTaskIds.has(t.id);
+    return '<div class="card perm-task-card" style="margin-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
+      '<div class="task-item" draggable="true" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '" ' +
+      'ondragstart="permTaskDragStart(event)" ondragover="permTaskDragOver(event)" ondrop="permTaskDrop(event)" ondragend="permTaskDragEnd(event)">' +
+      (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-select" onchange="togglePermSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
       '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadPermanentTasks)">' +
       '<span class="task-title' + (completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
@@ -1231,11 +1234,13 @@ async function loadPermanentTasks() {
 
   function renderSubtree(parentId, depth) {
     const subs = children[parentId] || [];
-    let html = '';
+    if (!subs.length) return '';
+    let html = '<div class="perm-children" id="perm-children-' + parentId + '" style="display:' + (expandedPermTaskIds.has(parentId) ? 'block' : 'none') + '">';
     for (const t of subs) {
       html += renderTask(t, depth);
       html += renderSubtree(t.id, depth + 1);
     }
+    html += '</div>';
     return html;
   }
 
@@ -1245,6 +1250,56 @@ async function loadPermanentTasks() {
     html += renderSubtree(p.id, 1);
   }
   container.innerHTML = html;
+}
+
+function togglePermChildren(taskId) {
+  if (expandedPermTaskIds.has(taskId)) {
+    expandedPermTaskIds.delete(taskId);
+  } else {
+    expandedPermTaskIds.add(taskId);
+  }
+}
+
+function permTaskDragStart(e) {
+  e.dataTransfer.setData('text/plain', JSON.stringify({
+    id: parseInt(e.currentTarget.dataset.id),
+    parent: e.currentTarget.dataset.parent
+  }));
+  e.currentTarget.closest('.perm-task-card').classList.add('dragging');
+}
+
+function permTaskDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.closest('.perm-task-card').classList.add('drag-over');
+}
+
+function permTaskDragEnd(e) {
+  document.querySelectorAll('.perm-task-card').forEach(function(el) {
+    el.classList.remove('dragging', 'drag-over');
+  });
+}
+
+async function permTaskDrop(e) {
+  e.preventDefault();
+  const targetCard = e.currentTarget.closest('.perm-task-card');
+  targetCard.classList.remove('drag-over');
+  const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+  const draggedId = data.id;
+  const draggedParent = data.parent;
+  const targetId = parseInt(targetCard.querySelector('.task-item').dataset.id);
+  const targetParent = targetCard.querySelector('.task-item').dataset.parent;
+  if (draggedId === targetId || draggedParent !== targetParent) return;
+  const items = Array.from(document.querySelectorAll('.perm-task-card')).filter(function(el) {
+    return el.querySelector('.task-item').dataset.parent === draggedParent;
+  });
+  if (items.length < 2) return;
+  const newOrder = items.map(function(el) { return parseInt(el.querySelector('.task-item').dataset.id); });
+  if (newOrder.length < 2) return;
+  const updates = newOrder.map(function(id, idx) {
+    return sb.from('todo_permanent_tasks').update({ order_index: idx }).eq('id', id);
+  });
+  await Promise.all(updates);
+  loadPermanentTasks();
 }
 
 function togglePermSelect(taskId, checked) {
@@ -1275,14 +1330,16 @@ function showPermanentTaskModal(id, parentId) {
     const title = id ? 'Edit Todo' : 'New Todo';
     const action = id ? ('savePermanentTask(' + id + ')') : (parentId ? 'savePermanentTask(null,' + parentId + ')' : 'savePermanentTask(null)');
 
+    const { data: allTasks } = await sb.from('todo_permanent_tasks').select('*').eq('user_id', currentUser.id).order('order_index');
     let parentOptions = '';
-    if (!id && !parentId) {
-      const { data: parents } = await sb.from('todo_permanent_tasks').select('*').eq('user_id', currentUser.id).is('parent_id', null).order('order_index');
-      if (parents && parents.length) {
-        parentOptions = '<label>Parent Task</label><select id="pt-parent"><option value="">(top-level)</option>';
-        for (const p of parents) parentOptions += '<option value="' + p.id + '">' + escHtml(p.title) + '</option>';
-        parentOptions += '</select>';
+    if (allTasks && allTasks.length) {
+      parentOptions = '<label>Parent Task</label><select id="pt-parent"><option value="">(top-level)</option>';
+      for (const t of allTasks) {
+        if (id && t.id === id) continue;
+        const selected = (task && task.parent_id === t.id) || (parentId && parentId === t.id) ? 'selected' : '';
+        parentOptions += '<option value="' + t.id + '" ' + selected + '>' + escHtml(t.title) + '</option>';
       }
+      parentOptions += '</select>';
     }
 
     const html = '<h3>' + title + '</h3>' +
@@ -1302,14 +1359,19 @@ async function savePermanentTask(id, parentId) {
   const actualParentId = parentId || (parentSelect ? (parentSelect.value || null) : null);
 
   if (id) {
-    const { error } = await sb.from('todo_permanent_tasks').update({ title }).eq('id', id);
+    const updateData = { title };
+    if (parentSelect !== null) updateData.parent_id = actualParentId;
+    if (parentId) updateData.parent_id = parentId;
+    const { error } = await sb.from('todo_permanent_tasks').update(updateData).eq('id', id);
     if (error) return alert('Error: ' + error.message);
   } else {
     const { data: existing } = await sb.from('todo_permanent_tasks').select('id').order('id', { ascending: false }).limit(1);
     const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
+    const { data: lastOrder } = await sb.from('todo_permanent_tasks').select('order_index').eq('user_id', currentUser.id).order('order_index', { ascending: false }).limit(1);
+    const nextOrder = (lastOrder && lastOrder.length) ? lastOrder[0].order_index + 1 : 0;
     const { error } = await sb.from('todo_permanent_tasks').insert({
       id: newId, title, parent_id: actualParentId,
-      user_id: currentUser.id, created_at: now, order_index: newId
+      user_id: currentUser.id, created_at: now, order_index: nextOrder
     });
     if (error) return alert('Error: ' + error.message);
   }
@@ -1356,8 +1418,11 @@ async function loadDailyPermanentTasks() {
   function renderTask(t, depth) {
     const log = logMap[t.id];
     const completed = log ? log.is_completed : 0;
+    const hasChildren = children[t.id] && children[t.id].length;
     const indent = depth * 20;
+    const isExpanded = expandedPermTaskIds.has(t.id);
     return '<div class="task-item" style="padding-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
+      (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadDailyPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadDailyPermanentTasks)">' +
       '<span class="task-title' + (completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
       '<span class="task-status-dot ' + (completed ? 'done' : 'pending') + '"></span></div>';
@@ -1365,11 +1430,13 @@ async function loadDailyPermanentTasks() {
 
   function renderSubtree(parentId, depth) {
     const subs = children[parentId] || [];
-    let html = '';
+    if (!subs.length) return '';
+    let html = '<div class="perm-children" id="dperm-children-' + parentId + '" style="display:' + (expandedPermTaskIds.has(parentId) ? 'block' : 'none') + '">';
     for (const t of subs) {
       html += renderTask(t, depth);
       html += renderSubtree(t.id, depth + 1);
     }
+    html += '</div>';
     return html;
   }
 
