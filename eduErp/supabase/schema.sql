@@ -326,84 +326,91 @@ ALTER TABLE donations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
+-- RLS helper functions (SECURITY DEFINER to avoid recursive policy evaluation)
+CREATE OR REPLACE FUNCTION is_super_admin(uid UUID)
+RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+BEGIN
+  RETURN EXISTS (SELECT 1 FROM public.profiles WHERE user_id = uid AND role = 'super_admin');
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION get_user_org_id(uid UUID)
+RETURNS INTEGER LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+DECLARE org INTEGER;
+BEGIN
+  SELECT org_id INTO org FROM public.profiles WHERE user_id = uid;
+  RETURN org;
+END;
+$$;
+
 -- Super Admin sees all
-CREATE POLICY "super_admin_all_organizations" ON organizations FOR ALL USING (auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin'));
-CREATE POLICY "super_admin_all_plans" ON plans FOR ALL USING (auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin'));
-CREATE POLICY "super_admin_all_payments" ON payments FOR ALL USING (auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin'));
-CREATE POLICY "super_admin_all_profiles" ON profiles FOR ALL USING (auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin'));
+CREATE POLICY "super_admin_all_organizations" ON organizations FOR ALL USING (is_super_admin(auth.uid()));
+CREATE POLICY "super_admin_all_plans" ON plans FOR ALL USING (is_super_admin(auth.uid()));
+CREATE POLICY "super_admin_all_payments" ON payments FOR ALL USING (is_super_admin(auth.uid()));
+CREATE POLICY "super_admin_all_profiles" ON profiles FOR ALL USING (is_super_admin(auth.uid()));
+
+-- Anyone can read plans
+CREATE POLICY "anyone_read_plans" ON plans FOR SELECT USING (true);
 
 -- Tenant-based access (org_id scoped)
 CREATE POLICY "org_access_organizations" ON organizations FOR SELECT USING (
-  id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_profiles" ON profiles FOR SELECT USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  user_id = auth.uid() OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_students" ON students FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_teachers" ON teachers FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_classes" ON classes FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_subjects" ON subjects FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_syllabus" ON syllabus FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_attendance" ON attendance FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_exams" ON exams FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_questions" ON questions FOR ALL USING (
-  exam_id IN (SELECT id FROM exams WHERE org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid()))
+  exam_id IN (SELECT id FROM exams WHERE org_id = get_user_org_id(auth.uid()))
 );
 
 CREATE POLICY "org_access_exam_results" ON exam_results FOR ALL USING (
-  exam_id IN (SELECT id FROM exams WHERE org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid()))
+  exam_id IN (SELECT id FROM exams WHERE org_id = get_user_org_id(auth.uid()))
 );
 
 CREATE POLICY "org_access_fees" ON fees FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_donations" ON donations FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_expenses" ON expenses FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 CREATE POLICY "org_access_events" ON events FOR ALL USING (
-  org_id IN (SELECT org_id FROM profiles WHERE user_id = auth.uid())
-  OR auth.uid() IN (SELECT user_id FROM profiles WHERE role = 'super_admin')
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
 -- Student self-access
