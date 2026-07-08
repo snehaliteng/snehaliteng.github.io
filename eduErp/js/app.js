@@ -1490,7 +1490,7 @@ async function renderMyClasses() {
   el('content-area').innerHTML = `
     <div class="card"><div class="card-header"><h3>My Classes</h3></div>
     <div class="card-body">${renderTable(['Name','Section','Students','Room','Academic Year'], (classes || []).map(c => ({
-      'Name': c.name, 'Section': c.section || '-', 'Students': String(counts[c.id] || 0), 'Room': c.room || '-', 'Academic Year': c.academic_year || '-'
+      _id: c.id, 'Name': c.name, 'Section': c.section || '-', 'Students': String(counts[c.id] || 0), 'Room': c.room || '-', 'Academic Year': c.academic_year || '-'
     })), row => `<button class="btn btn-sm btn-outline" onclick="viewClassStudents(${row._id})">View Students</button>`)}</div></div>`;
 }
 
@@ -1529,17 +1529,23 @@ async function renderTakeAttendance() {
 
 async function loadAttendanceStudents() {
   const classId = el('att-class').value;
-  if (!classId) return;
-  const { data: students } = await erp.from('students').select('*').eq('org_id', erpOrg.id).eq('status', 'active');
-  if (!students || !students.length) { el('attendance-list').innerHTML = '<p class="empty-state">No students.</p>'; return; }
+  const date = el('att-date').value;
+  if (!classId || !date) return;
+  const [studentsRes, recordsRes] = await Promise.all([
+    erp.from('students').select('*').eq('org_id', erpOrg.id).eq('class_id', classId).eq('status', 'active'),
+    erp.from('attendance').select('*').eq('class_id', classId).eq('date', date)
+  ]);
+  const students = studentsRes.data || [];
+  if (!students.length) { el('attendance-list').innerHTML = '<p class="empty-state">No students.</p>'; return; }
+  const recordMap = {};
+  (recordsRes.data || []).forEach(r => { recordMap[r.student_id] = r.status; });
+  const opts = ['present','absent','late','leave'];
   let html = '<table><thead><tr><th>Student</th><th>Status</th></tr></thead><tbody>';
   students.forEach(s => {
+    const cur = recordMap[s.id] || 'present';
     html += `<tr><td>${s.first_name} ${s.last_name}</td>
       <td><select class="att-status" data-sid="${s.id}">
-        <option value="present">Present</option>
-        <option value="absent">Absent</option>
-        <option value="late">Late</option>
-        <option value="leave">Leave</option>
+        ${opts.map(o => `<option value="${o}"${o===cur?' selected':''}>${o.charAt(0).toUpperCase()+o.slice(1)}</option>`).join('')}
       </select></td></tr>`;
   });
   html += '</tbody></table>';
