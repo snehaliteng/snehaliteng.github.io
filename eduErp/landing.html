@@ -8,6 +8,7 @@
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   .pricing-card:hover { transform: translateY(-4px); }
   .feature-card { transition: all 0.3s ease; }
@@ -15,6 +16,22 @@
   .gradient-hero { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%); }
   .demo-btn { animation: pulse-glow 2s ease-in-out infinite; }
   @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.5); } 50% { box-shadow: 0 0 0 12px rgba(37,99,235,0); } }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: #fff; border-radius: 16px; padding: 32px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+  .modal-box h2 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .modal-box .sub { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+  .modal-box .form-group { margin-bottom: 14px; }
+  .modal-box label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+  .modal-box input, .modal-box select { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none; }
+  .modal-box input:focus, .modal-box select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .btn-p { background: #3b82f6; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+  .btn-p:hover { background: #2563eb; }
+  .btn-outline { background: none; border: 1px solid #d1d5db; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+  .btn-outline:hover { background: #f9fafb; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
 </style>
 </head>
 <body class="font-sans text-gray-800 bg-white">
@@ -166,71 +183,8 @@
       <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
       <p class="text-xl text-gray-600 max-w-2xl mx-auto">Choose the plan that fits your school's needs. Upgrade anytime.</p>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-      <!-- Basic -->
-      <div class="pricing-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-        <div class="p-8">
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Basic</h3>
-          <p class="text-gray-500 mb-6">For small schools just getting started</p>
-          <div class="mb-6">
-            <span class="text-4xl font-bold text-gray-900">Free</span>
-            <span class="text-gray-400 ml-1">forever</span>
-          </div>
-          <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Up to <strong>100</strong> students</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Up to <strong>20</strong> teachers</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><strong>500 MB</strong> storage</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Basic reports</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Email support</li>
-            <li class="flex items-start gap-2 text-gray-400"><svg class="w-5 h-5 text-gray-300 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>Exam system</li>
-            <li class="flex items-start gap-2 text-gray-400"><svg class="w-5 h-5 text-gray-300 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>Library management</li>
-          </ul>
-          <a href="index.html" class="block w-full text-center border-2 border-blue-600 text-blue-600 font-bold py-3 rounded-lg hover:bg-blue-50 transition-all">Try Free</a>
-        </div>
-      </div>
-      <!-- Standard -->
-      <div class="pricing-card bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-blue-500 relative">
-        <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">POPULAR</div>
-        <div class="p-8">
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Standard</h3>
-          <p class="text-gray-500 mb-6">For growing institutions</p>
-          <div class="mb-6">
-            <span class="text-4xl font-bold text-gray-900">₹4,999</span>
-            <span class="text-gray-400 ml-1">/month</span>
-          </div>
-          <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Up to <strong>500</strong> students</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Up to <strong>50</strong> teachers</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><strong>2 GB</strong> storage</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Advanced reports</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><strong>Full</strong> exam system</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Library management</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Priority support</li>
-          </ul>
-          <a href="index.html" class="block w-full text-center bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all shadow-lg">Start Free Trial</a>
-        </div>
-      </div>
-      <!-- Premium -->
-      <div class="pricing-card bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
-        <div class="p-8">
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
-          <p class="text-gray-500 mb-6">For large institutions</p>
-          <div class="mb-6">
-            <span class="text-4xl font-bold text-gray-900">₹9,999</span>
-            <span class="text-gray-400 ml-1">/month</span>
-          </div>
-          <ul class="space-y-3 mb-8">
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Up to <strong>2,500</strong> students</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Up to <strong>100</strong> teachers</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><strong>10 GB</strong> storage</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>All reports & export</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>API access</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Calendar integration</li>
-            <li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Dedicated support</li>
-          </ul>
-          <a href="contact.html" class="block w-full text-center border-2 border-blue-600 text-blue-600 font-bold py-3 rounded-lg hover:bg-blue-50 transition-all">Contact Us</a>
-        </div>
-      </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto" id="pricing-grid">
+      <div class="text-center py-10 text-gray-500">Loading plans...</div>
     </div>
     <div class="text-center mt-10">
       <p class="text-gray-500">All plans include a <strong>14-day free trial</strong>. No credit card required.</p>
@@ -281,6 +235,157 @@
     </div>
   </div>
 </footer>
+
+<!-- Checkout Modal -->
+<div class="modal-overlay" id="enroll-modal">
+  <div class="modal-box">
+    <h2 id="modal-plan-title">Enroll in Standard</h2>
+    <p class="sub" id="modal-plan-desc">Fill in your school details to get started</p>
+    <form id="enroll-form">
+      <div class="form-group"><label>School Name *</label><input name="org_name" placeholder="e.g. Sunshine Public School" required></div>
+      <div class="form-group"><label>Your Full Name *</label><input name="admin_name" placeholder="e.g. Principal's name" required></div>
+      <div class="form-row" style="display:flex;gap:12px">
+        <div class="form-group" style="flex:1"><label>Email *</label><input type="email" name="admin_email" placeholder="admin@sunschool.edu" required></div>
+        <div class="form-group" style="flex:1"><label>Phone</label><input name="admin_phone" placeholder="+91 98765 43210"></div>
+      </div>
+      <div class="form-group"><label>Password * (min 6 chars)</label><input type="password" name="admin_password" minlength="6" required></div>
+      <div id="payment-summary" class="bg-gray-50 rounded-lg p-4 text-sm" style="display:none">
+        <div class="flex justify-between mb-2"><span>Plan:</span><span id="ps-plan" class="font-semibold">Standard</span></div>
+        <div class="flex justify-between mb-2"><span>Amount:</span><span id="ps-amount" class="font-semibold text-blue-600">₹4,999</span></div>
+        <div class="flex justify-between"><span>Billing:</span><span id="ps-billing" class="font-semibold">Monthly</span></div>
+        <p class="text-xs text-gray-400 mt-2">Payment collected offline. We'll contact you to complete payment.</p>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-outline" onclick="closeEnrollModal()">Cancel</button>
+        <button type="submit" class="btn-p" id="enroll-submit-btn">Complete Enrollment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="success-modal">
+  <div class="modal-box text-center">
+    <div class="text-5xl mb-4">🎉</div>
+    <h2>Enrollment Submitted!</h2>
+    <p class="sub" id="success-msg">Your school has been registered. Check your email for login details.</p>
+    <div class="bg-gray-50 rounded-lg p-4 text-left text-sm mb-4" id="success-creds" style="display:none"></div>
+    <button class="btn-p" onclick="document.getElementById('success-modal').classList.remove('open'); document.getElementById('enroll-modal').classList.remove('open')">Done</button>
+  </div>
+</div>
+
+<script>
+const _SUPABASE_URL = 'https://vgipghqejzbcoighktij.supabase.co';
+const _SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo';
+const _supa = supabase.createClient(_SUPABASE_URL, _SUPABASE_KEY);
+let _enrollPlan = null;
+
+function closeEnrollModal() { document.getElementById('enroll-modal').classList.remove('open'); }
+
+async function loadPlans() {
+  const { data } = await _supa.from('plans').select('*').eq('is_active', true).order('price');
+  const grid = document.getElementById('pricing-grid');
+  if (!data || !data.length) { grid.innerHTML = '<div class="text-center py-10 text-gray-500">Plans not available. Try again later.</div>'; return; }
+  grid.innerHTML = data.map((p, i) => {
+    const isStd = p.slug === 'standard';
+    const features = (typeof p.features === 'string' ? JSON.parse(p.features) : p.features) || [];
+    const priceLabel = p.price === 0 ? 'Free' : '₹' + Number(p.price).toLocaleString();
+    const priceUnit = p.price === 0 ? 'forever' : '/' + p.billing_cycle;
+    const btnLabel = p.price === 0 ? 'Enroll Free' : 'Buy Now — ' + priceLabel + '/' + p.billing_cycle;
+    return `<div class="pricing-card bg-white rounded-2xl shadow-lg overflow-hidden border ${isStd ? 'border-2 border-blue-500 shadow-xl' : 'border border-gray-200'}" style="position:relative">
+      ${isStd ? '<div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">POPULAR</div>' : ''}
+      <div class="p-8">
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">${p.name}</h3>
+        <p class="text-gray-500 mb-6">${p.description || ''}</p>
+        <div class="mb-6">
+          <span class="text-4xl font-bold text-gray-900">${priceLabel}</span>
+          <span class="text-gray-400 ml-1">${priceUnit}</span>
+        </div>
+        <ul class="space-y-3 mb-8">${features.map(f => `<li class="flex items-start gap-2"><svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>${f}</li>`).join('')}</ul>
+        <button onclick="openEnroll(${p.id})" class="block w-full text-center ${isStd ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg' : 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50'} font-bold py-3 rounded-lg transition-all">${btnLabel}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openEnroll(planId) {
+  const { data: plan } = await _supa.from('plans').select('*').eq('id', planId).single();
+  if (!plan) return;
+  _enrollPlan = plan;
+  document.getElementById('modal-plan-title').textContent = 'Enroll in ' + plan.name;
+  document.getElementById('modal-plan-desc').textContent = plan.description || 'Fill in your school details to get started';
+  document.getElementById('enroll-form').reset();
+  const summary = document.getElementById('payment-summary');
+  if (plan.price > 0) {
+    summary.style.display = 'block';
+    document.getElementById('ps-plan').textContent = plan.name;
+    document.getElementById('ps-amount').textContent = '₹' + Number(plan.price).toLocaleString();
+    document.getElementById('ps-billing').textContent = plan.billing_cycle === 'yearly' ? 'Yearly' : 'Monthly';
+  } else {
+    summary.style.display = 'none';
+  }
+  document.getElementById('enroll-modal').classList.add('open');
+}
+
+document.getElementById('enroll-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('enroll-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Processing...';
+  const fd = new FormData(this);
+  const data = Object.fromEntries(fd);
+  try {
+    // 1. Create auth user
+    const { data: authData, error: authErr } = await _supa.auth.signUp({ email: data.admin_email, password: data.admin_password });
+    if (authErr) throw new Error(authErr.message);
+    const userId = authData.user?.id;
+    if (!userId) throw new Error('Account creation failed');
+
+    // 2. Update profile
+    await _supa.from('profiles').upsert({ id: userId, full_name: data.admin_name, email: data.admin_email, phone: data.admin_phone || null, role: 'school_admin', org_id: null });
+
+    // 3. Create organization
+    const slug = data.org_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+    const maxS = _enrollPlan.max_students || 100;
+    const maxT = _enrollPlan.max_teachers || 20;
+    const { data: orgData, error: orgErr } = await _supa.from('organizations').insert({
+      name: data.org_name, slug, email: data.admin_email, phone: data.admin_phone || null,
+      subscription_plan: _enrollPlan.slug, status: 'pending',
+      max_students: maxS, max_teachers: maxT
+    }).select().single();
+    if (orgErr) throw new Error(orgErr.message);
+
+    // 4. Link profile to org
+    await _supa.from('profiles').update({ org_id: orgData.id }).eq('id', userId);
+
+    // 5. Create payment record
+    const payStatus = _enrollPlan.price === 0 ? 'completed' : 'pending';
+    await _supa.from('payments').insert({
+      org_id: orgData.id, plan_id: _enrollPlan.id, amount: _enrollPlan.price,
+      type: 'subscription', status: payStatus, payment_method: 'offline',
+      notes: 'Enrolled via landing page'
+    });
+
+    // 6. Show success
+    document.getElementById('enroll-modal').classList.remove('open');
+    const successMsg = document.getElementById('success-msg');
+    const creds = document.getElementById('success-creds');
+    if (_enrollPlan.price > 0) {
+      successMsg.textContent = 'Your school has been registered! We\'ll contact you shortly to complete payment and activate your account.';
+      creds.style.display = 'none';
+    } else {
+      successMsg.textContent = 'Your school is ready! Login with the credentials below.';
+      creds.style.display = 'block';
+      creds.innerHTML = `<div><strong>School:</strong> ${data.org_name}</div><div><strong>Email:</strong> ${data.admin_email}</div><div><strong>Password:</strong> (the password you entered)</div><div style="margin-top:8px"><a href="index.html" class="btn-p inline-block text-center" style="text-decoration:none">Go to Login →</a></div>`;
+    }
+    document.getElementById('success-modal').classList.add('open');
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+  btn.disabled = false; btn.textContent = 'Complete Enrollment';
+});
+
+loadPlans();
+</script>
 
 </body>
 </html>
