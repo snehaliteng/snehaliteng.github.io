@@ -13,6 +13,7 @@ const NAV = {
       { label: 'Main', items: [
         { id: 'dashboard', icon: '📊', label: 'Dashboard' },
         { id: 'schools', icon: '🏫', label: 'Schools' },
+        { id: 'enrollments', icon: '📝', label: 'Enrollments' },
         { id: 'plans', icon: '📋', label: 'Plans' },
       ]},
       { label: 'Finance', items: [
@@ -330,6 +331,7 @@ async function navigate(page) {
     const pages = {
       'dashboard': renderDashboard,
       'schools': renderSchools,
+      'enrollments': renderEnrollments,
       'plans': renderPlans,
       'revenue': renderRevenue,
       'payments': renderPayments,
@@ -916,6 +918,82 @@ async function editOrg(id) {
     closeModal();
     navigate('schools');
   });
+}
+
+/* ============================================================
+   SUPER ADMIN: ENROLLMENTS
+   ============================================================ */
+
+async function renderEnrollments() {
+  const { data } = await erp.from('organizations').select('*, payments(amount,status,plan_id,payment_method,created_at)').order('created_at', { ascending: false });
+  const list = data || [];
+  const pending = list.filter(o => o.status === 'pending');
+  const others = list.filter(o => o.status !== 'pending');
+  let html = `<div class="card"><div class="card-header"><h3>Pending Enrollments</h3></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>School</th><th>Email</th><th>Plan</th><th>Payment</th><th>Date</th><th></th></tr></thead><tbody>`;
+  if (!pending.length) {
+    html += `<tr><td colspan="6" class="empty-state">No pending enrollments</td></tr>`;
+  } else {
+    pending.forEach(o => {
+      const pay = o.payments?.[0];
+      const payStatus = pay?.status === 'completed' ? 'Paid' : 'Pending';
+      const payBadge = pay?.status === 'completed' ? 'success' : 'warning';
+      html += `<tr>
+        <td><strong>${o.name}</strong></td>
+        <td>${o.email || '-'}</td>
+        <td><span class="badge badge-info">${o.subscription_plan}</span></td>
+        <td><span class="badge badge-${payBadge}">${payStatus}${pay?.amount ? ' — ₹' + pay.amount : ''}</span></td>
+        <td style="font-size:.8rem">${new Date(o.created_at).toLocaleDateString()}</td>
+        <td>
+          <button class="btn btn-sm btn-success" onclick="approveEnrollment(${o.id})">Approve</button>
+          <button class="btn btn-sm btn-danger ms-1" onclick="rejectEnrollment(${o.id})">Reject</button>
+        </td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table></div></div></div>`;
+  if (others.length) {
+    html += `<div class="card mt-3"><div class="card-header"><h3>All Enrollments</h3></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>School</th><th>Email</th><th>Plan</th><th>Status</th><th>Payment</th><th>Date</th></tr></thead><tbody>`;
+    others.forEach(o => {
+      const pay = o.payments?.[0];
+      const payInfo = pay ? `<span class="badge badge-${pay.status === 'completed' ? 'success' : 'warning'}">${pay.status || 'pending'} ₹${pay.amount}</span>` : '-';
+      const statusBadge = o.status === 'active' ? 'success' : o.status === 'rejected' ? 'danger' : 'warning';
+      html += `<tr>
+        <td><strong>${o.name}</strong></td>
+        <td>${o.email || '-'}</td>
+        <td><span class="badge badge-info">${o.subscription_plan}</span></td>
+        <td><span class="badge badge-${statusBadge}">${o.status}</span></td>
+        <td>${payInfo}</td>
+        <td style="font-size:.8rem">${new Date(o.created_at).toLocaleDateString()}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div></div>`;
+  }
+  el('content-area').innerHTML = html;
+}
+
+async function approveEnrollment(id) {
+  if (!confirm('Approve this enrollment? Payment will be marked as completed and the school will be activated.')) return;
+  try {
+    await erp.from('organizations').update({ status: 'active' }).eq('id', id);
+    // Update payment status to completed
+    const { data: pay } = await erp.from('payments').select('id').eq('org_id', id).maybeSingle();
+    if (pay) await erp.from('payments').update({ status: 'completed', paid_date: new Date().toISOString() }).eq('id', pay.id);
+    showToast('Enrollment approved! School is now active.', 'success');
+    navigate('enrollments');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function rejectEnrollment(id) {
+  if (!confirm('Reject this enrollment? The school will be marked as rejected.')) return;
+  try {
+    await erp.from('organizations').update({ status: 'rejected' }).eq('id', id);
+    showToast('Enrollment rejected.', 'info');
+    navigate('enrollments');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 /* ============================================================
