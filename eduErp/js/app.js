@@ -31,6 +31,8 @@ const NAV = {
       ]},
       { label: 'Academics', items: [
         { id: 'subjects', icon: '📖', label: 'Subjects' },
+        { id: 'timetable', icon: '🗓️', label: 'Timetable' },
+        { id: 'library', icon: '📚', label: 'Library' },
         { id: 'syllabus', icon: '📄', label: 'Syllabus' },
         { id: 'attendance', icon: '✅', label: 'Attendance' },
         { id: 'exams', icon: '📝', label: 'Exams' },
@@ -41,6 +43,7 @@ const NAV = {
         { id: 'expenses', icon: '📉', label: 'Expenses' },
       ]},
       { label: 'Other', items: [
+        { id: 'parent-manage', icon: '👨‍👩‍👧‍👦', label: 'Parents' },
         { id: 'calendar', icon: '📅', label: 'Calendar' },
         { id: 'reports', icon: '📈', label: 'Reports' },
       ]},
@@ -51,10 +54,14 @@ const NAV = {
       { label: 'Main', items: [
         { id: 'dashboard', icon: '📊', label: 'Dashboard' },
         { id: 'my-classes', icon: '📚', label: 'My Classes' },
+        { id: 'my-timetable', icon: '🗓️', label: 'My Schedule' },
         { id: 'take-attendance', icon: '✅', label: 'Attendance' },
         { id: 'assignments', icon: '📝', label: 'Assignments' },
         { id: 'exams', icon: '📋', label: 'Exams' },
         { id: 'syllabus', icon: '📄', label: 'Syllabus' },
+        { id: 'notes', icon: '📝', label: 'My Notes' },
+        { id: 'library', icon: '📚', label: 'Library' },
+        { id: 'teacher-parent-comm', icon: '👨‍👩‍👧‍👦', label: 'Contact Parents' },
       ]},
     ]
   },
@@ -63,10 +70,31 @@ const NAV = {
       { label: 'Main', items: [
         { id: 'dashboard', icon: '📊', label: 'Dashboard' },
         { id: 'my-attendance', icon: '✅', label: 'Attendance' },
+        { id: 'my-schedule', icon: '🗓️', label: 'Schedule' },
         { id: 'my-assignments', icon: '📝', label: 'Assignments' },
         { id: 'my-exams', icon: '📋', label: 'Exams' },
         { id: 'my-fees', icon: '💵', label: 'Fees' },
+        { id: 'my-notes', icon: '📝', label: 'My Notes' },
+        { id: 'my-library', icon: '📚', label: 'Library' },
         { id: 'calendar', icon: '📅', label: 'Calendar' },
+      ]},
+    ]
+  },
+  librarian: {
+    sections: [
+      { label: 'Main', items: [
+        { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+        { id: 'library', icon: '📚', label: 'Library Management' },
+        { id: 'my-library', icon: '📖', label: 'My Books' },
+      ]},
+    ]
+  },
+  parent: {
+    sections: [
+      { label: 'Main', items: [
+        { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+        { id: 'my-children', icon: '👨‍👩‍👧‍👦', label: 'My Children' },
+        { id: 'my-notes', icon: '📝', label: 'Messages' },
       ]},
     ]
   }
@@ -319,11 +347,22 @@ async function navigate(page) {
       'reports': renderReports,
       'my-classes': renderMyClasses,
       'take-attendance': renderTakeAttendance,
+      'timetable': renderTimetable,
+      'my-timetable': renderTeacherSchedule,
+      'my-schedule': renderMySchedule,
+      'my-notes': renderStudentNotes,
+      'my-library': renderMyLibrary,
+      'notes': renderTeacherNotes,
+      'library': renderLibrary,
       'assignments': renderTeacherAssignments,
       'my-assignments': renderStudentAssignments,
       'my-attendance': renderMyAttendance,
       'my-exams': renderMyExams,
       'my-fees': renderMyFees,
+      'my-children': renderMyChildren,
+      'parent-communications': renderParentCommunications,
+      'parent-manage': renderParentManage,
+      'teacher-parent-comm': renderTeacherParentComm,
     };
     const renderer = pages[page];
     if (renderer) await renderer();
@@ -344,6 +383,8 @@ async function renderDashboard() {
   if (role === 'school_admin') return renderSchoolAdminDashboard();
   if (role === 'teacher') return renderTeacherDashboard();
   if (role === 'student') return renderStudentDashboard();
+  if (role === 'librarian') return renderLibrarianDashboard();
+  if (role === 'parent') return renderParentDashboard();
 }
 
 async function renderSuperAdminDashboard() {
@@ -493,6 +534,337 @@ async function renderStudentDashboard() {
         }))
       )}</div>
     </div>`;
+}
+
+/* ============================================================
+   LIBRARIAN DASHBOARD
+   ============================================================ */
+
+async function renderLibrarianDashboard() {
+  const orgId = erpOrg.id;
+  const [books, members, txns, fines] = await Promise.all([
+    erp.from('library_books').select('*', { count: 'exact', head: true }).eq('org_id', orgId),
+    erp.from('library_members').select('*', { count: 'exact', head: true }).eq('org_id', orgId).eq('status', 'active'),
+    erp.from('library_transactions').select('*', { count: 'exact', head: true }).eq('org_id', orgId).in('status', ['borrowed','overdue']),
+    erp.from('library_fines').select('*').eq('org_id', orgId).eq('paid', false),
+  ]);
+  const totalFines = (fines.data || []).reduce((s, f) => s + parseFloat(f.amount), 0);
+  el('content-area').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">Total Books</div><div class="value">${books.count || 0}</div></div>
+      <div class="stat-card"><div class="label">Active Members</div><div class="value">${members.count || 0}</div></div>
+      <div class="stat-card"><div class="label">Active Borrows</div><div class="value">${txns.count || 0}</div></div>
+      <div class="stat-card"><div class="label">Unpaid Fines</div><div class="value" style="color:var(--danger)">₹${totalFines.toFixed(2)}</div></div>
+    </div>
+    <div class="card mt-2">
+      <div class="card-header"><h3>Quick Actions</h3></div>
+      <div class="card-body flex gap-2" style="flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="navigate('library')">Manage Library</button>
+        <button class="btn btn-success" onclick="navigate('my-library')">My Borrowed Books</button>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   PARENT DASHBOARD
+   ============================================================ */
+
+async function renderParentDashboard() {
+  const profId = erpProfile.id;
+  const { data: links } = await erp.from('parent_students').select('*, students(id,first_name,last_name,class_id,roll_number,classes(name))').eq('profile_id', profId);
+  const children = links || [];
+  if (!children.length) { el('content-area').innerHTML = '<div class="card"><div class="card-body"><div class="empty-state">No children linked to your account. Contact the school admin.</div></div></div>'; return; }
+  let html = '<div class="card"><div class="card-header"><h3>My Children</h3></div><div class="card-body">';
+  for (const link of children) {
+    const s = link.students;
+    if (!s) continue;
+    const [att, exams, fees, msgs] = await Promise.all([
+      erp.from('attendance').select('*', { count: 'exact', head: true }).eq('student_id', s.id),
+      erp.from('exam_results').select('*, exams(title)').eq('student_id', s.id).order('created_at', { ascending: false }).limit(5),
+      erp.from('fees').select('*').eq('student_id', s.id).eq('status', 'pending'),
+      erp.from('parent_communications').select('*').eq('student_id', s.id).eq('priority', 'urgent').limit(3),
+    ]);
+    const totalAtt = att.count || 0;
+    html += `<div class="card mt-2" style="border-left:4px solid var(--primary)">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
+        <h3>${s.first_name} ${s.last_name} <span style="font-weight:normal;font-size:.85rem;color:var(--gray-500)">${s.classes?.name || 'No class'} | Roll: ${s.roll_number || '-'}</span></h3>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-outline" onclick="navigate('my-attendance')" data-sid="${s.id}">Attendance</button>
+          <button class="btn btn-sm btn-outline" onclick="navigate('my-exams')" data-sid="${s.id}">Results</button>
+          <button class="btn btn-sm btn-outline" onclick="navigate('my-fees')" data-sid="${s.id}">Fees</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
+          <div class="stat-card" style="padding:8px"><div class="label" style="font-size:.75rem">Attendance</div><div class="value" style="font-size:1rem">${totalAtt} days</div></div>
+          <div class="stat-card" style="padding:8px"><div class="label" style="font-size:.75rem">Pending Fees</div><div class="value" style="font-size:1rem;color:${(fees.data||[]).length ? 'var(--danger)' : 'var(--success)'}">${(fees.data||[]).length}</div></div>
+          <div class="stat-card" style="padding:8px"><div class="label" style="font-size:.75rem">Recent Exams</div><div class="value" style="font-size:1rem">${(exams.data||[]).length}</div></div>
+          <div class="stat-card" style="padding:8px"><div class="label" style="font-size:.75rem">Urgent Messages</div><div class="value" style="font-size:1rem;color:${(msgs.data||[]).length ? 'var(--danger)' : 'var(--success)'}">${(msgs.data||[]).length}</div></div>
+        </div>`;
+    if (exams.data && exams.data.length) {
+      html += `<div style="margin-top:8px"><strong style="font-size:.85rem">Recent Exam Results</strong>${renderTable(['Exam','Score','Percentage','Status'], exams.data.map(r => ({'Exam': r.exams?.title || '-','Score': `${r.marks_obtained}/${r.total_marks}`,'Percentage': `${r.percentage}%`,'Status': `<span class="badge badge-${r.status === 'passed' ? 'success' : 'danger'}">${r.status}</span>`})))}</div>`;
+    }
+    html += `</div></div>`;
+  }
+  html += `<div class="mt-2" style="text-align:center"><button class="btn btn-primary" onclick="navigate('my-children')">View All Details</button></div></div></div>`;
+  el('content-area').innerHTML = html;
+}
+
+async function renderMyChildren() {
+  const profId = erpProfile.id;
+  const { data: links } = await erp.from('parent_students').select('*, students(id,first_name,last_name,class_id,roll_number,guardian_name,guardian_phone,classes(name))').eq('profile_id', profId);
+  const children = links || [];
+  if (!children.length) { el('content-area').innerHTML = '<div class="card"><div class="card-body"><div class="empty-state">No children linked to your account.</div></div></div>'; return; }
+  const childList = children.filter(c => c.students).map(c => c.students);
+  let html = `<div class="card"><div class="card-header"><h3>My Children</h3></div><div class="card-body">`;
+  html += renderTable(['Name','Class','Roll No','Guardian','Guardian Phone'],
+    childList.map(s => ({
+      'Name': `<a href="#" onclick="event.preventDefault();viewChildDetail(${s.id})" style="font-weight:600">${s.first_name} ${s.last_name}</a>`,
+      'Class': s.classes?.name || '-',
+      'Roll No': s.roll_number || '-',
+      'Guardian': s.guardian_name || '-',
+      'Guardian Phone': s.guardian_phone || '-',
+    }))
+  );
+  html += `</div></div><div class="card mt-2"><div class="card-header"><h3>Quick View</h3></div><div class="card-body"><div id="child-detail"></div></div></div>`;
+  el('content-area').innerHTML = html;
+  if (childList.length) viewChildDetail(childList[0].id);
+}
+
+async function viewChildDetail(studentId) {
+  const [att, results, fees, schedule, msgs] = await Promise.all([
+    erp.from('attendance').select('*').eq('student_id', studentId).order('date', { ascending: false }).limit(20),
+    erp.from('exam_results').select('*, exams(title,subject_id,subjects(name))').eq('student_id', studentId).order('created_at', { ascending: false }).limit(10),
+    erp.from('fees').select('*').eq('student_id', studentId).order('due_date', { ascending: false }).limit(10),
+    erp.from('class_schedules').select('*, subjects(name)').eq('class_id', (await erp.from('students').select('class_id').eq('id', studentId).single()).data?.class_id || 0).order('day_of_week').order('period_number'),
+    erp.from('parent_communications').select('*, profiles(full_name)').eq('student_id', studentId).order('sent_at', { ascending: false }).limit(20),
+  ]);
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const html = `
+    <div class="tabs" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="el('child-panel').innerHTML=document.getElementById('cp-att').innerHTML">Attendance</button>
+      <button class="btn btn-sm btn-outline" onclick="el('child-panel').innerHTML=document.getElementById('cp-exam').innerHTML">Exams</button>
+      <button class="btn btn-sm btn-outline" onclick="el('child-panel').innerHTML=document.getElementById('cp-fees').innerHTML">Fees</button>
+      <button class="btn btn-sm btn-outline" onclick="el('child-panel').innerHTML=document.getElementById('cp-schedule').innerHTML">Schedule</button>
+      <button class="btn btn-sm btn-outline" onclick="el('child-panel').innerHTML=document.getElementById('cp-msgs').innerHTML">Messages</button>
+    </div>
+    <div id="child-panel">
+    </div>
+    <div id="cp-att" style="display:none">${renderTable(['Date','Status'], (att.data||[]).map(a => ({'Date': new Date(a.date).toLocaleDateString(),'Status': `<span class="badge badge-${a.status === 'present' ? 'success' : a.status === 'late' ? 'warning' : 'danger'}">${a.status}</span>`})))}</div>
+    <div id="cp-exam" style="display:none">${renderTable(['Exam','Subject','Score','Percentage','Status'], (results.data||[]).map(r => ({'Exam': r.exams?.title || '-','Subject': r.exams?.subjects?.name || '-','Score': `${r.marks_obtained}/${r.total_marks}`,'Percentage': `${r.percentage}%`,'Status': `<span class="badge badge-${r.status === 'passed' ? 'success' : 'danger'}">${r.status}</span>`})))}</div>
+    <div id="cp-fees" style="display:none">${renderTable(['Type','Amount','Due Date','Paid Date','Status'], (fees.data||[]).map(f => ({'Type': f.type,'Amount': `₹${f.amount}`,'Due Date': new Date(f.due_date).toLocaleDateString(),'Paid Date': f.paid_date ? new Date(f.paid_date).toLocaleDateString() : '-','Status': `<span class="badge badge-${f.status === 'paid' ? 'success' : f.status === 'overdue' ? 'danger' : 'warning'}">${f.status}</span>`})))}</div>
+    <div id="cp-schedule" style="display:none">${renderTable(['Day','Period','Subject','Time'], (schedule.data||[]).map(s => ({'Day': days[s.day_of_week],'Period': `P${s.period_number}`,'Subject': s.subjects?.name || '-','Time': `${s.start_time?.slice(0,5)||''}-${s.end_time?.slice(0,5)||''}`})))}</div>
+    <div id="cp-msgs" style="display:none">${(msgs.data||[]).length ? renderTable(['Date','From','Title','Message','Priority'], msgs.data.map(m => ({'Date': new Date(m.sent_at).toLocaleDateString(),'From': m.profiles?.full_name || '-','Title': m.title,'Message': m.message.length > 60 ? m.message.slice(0,60)+'...' : m.message,'Priority': `<span class="badge badge-${m.priority === 'urgent' ? 'danger' : m.priority === 'important' ? 'warning' : 'info'}">${m.priority}</span>`}))) : '<div class="empty-state">No messages.</div>'}</div>
+  `;
+  el('child-detail').innerHTML = html;
+  el('child-panel').innerHTML = document.getElementById('cp-att').innerHTML;
+}
+
+async function renderParentCommunications() {
+  const profId = erpProfile.id;
+  const { data: links } = await erp.from('parent_students').select('*, students(first_name,last_name)').eq('profile_id', profId);
+  const childIds = (links || []).filter(l => l.students).map(l => l.students.id);
+  if (!childIds.length) { el('content-area').innerHTML = '<div class="empty-state">No children linked.</div>'; return; }
+  const { data: msgs } = await erp.from('parent_communications').select('*, profiles(full_name), students(first_name,last_name)').in('student_id', childIds).order('sent_at', { ascending: false }).limit(50);
+  let html = `<div class="card"><div class="card-header"><h3>Messages from School</h3></div><div class="card-body">`;
+  if (!msgs || !msgs.length) { html += '<div class="empty-state">No messages yet.</div>'; }
+  else {
+    const priorityBadge = { normal: 'info', important: 'warning', urgent: 'danger' };
+    msgs.forEach(m => {
+      html += `<div class="card mt-1" style="padding:12px;border-left:4px solid ${m.priority === 'urgent' ? 'var(--danger)' : m.priority === 'important' ? 'var(--warning)' : 'var(--primary)'}">
+        <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--gray-500)">
+          <span>From: ${m.profiles?.full_name || 'School'} → ${m.students?.first_name || ''} ${m.students?.last_name || ''}</span>
+          <span>${new Date(m.sent_at).toLocaleString()}</span>
+        </div>
+        <div style="font-weight:600;margin-top:4px">${m.title} <span class="badge badge-${priorityBadge[m.priority]}" style="font-size:.7rem">${m.priority}</span></div>
+        <div style="margin-top:4px;font-size:.9rem;white-space:pre-wrap">${m.message}</div>
+      </div>`;
+    });
+  }
+  html += `</div></div>`;
+  el('content-area').innerHTML = html;
+}
+
+/* ============================================================
+   ADMIN: PARENT MANAGEMENT
+   ============================================================ */
+
+async function renderParentManage() {
+  const orgId = erpOrg.id;
+  // Get all parent profiles linked to this org via parent_students
+  const { data: links } = await erp.from('parent_students').select('*, profiles(id,email,full_name,phone), students(id,first_name,last_name,roll_number,classes(name))').eq('org_id', orgId);
+  const { data: allStudents } = await erp.from('students').select('*, classes(name)').eq('org_id', orgId).eq('status', 'active');
+  const { data: parentProfiles } = await erp.from('profiles').select('*').eq('org_id', orgId).eq('role', 'parent');
+  const parentMap = {};
+  (links || []).forEach(l => {
+    if (!parentMap[l.profile_id]) parentMap[l.profile_id] = { profile: l.profiles, students: [] };
+    if (l.students) parentMap[l.profile_id].students.push(l.students);
+  });
+  let html = `<div class="card"><div class="card-header"><h3>Parent Management</h3></div><div class="card-body">
+    <div style="margin-bottom:12px">
+      <button class="btn btn-primary btn-sm" onclick="showAddParent()">+ Add Parent</button>
+      <button class="btn btn-outline btn-sm" onclick="showLinkParent()">Link to Student</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Parent</th><th>Email</th><th>Phone</th><th>Linked Children</th><th></th></tr></thead><tbody>`;
+  const entries = Object.values(parentMap);
+  if (!entries.length) { html += `<tr><td colspan="5" class="empty-state">No parents registered yet.</td></tr>`; }
+  else {
+    entries.forEach(e => {
+      const p = e.profile;
+      html += `<tr>
+        <td><strong>${p?.full_name || 'Unknown'}</strong></td>
+        <td style="font-size:.8rem">${p?.email || '-'}</td>
+        <td>${p?.phone || '-'}</td>
+        <td>${e.students.map(s => `${s.first_name} ${s.last_name} (${s.classes?.name || '-'})`).join(', ') || '-'}</td>
+        <td><button class="btn btn-sm btn-outline" onclick="showLinkParent(${p?.id})">Link</button></td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table></div></div></div>`;
+  window._allStudents = allStudents || [];
+  window._parentProfiles = parentProfiles || [];
+  el('content-area').innerHTML = html;
+}
+
+function showAddParent() {
+  openSlideModal('Register Parent', `
+    <form id="add-parent-form">
+      <div class="form-group"><label>Full Name *</label><input name="full_name" required></div>
+      <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
+      <div class="form-group"><label>Phone</label><input name="phone"></div>
+      <div class="form-group"><label>Password *</label><input type="password" name="password" required minlength="6"></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Parent Account</button>
+      </div>
+    </form>
+  `);
+  setTimeout(() => {
+    document.getElementById('add-parent-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = getFormData('add-parent-form');
+      try {
+        const { data: authData, error: authErr } = await erp.auth.signUp({ email: fd.email, password: fd.password });
+        if (authErr) throw authErr;
+        // The trigger will create a profile with school_admin role, so update it
+        await new Promise(r => setTimeout(r, 1000));
+        await erp.from('profiles').update({ role: 'parent', org_id: erpOrg.id, full_name: fd.full_name, phone: fd.phone || null }).eq('user_id', authData.user.id);
+        showToast('Parent account created!', 'success');
+        closeSlideModal();
+        renderParentManage();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }, 50);
+}
+
+function showLinkParent(profileId) {
+  const students = window._allStudents || [];
+  const profiles = window._parentProfiles || [];
+  openSlideModal('Link Parent to Student', `
+    <form id="link-parent-form">
+      <div class="form-group"><label>Parent</label>
+        <select name="profile_id" ${profileId ? 'readonly' : ''}>
+          ${profileId ? `<option value="${profileId}">Selected parent</option>` : profiles.map(p => `<option value="${p.id}">${p.full_name} (${p.email})</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Student *</label>
+        <select name="student_id" required>
+          <option value="">Select student...</option>
+          ${students.map(s => `<option value="${s.id}">${s.first_name} ${s.last_name} (${s.classes?.name || 'Unassigned'})</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Relationship</label>
+        <select name="relationship"><option value="parent">Parent</option><option value="guardian">Guardian</option><option value="other">Other</option></select>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Link</button>
+      </div>
+    </form>
+  `);
+  setTimeout(() => {
+    document.getElementById('link-parent-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = getFormData('link-parent-form');
+      await erp.from('parent_students').insert({ org_id: erpOrg.id, profile_id: parseInt(fd.profile_id), student_id: parseInt(fd.student_id), relationship: fd.relationship });
+      showToast('Parent linked to student!', 'success');
+      closeSlideModal();
+      renderParentManage();
+    });
+  }, 50);
+}
+
+/* ============================================================
+   TEACHER: CONTACT PARENTS
+   ============================================================ */
+
+async function renderTeacherParentComm() {
+  const profId = erpProfile.id;
+  const { data: teacher } = await erp.from('teachers').select('id').eq('profile_id', profId).single();
+  if (!teacher) { el('content-area').innerHTML = '<div class="empty-state">Teacher profile not found.</div>'; return; }
+  const { data: myClasses } = await erp.from('classes').select('*, students!inner(id,first_name,last_name,parent_students!inner(profile_id,profiles!inner(id,full_name,email)))').eq('teacher_id', teacher.id);
+  const { data: sentMsgs } = await erp.from('parent_communications').select('*, students(first_name,last_name)').eq('sender_id', profId).order('sent_at', { ascending: false }).limit(50);
+  let html = `<div class="card"><div class="card-header"><h3>Contact Parents</h3></div><div class="card-body">`;
+  // Send message form
+  html += `<form id="teacher-comm-form">
+    <div class="form-row">
+      <div class="form-group"><label>Student *</label>
+        <select name="student_id" required>
+          <option value="">Select student...</option>`;
+  (myClasses.data || []).forEach(c => {
+    (c.students || []).forEach(s => {
+      const ps = s.parent_students || [];
+      if (ps.length) {
+        ps.forEach(link => {
+          html += `<option value="${s.id}">${s.first_name} ${s.last_name} → ${link.profiles?.full_name || 'Parent'}</option>`;
+        });
+      }
+    });
+  });
+  html += `</select></div>
+      <div class="form-group"><label>Priority</label>
+        <select name="priority"><option value="normal">Normal</option><option value="important">Important</option><option value="urgent">Urgent</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Title *</label><input name="title" required></div>
+    <div class="form-group"><label>Message *</label><textarea name="message" rows="4" required></textarea></div>
+    <div class="form-actions"><button type="submit" class="btn btn-primary">Send to Parent</button></div>
+  </form>`;
+  // Sent messages history
+  html += `<div class="mt-3"><h4 style="margin-bottom:8px">Sent Messages</h4>`;
+  if (!sentMsgs.data || !sentMsgs.data.length) { html += `<div class="empty-state">No messages sent yet.</div>`; }
+  else {
+    html += `<div style="max-height:400px;overflow-y:auto">`;
+    sentMsgs.data.forEach(m => {
+      const priorityColor = { normal: 'var(--primary)', important: 'var(--warning)', urgent: 'var(--danger)' };
+      html += `<div class="card mt-1" style="padding:10px;border-left:3px solid ${priorityColor[m.priority] || 'var(--primary)'};font-size:.85rem">
+        <div style="display:flex;justify-content:space-between;color:var(--gray-500)">
+          <span>To: ${m.students?.first_name || ''} ${m.students?.last_name || ''}</span>
+          <span>${new Date(m.sent_at).toLocaleString()}</span>
+        </div>
+        <div style="font-weight:600;margin-top:2px">${m.title} <span class="badge badge-${m.priority === 'urgent' ? 'danger' : m.priority === 'important' ? 'warning' : 'info'}" style="font-size:.65rem">${m.priority}</span></div>
+        <div style="margin-top:2px">${m.message}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div></div></div>`;
+  el('content-area').innerHTML = html;
+  setTimeout(() => {
+    const form = document.getElementById('teacher-comm-form');
+    if (form) form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = getFormData('teacher-comm-form');
+      await erp.from('parent_communications').insert({
+        org_id: erpOrg.id, sender_id: profId, student_id: parseInt(fd.student_id),
+        title: fd.title, message: fd.message, priority: fd.priority
+      });
+      showToast('Message sent to parent!', 'success');
+      renderTeacherParentComm();
+    });
+  }, 50);
 }
 
 /* ============================================================
@@ -836,14 +1208,190 @@ async function assignStudents(classId) {
   el('content-area').innerHTML = html;
 }
 
-async function saveAssignStudents(classId) {
-  const sids = [];
-  document.querySelectorAll('.assign-chk:checked').forEach(cb => sids.push(parseInt(cb.dataset.sid)));
-  const unassigned = [];
-  document.querySelectorAll('.assign-chk:not(:checked)').forEach(cb => unassigned.push(parseInt(cb.dataset.sid)));
-  for (const sid of sids) {
-    await erp.from('students').update({ class_id: classId }).eq('id', sid);
+/* ============================================================
+   TEACHER: MY SCHEDULE
+   ============================================================ */
+
+async function renderTeacherSchedule() {
+  const teacherData = await erp.from('teachers').select('*').eq('profile_id', erpProfile.id).single();
+  if (!teacherData.data) {
+    el('content-area').innerHTML = '<div class="empty-state"><p>Teacher profile not linked.</p></div>';
+    return;
   }
+  const teacherId = teacherData.data.id;
+  const [schedulesRes, classesRes, subjectsRes] = await Promise.all([
+    erp.from('class_schedules').select('*').eq('teacher_id', teacherId).order('day_of_week').order('period_number'),
+    erp.from('classes').select('*').eq('org_id', erpOrg.id),
+    erp.from('subjects').select('*').eq('org_id', erpOrg.id),
+  ]);
+  const schedules = schedulesRes.data || [];
+  const classes = classesRes.data || [];
+  const subjects = subjectsRes.data || [];
+  const classMap = {};
+  classes.forEach(c => { classMap[c.id] = c; });
+  const subjMap = {};
+  subjects.forEach(s => { subjMap[s.id] = s; });
+  if (!schedules.length) {
+    el('content-area').innerHTML = '<div class="empty-state"><p>No classes scheduled for you.</p></div>';
+    return;
+  }
+  const today = new Date().getDay();
+  const selectedDay = window._tdDay !== undefined ? window._tdDay : (today >= 1 && today <= 6 ? today : 1);
+  window._tdDay = selectedDay;
+  const daySchedules = schedules.filter(s => s.day_of_week === selectedDay).sort((a, b) => a.period_number - b.period_number);
+  const weekDays = [1, 2, 3, 4, 5, 6];
+  let html = `<div class="card"><div class="card-header"><h3>My Schedule</h3></div><div class="card-body">
+    <div class="flex gap-1" style="flex-wrap:wrap;margin-bottom:16px">`;
+  weekDays.forEach(d => {
+    const active = d === selectedDay ? 'btn-primary' : 'btn-outline';
+    const todayClass = d === today ? ' (Today)' : '';
+    html += `<button class="btn btn-sm ${active}" onclick="window._tdDay=${d};renderTeacherSchedule()">${DAYS_SHORT[d]}${todayClass}</button>`;
+  });
+  html += `</div>`;
+  if (!daySchedules.length) {
+    html += `<div class="empty-state"><p>No classes on ${DAYS[selectedDay]}.</p></div>`;
+  } else {
+    html += `<div class="table-wrap"><table>
+      <thead><tr><th>Period</th><th>Class</th><th>Subject</th><th>Time</th></tr></thead><tbody>`;
+    daySchedules.forEach(s => {
+      const cls = classMap[s.class_id];
+      const subj = subjMap[s.subject_id];
+      html += `<tr>
+        <td><strong>${s.period_number}</strong></td>
+        <td>${cls ? `${cls.name} ${cls.section || ''}${cls.room ? ' (' + cls.room + ')' : ''}` : '-'}</td>
+        <td>${subj?.name || '-'}</td>
+        <td>${s.start_time?.substring(0, 5) || '-'} - ${s.end_time?.substring(0, 5) || '-'}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+  html += `</div></div>`;
+  el('content-area').innerHTML = html;
+}
+
+/* ============================================================
+   NOTES (shared helpers)
+   ============================================================ */
+
+let _notesRenderer = null;
+
+async function showAddNoteForm() {
+  openSlideModal('Add Note', `
+    <form id="note-form">
+      <div class="form-group"><label>Title</label><input name="title" required></div>
+      <div class="form-group"><label>Content</label><textarea name="content" rows="5"></textarea></div>
+      <div class="form-actions"><button type="submit" class="btn btn-primary">Save</button></div>
+    </form>
+  `);
+  setTimeout(() => {
+    document.getElementById('note-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = getFormData('note-form');
+      await erp.from('notes').insert({ org_id: erpOrg.id, profile_id: erpProfile.id, title: fd.title, content: fd.content });
+      showToast('Note added!', 'success');
+      closeSlideModal();
+      if (_notesRenderer) _notesRenderer();
+    });
+  }, 50);
+}
+
+async function editNote(id) {
+  const { data: note } = await erp.from('notes').select('*').eq('id', id).single();
+  if (!note) return;
+  openSlideModal('Edit Note', `
+    <form id="note-form">
+      <div class="form-group"><label>Title</label><input name="title" required></div>
+      <div class="form-group"><label>Content</label><textarea name="content" rows="5"></textarea></div>
+      <div class="form-actions"><button type="submit" class="btn btn-primary">Save</button></div>
+    </form>
+  `);
+  setTimeout(() => {
+    document.querySelector('[name="title"]').value = note.title;
+    document.querySelector('[name="content"]').value = note.content || '';
+    document.getElementById('note-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = getFormData('note-form');
+      await erp.from('notes').update({ title: fd.title, content: fd.content }).eq('id', id);
+      showToast('Note updated!', 'success');
+      closeSlideModal();
+      if (_notesRenderer) _notesRenderer();
+    });
+  }, 50);
+}
+
+async function deleteNote(id) {
+  if (!confirm('Delete this note?')) return;
+  await erp.from('notes').delete().eq('id', id);
+  showToast('Note deleted!', 'success');
+  if (_notesRenderer) _notesRenderer();
+}
+
+/* ============================================================
+   TEACHER: MY NOTES
+   ============================================================ */
+
+async function renderTeacherNotes() {
+  _notesRenderer = renderTeacherNotes;
+  const { data: notes } = await erp.from('notes').select('*').eq('profile_id', erpProfile.id).order('created_at', { ascending: false });
+  const list = notes || [];
+  let html = `<div class="card"><div class="card-header"><h3>My Notes</h3><button class="btn btn-primary btn-sm" onclick="showAddNoteForm()">+ Add Note</button></div>
+    <div class="card-body">`;
+  if (!list.length) {
+    html += `<div class="empty-state"><p>No notes yet.</p></div>`;
+  } else {
+    list.forEach(n => {
+      html += `<div class="note-item">
+        <div class="note-header">
+          <strong>${n.title}</strong>
+          <div>
+            <button class="btn btn-sm btn-outline" onclick="editNote(${n.id})">Edit</button>
+            <button class="btn btn-sm btn-outline" style="color:var(--danger)" onclick="deleteNote(${n.id})">Delete</button>
+          </div>
+        </div>
+        ${n.content ? `<div class="note-content">${n.content}</div>` : ''}
+        <div class="note-date">${new Date(n.created_at).toLocaleDateString()}</div>
+      </div>`;
+    });
+  }
+  html += `</div></div>`;
+  el('content-area').innerHTML = html;
+}
+
+/* ============================================================
+   STUDENT: MY NOTES
+   ============================================================ */
+
+async function renderStudentNotes() {
+  _notesRenderer = renderStudentNotes;
+  const { data: notes } = await erp.from('notes').select('*').eq('profile_id', erpProfile.id).order('created_at', { ascending: false });
+  const list = notes || [];
+  let html = `<div class="card"><div class="card-header"><h3>My Notes</h3><button class="btn btn-primary btn-sm" onclick="showAddNoteForm()">+ Add Note</button></div>
+    <div class="card-body">`;
+  if (!list.length) {
+    html += `<div class="empty-state"><p>No notes yet.</p></div>`;
+  } else {
+    list.forEach(n => {
+      html += `<div class="note-item">
+        <div class="note-header">
+          <strong>${n.title}</strong>
+          <div>
+            <button class="btn btn-sm btn-outline" onclick="editNote(${n.id})">Edit</button>
+            <button class="btn btn-sm btn-outline" style="color:var(--danger)" onclick="deleteNote(${n.id})">Delete</button>
+          </div>
+        </div>
+        ${n.content ? `<div class="note-content">${n.content}</div>` : ''}
+        <div class="note-date">${new Date(n.created_at).toLocaleDateString()}</div>
+      </div>`;
+    });
+  }
+  html += `</div></div>`;
+  el('content-area').innerHTML = html;
+}
+async function saveAssignStudents(classId) {
+  const sids = [...document.querySelectorAll('.assign-chk:checked')].map(cb => parseInt(cb.dataset.sid));
+  const allSt = await erp.from('students').select('id, class_id').eq('org_id', erpOrg.id).eq('status', 'active');
+  const unassigned = (allSt.data || []).filter(s => s.class_id === classId && !sids.includes(s.id)).map(s => s.id);
+  await erp.from('students').update({ class_id: classId }).eq('org_id', erpOrg.id).in('id', sids);
   for (const sid of unassigned) {
     const s = await erp.from('students').select('class_id').eq('id', sid).single();
     if (s.data?.class_id === classId) {
@@ -1720,6 +2268,247 @@ async function renderMyFees() {
 }
 
 /* ============================================================
+   SCHOOL ADMIN: TIMETABLE
+   ============================================================ */
+
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+async function renderTimetable() {
+  const orgId = erpOrg.id;
+  const [classesRes, subjectsRes, teachersRes, schedulesRes] = await Promise.all([
+    erp.from('classes').select('*').eq('org_id', orgId).order('name'),
+    erp.from('subjects').select('*').eq('org_id', orgId),
+    erp.from('teachers').select('*').eq('org_id', orgId).eq('status', 'active'),
+    erp.from('class_schedules').select('*').eq('org_id', orgId),
+  ]);
+  const classes = classesRes.data || [];
+  const subjects = subjectsRes.data || [];
+  const teachers = teachersRes.data || [];
+  const schedules = schedulesRes.data || [];
+
+  if (!classes.length) {
+    el('content-area').innerHTML = '<div class="empty-state"><p>No classes yet. Create classes first.</p></div>';
+    return;
+  }
+
+  const selectedClassId = window._ttClassId || classes[0].id;
+  window._ttClassId = selectedClassId;
+  window._ttSubjects = subjects;
+  window._ttTeachers = teachers;
+  window._ttSchedules = schedules;
+  window._ttClasses = classes;
+
+  const subjMap = {};
+  subjects.forEach(s => { subjMap[s.id] = s; });
+  const teacherMap = {};
+  teachers.forEach(t => { teacherMap[t.id] = t; });
+
+  const classSchedules = schedules.filter(s => s.class_id === selectedClassId);
+  const scheduleMap = {};
+  classSchedules.forEach(s => {
+    const key = `${s.day_of_week}-${s.period_number}`;
+    scheduleMap[key] = s;
+  });
+
+  const periods = [...new Set(schedules.filter(s => s.class_id === selectedClassId).map(s => s.period_number))].sort((a, b) => a - b);
+  if (!periods.length) {
+    for (let i = 1; i <= 8; i++) periods.push(i);
+  }
+  const maxPeriods = Math.max(...periods, 8);
+  const weekDays = [1, 2, 3, 4, 5, 6];
+
+  let html = `<div class="card"><div class="card-header"><h3>Timetable</h3></div><div class="card-body">
+    <div class="form-row"><div class="form-group">
+      <label>Select Class</label>
+      <select id="tt-class" onchange="window._ttClassId=parseInt(this.value,10)||null;renderTimetable()">
+        ${classes.map(c => `<option value="${c.id}" ${c.id === selectedClassId ? 'selected' : ''}>${c.name} ${c.section || ''}</option>`).join('')}
+      </select>
+    </div></div>
+    <div class="table-wrap">
+    <table class="timetable-grid">
+      <thead><tr><th>Day</th>`;
+  for (let p = 1; p <= maxPeriods; p++) {
+    html += `<th>Period ${p}</th>`;
+  }
+  html += `</tr></thead><tbody>`;
+  for (const d of weekDays) {
+    html += `<tr><td><strong>${DAYS[d]}</strong></td>`;
+    for (let p = 1; p <= maxPeriods; p++) {
+      const key = `${d}-${p}`;
+      const s = scheduleMap[key];
+      if (s) {
+        const subjName = subjMap[s.subject_id]?.name || 'Subject';
+        const t = teacherMap[s.teacher_id];
+        const teacherName = t ? `${t.first_name} ${t.last_name}` : '';
+        const clsRoom = classes.find(c => c.id === selectedClassId)?.room;
+        html += `<td class="tt-cell occupied" onclick="editTimetableSlot(${selectedClassId}, ${d}, ${p}, ${s.id})">
+          <div class="tt-subject">${subjName}</div>
+          <div class="tt-teacher">${teacherName}</div>
+          <div class="tt-time">${s.start_time?.substring(0, 5) || ''}-${s.end_time?.substring(0, 5) || ''}</div>
+          ${clsRoom ? `<div class="tt-room">${clsRoom}</div>` : ''}
+        </td>`;
+      } else {
+        html += `<td class="tt-cell empty" onclick="editTimetableSlot(${selectedClassId}, ${d}, ${p}, null)">
+          <span class="tt-add">+</span>
+        </td>`;
+      }
+    }
+    html += `</tr>`;
+  }
+  html += `</tbody></table></div></div></div>`;
+  el('content-area').innerHTML = html;
+}
+
+async function editTimetableSlot(classId, dayOfWeek, periodNumber, scheduleId) {
+  const subjects = window._ttSubjects || [];
+  const teachers = window._ttTeachers || [];
+  const schedules = window._ttSchedules || [];
+  const classes = window._ttClasses || [];
+  const existing = scheduleId ? schedules.find(s => s.id === scheduleId) : null;
+
+  const orgId = erpOrg.id;
+  const classSubjects = subjects.filter(s => s.class_id === classId);
+  const cls = classes.find(c => c.id === classId);
+
+  openSlideModal(existing ? 'Edit Period' : 'Add Period', `
+    <form id="tt-form">
+      <input type="hidden" name="class_id" value="${classId}">
+      <input type="hidden" name="day_of_week" value="${dayOfWeek}">
+      <input type="hidden" name="period_number" value="${periodNumber}">
+      <div class="form-group"><label>Class</label><input value="${cls ? cls.name + ' ' + (cls.section || '') : classId}" disabled></div>
+      <div class="form-group"><label>Day</label><input value="${DAYS[dayOfWeek]}" disabled></div>
+      <div class="form-group"><label>Period</label><input value="${periodNumber}" disabled></div>
+      <div class="form-group"><label>Subject</label><select name="subject_id" required>
+        <option value="">Select Subject</option>
+        ${(classSubjects.length ? classSubjects : subjects).map(s => `<option value="${s.id}" ${existing && existing.subject_id === s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>Teacher</label><select name="teacher_id" required>
+        <option value="">Select Teacher</option>
+        ${teachers.map(t => `<option value="${t.id}" ${existing && existing.teacher_id === t.id ? 'selected' : ''}>${t.first_name} ${t.last_name}</option>`).join('')}
+      </select></div>
+      <div class="form-row">
+        <div class="form-group"><label>Start Time</label><input type="time" name="start_time" value="${existing ? existing.start_time?.substring(0, 5) : ''}" required></div>
+        <div class="form-group"><label>End Time</label><input type="time" name="end_time" value="${existing ? existing.end_time?.substring(0, 5) : ''}" required></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        ${existing ? `<button type="button" class="btn btn-danger" onclick="deleteTimetableSlot(${scheduleId})">Delete</button>` : ''}
+        <button type="submit" class="btn btn-primary">${existing ? 'Update' : 'Add'}</button>
+      </div>
+    </form>`);
+  el('slide-modal-body').querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = getFormData('tt-form');
+    fd.org_id = orgId;
+    fd.day_of_week = parseInt(fd.day_of_week);
+    fd.period_number = parseInt(fd.period_number);
+    fd.class_id = parseInt(fd.class_id);
+    fd.subject_id = parseInt(fd.subject_id);
+    fd.teacher_id = parseInt(fd.teacher_id);
+
+    try {
+      if (existing) {
+        await erp.from('class_schedules').update(fd).eq('id', scheduleId);
+        showToast('Period updated!', 'success');
+      } else {
+        await erp.from('class_schedules').insert(fd);
+        showToast('Period added!', 'success');
+      }
+      closeSlideModal();
+      await renderTimetable();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+}
+
+async function deleteTimetableSlot(id) {
+  if (!confirm('Delete this timetable entry?')) return;
+  try {
+    await erp.from('class_schedules').delete().eq('id', id);
+    showToast('Period removed!', 'success');
+    closeSlideModal();
+    renderTimetable();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+/* ============================================================
+   STUDENT: MY SCHEDULE
+   ============================================================ */
+
+async function renderMySchedule() {
+  const studentData = await erp.from('students').select('*, classes(name, room)').eq('profile_id', erpProfile.id).single();
+  if (!studentData.data || !studentData.data.class_id) {
+    el('content-area').innerHTML = '<div class="empty-state"><p>No class assigned to your profile.</p></div>';
+    return;
+  }
+  const student = studentData.data;
+  const classId = student.class_id;
+
+  const [schedulesRes, subjectsRes, teachersRes] = await Promise.all([
+    erp.from('class_schedules').select('*').eq('class_id', classId).order('day_of_week').order('period_number'),
+    erp.from('subjects').select('*').eq('org_id', erpOrg.id),
+    erp.from('teachers').select('*').eq('org_id', erpOrg.id),
+  ]);
+  const schedules = schedulesRes.data || [];
+  const subjects = subjectsRes.data || [];
+  const teachers = teachersRes.data || [];
+
+  const subjMap = {};
+  subjects.forEach(s => { subjMap[s.id] = s; });
+  const teacherMap = {};
+  teachers.forEach(t => { teacherMap[t.id] = t; });
+
+  if (!schedules.length) {
+    el('content-area').innerHTML = '<div class="empty-state"><p>Timetable not yet published for your class.</p></div>';
+    return;
+  }
+
+  const today = new Date().getDay();
+  const selectedDay = window._sdDay !== undefined ? window._sdDay : today;
+  window._sdDay = selectedDay;
+
+  const daySchedules = schedules.filter(s => s.day_of_week === selectedDay).sort((a, b) => a.period_number - b.period_number);
+
+  const weekDays = [1, 2, 3, 4, 5, 6];
+
+  let html = `<div class="card"><div class="card-header"><h3>My Schedule - ${student.classes?.name || 'Class'}${student.classes?.room ? ' (' + student.classes.room + ')' : ''}</h3></div><div class="card-body">
+    <div class="flex gap-1" style="flex-wrap:wrap;margin-bottom:16px">`;
+  weekDays.forEach(d => {
+    const active = d === selectedDay ? 'btn-primary' : 'btn-outline';
+    const todayClass = d === today ? ' (Today)' : '';
+    html += `<button class="btn btn-sm ${active}" onclick="window._sdDay=${d};renderMySchedule()">${DAYS_SHORT[d]}${todayClass}</button>`;
+  });
+  html += `</div>`;
+
+  if (!daySchedules.length) {
+    html += `<div class="empty-state"><p>No classes scheduled for ${DAYS[selectedDay]}.</p></div>`;
+  } else {
+    html += `<div class="table-wrap"><table>
+      <thead><tr><th>Period</th><th>Subject</th><th>Teacher</th><th>Time</th></tr></thead><tbody>`;
+    daySchedules.forEach(s => {
+      const subjName = subjMap[s.subject_id]?.name || '-';
+      const t = teacherMap[s.teacher_id];
+      const teacherName = t ? `${t.first_name} ${t.last_name}` : '-';
+      html += `<tr>
+        <td><strong>${s.period_number}</strong></td>
+        <td>${subjName}</td>
+        <td>${teacherName}</td>
+        <td>${s.start_time?.substring(0, 5) || '-'} - ${s.end_time?.substring(0, 5) || '-'}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  html += `</div></div>`;
+
+  el('content-area').innerHTML = html;
+}
+
+/* ============================================================
    STUDENT: MY ASSIGNMENTS
    ============================================================ */
 
@@ -1787,4 +2576,453 @@ async function viewStudentAssignment(id) {
     }, 50);
   }
   el('content-area').innerHTML = html;
+}
+
+/* ============================================================
+   LIBRARY: ADMIN DASHBOARD
+   ============================================================ */
+
+const LIB_TABS = ['Books', 'Members', 'Transactions', 'Fines'];
+let _libTab = 'Books';
+let _libSearch = '';
+
+async function renderLibrary() {
+  let html = `<div class="card"><div class="card-header"><h3>Library Management</h3></div><div class="card-body">
+    <div class="tabs" style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap">`;
+  LIB_TABS.forEach(t => {
+    const active = t === _libTab ? 'btn-primary' : 'btn-outline';
+    html += `<button class="btn btn-sm ${active}" onclick="_libTab='${t}';renderLibrary()">${t}</button>`;
+  });
+  html += `</div><div id="lib-content"></div></div></div>`;
+  el('content-area').innerHTML = html;
+  if (_libTab === 'Books') renderLibBooks();
+  else if (_libTab === 'Members') renderLibMembers();
+  else if (_libTab === 'Transactions') renderLibTransactions();
+  else if (_libTab === 'Fines') renderLibFines();
+}
+
+async function renderLibBooks() {
+  const orgId = erpOrg.id;
+  const { data: books } = await erp.from('library_books').select('*').eq('org_id', orgId).order('title');
+  const list = books || [];
+  window._libBooks = list;
+  let html = `<div class="flex-between" style="margin-bottom:12px">
+    <input class="search-bar" placeholder="Search by title, author, isbn..." value="${_libSearch}" oninput="_libSearch=this.value;renderLibBooks()" style="width:300px">
+    <button class="btn btn-primary btn-sm" onclick="showLibBookForm(null)">+ Add Book</button>
+  </div><div class="table-wrap"><table><thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Category</th><th>Copies</th><th>Avail</th><th>Shelf</th><th></th></tr></thead><tbody>`;
+  const q = _libSearch.toLowerCase();
+  const filtered = q ? list.filter(b => (b.title+' '+b.author+' '+(b.isbn||'')).toLowerCase().includes(q)) : list;
+  if (!filtered.length) {
+    html += `<tr><td colspan="8" class="empty-state">No books found.</td></tr>`;
+  } else {
+    filtered.forEach(b => {
+      html += `<tr>
+        <td><strong>${b.title}</strong></td>
+        <td>${b.author}</td>
+        <td style="font-size:.8rem">${b.isbn || '-'}</td>
+        <td>${b.category || '-'}</td>
+        <td>${b.total_copies}</td>
+        <td><span class="badge badge-${b.available_copies > 0 ? 'success' : 'danger'}">${b.available_copies}</span></td>
+        <td>${b.shelf_location || '-'}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="showLibBookForm(${b.id})">Edit</button>
+          <button class="btn btn-sm btn-outline" style="color:var(--danger)" onclick="deleteLibBook(${b.id})">Delete</button>
+        </td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table></div>`;
+  el('lib-content').innerHTML = html;
+}
+
+function showLibBookForm(id) {
+  const book = id ? (window._libBooks || []).find(b => b.id === id) : null;
+  openSlideModal(book ? 'Edit Book' : 'Add Book', `
+    <form id="lib-book-form">
+      <div class="form-row">
+        <div class="form-group"><label>Title *</label><input name="title" value="${book?.title || ''}" required></div>
+        <div class="form-group"><label>Author *</label><input name="author" value="${book?.author || ''}" required></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>ISBN</label><input name="isbn" value="${book?.isbn || ''}"></div>
+        <div class="form-group"><label>Category</label><input name="category" value="${book?.category || ''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Publisher</label><input name="publisher" value="${book?.publisher || ''}"></div>
+        <div class="form-group"><label>Year</label><input name="published_year" type="number" value="${book?.published_year || ''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Total Copies *</label><input name="total_copies" type="number" value="${book?.total_copies || 1}" required></div>
+        <div class="form-group"><label>Shelf Location</label><input name="shelf_location" value="${book?.shelf_location || ''}"></div>
+      </div>
+      <div class="form-group"><label>Description</label><textarea name="description" rows="3">${book?.description || ''}</textarea></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">${book ? 'Update' : 'Add'}</button>
+      </div>
+    </form>
+  `);
+  setTimeout(() => {
+    document.getElementById('lib-book-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = getFormData('lib-book-form');
+      const available = book ? Math.min(parseInt(fd.total_copies), (book.available_copies + parseInt(fd.total_copies) - book.total_copies)) : parseInt(fd.total_copies);
+      const payload = { org_id: erpOrg.id, title: fd.title, author: fd.author, isbn: fd.isbn, category: fd.category, publisher: fd.publisher, published_year: fd.published_year ? parseInt(fd.published_year) : null, total_copies: parseInt(fd.total_copies), available_copies: available, shelf_location: fd.shelf_location, description: fd.description };
+      if (book) {
+        await erp.from('library_books').update(payload).eq('id', id);
+        showToast('Book updated!', 'success');
+      } else {
+        await erp.from('library_books').insert(payload);
+        showToast('Book added!', 'success');
+      }
+      closeSlideModal();
+      renderLibBooks();
+    });
+  }, 50);
+}
+
+async function deleteLibBook(id) {
+  if (!confirm('Delete this book?')) return;
+  await erp.from('library_books').delete().eq('id', id);
+  showToast('Book deleted!', 'success');
+  renderLibBooks();
+}
+
+async function renderLibMembers() {
+  const orgId = erpOrg.id;
+  const [membersRes, studentsRes] = await Promise.all([
+    erp.from('library_members').select('*').eq('org_id', orgId).order('first_name'),
+    erp.from('students').select('id, first_name, last_name, email').eq('org_id', orgId).eq('status', 'active'),
+  ]);
+  const members = membersRes.data || [];
+  const students = studentsRes.data || [];
+  window._libStudents = students;
+  const existingStudentIds = new Set(members.filter(m => m.student_id).map(m => m.student_id));
+  const unregistered = students.filter(s => !existingStudentIds.has(s.id));
+
+  let html = `<div class="flex-between" style="margin-bottom:12px">
+    <span style="font-size:.9rem;color:var(--gray-600)">${members.length} members</span>
+    ${unregistered.length ? `<button class="btn btn-primary btn-sm" onclick="showQuickAddMembers()">Add from Students (${unregistered.length})</button>` : ''}
+  </div><div class="table-wrap"><table><thead><tr><th>Member ID</th><th>Name</th><th>Type</th><th>Email</th><th>Phone</th><th>Status</th><th></th></tr></thead><tbody>`;
+  if (!members.length) {
+    html += `<tr><td colspan="7" class="empty-state">No members yet.</td></tr>`;
+  } else {
+    members.forEach(m => {
+      const statusBadge = m.status === 'active' ? 'success' : m.status === 'suspended' ? 'danger' : 'warning';
+      html += `<tr>
+        <td style="font-size:.8rem">${m.member_id || '-'}</td>
+        <td>${m.first_name} ${m.last_name}</td>
+        <td>${m.membership_type}</td>
+        <td>${m.email || '-'}</td>
+        <td>${m.phone || '-'}</td>
+        <td><span class="badge badge-${statusBadge}">${m.status}</span></td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="toggleMemberStatus(${m.id},'${m.status}')">${m.status === 'active' ? 'Suspend' : 'Activate'}</button>
+        </td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table></div>`;
+  el('lib-content').innerHTML = html;
+}
+
+async function showQuickAddMembers() {
+  const students = window._libStudents || [];
+  let html = `<div style="max-height:400px;overflow-y:auto">`;
+  students.forEach(s => {
+    html += `<label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--gray-100);cursor:pointer">
+      <input type="checkbox" class="lib-add-chk" data-sid="${s.id}" data-fn="${s.first_name}" data-ln="${s.last_name}" data-em="${s.email || ''}">
+      <span>${s.first_name} ${s.last_name} ${s.email ? '('+s.email+')' : ''}</span>
+    </label>`;
+  });
+  html += `</div>
+  <div class="form-actions mt-2">
+    <button class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveQuickAddMembers()">Add Selected</button>
+  </div>`;
+  openSlideModal('Add Students as Library Members', html);
+}
+
+async function saveQuickAddMembers() {
+  const chks = document.querySelectorAll('.lib-add-chk:checked');
+  if (!chks.length) return;
+  const inserts = [];
+  chks.forEach(cb => {
+    inserts.push({
+      org_id: erpOrg.id,
+      student_id: parseInt(cb.dataset.sid),
+      first_name: cb.dataset.fn,
+      last_name: cb.dataset.ln,
+      email: cb.dataset.em || null,
+      membership_type: 'student',
+      member_id: 'LM-' + String(Date.now()).slice(-6) + cb.dataset.sid,
+    });
+  });
+  for (const m of inserts) {
+    await erp.from('library_members').insert(m);
+  }
+  showToast(`${inserts.length} member(s) added!`, 'success');
+  closeSlideModal();
+  renderLibMembers();
+}
+
+async function toggleMemberStatus(id, current) {
+  await erp.from('library_members').update({ status: current === 'active' ? 'inactive' : 'active' }).eq('id', id);
+  renderLibMembers();
+}
+
+async function renderLibTransactions() {
+  const orgId = erpOrg.id;
+  const [txnsRes, booksRes, membersRes] = await Promise.all([
+    erp.from('library_transactions').select('*').eq('org_id', orgId).order('created_at', { ascending: false }),
+    erp.from('library_books').select('*').eq('org_id', orgId),
+    erp.from('library_members').select('*').eq('org_id', orgId).eq('status', 'active'),
+  ]);
+  const txns = txnsRes.data || [];
+  const books = booksRes.data || [];
+  const members = membersRes.data || [];
+  const bookMap = {}; books.forEach(b => { bookMap[b.id] = b; });
+  const memberMap = {}; members.forEach(m => { memberMap[m.id] = m; });
+  window._libBooks = books;
+  window._libMembers = members;
+
+  let html = `<div style="margin-bottom:12px">
+    <button class="btn btn-primary btn-sm" onclick="showBorrowForm()">+ New Borrow</button>
+    <span style="margin-left:12px;font-size:.85rem;color:var(--gray-600)">${txns.filter(t => t.status === 'borrowed' || t.status === 'overdue').length} active borrows</span>
+  </div><div class="table-wrap"><table><thead><tr><th>Book</th><th>Member</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Status</th><th></th></tr></thead><tbody>`;
+  if (!txns.length) {
+    html += `<tr><td colspan="7" class="empty-state">No transactions yet.</td></tr>`;
+  } else {
+    txns.forEach(t => {
+      const book = bookMap[t.book_id];
+      const member = memberMap[t.member_id];
+      const overdue = t.status === 'borrowed' && new Date(t.due_date) < new Date();
+      const actualStatus = overdue ? 'overdue' : t.status;
+      const statusBadge = actualStatus === 'returned' ? 'success' : actualStatus === 'overdue' ? 'danger' : 'warning';
+      html += `<tr>
+        <td style="font-size:.85rem">${book?.title || 'Unknown'}</td>
+        <td style="font-size:.85rem">${member ? member.first_name + ' ' + member.last_name : 'Unknown'}</td>
+        <td style="font-size:.8rem">${new Date(t.borrow_date).toLocaleDateString()}</td>
+        <td style="font-size:.8rem">${new Date(t.due_date).toLocaleDateString()}</td>
+        <td style="font-size:.8rem">${t.return_date ? new Date(t.return_date).toLocaleDateString() : '-'}</td>
+        <td><span class="badge badge-${statusBadge}">${actualStatus}</span></td>
+        <td>${actualStatus !== 'returned' ? `<button class="btn btn-sm btn-primary" onclick="returnBook(${t.id})">Return</button>` : ''}</td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table></div>`;
+  el('lib-content').innerHTML = html;
+}
+
+function showBorrowForm() {
+  const books = (window._libBooks || []).filter(b => b.available_copies > 0);
+  const members = window._libMembers || [];
+  openSlideModal('Borrow Book', `
+    <form id="borrow-form">
+      <div class="form-group"><label>Book *</label>
+        <select name="book_id" required>
+          <option value="">Select book...</option>
+          ${books.map(b => `<option value="${b.id}">${b.title} (${b.author}) [${b.available_copies} avail]</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Member *</label>
+        <select name="member_id" required>
+          <option value="">Select member...</option>
+          ${members.map(m => `<option value="${m.id}">${m.first_name} ${m.last_name} (${m.membership_type})</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Borrow Date</label><input type="date" name="borrow_date" value="${new Date().toISOString().split('T')[0]}"></div>
+        <div class="form-group"><label>Due Date *</label><input type="date" name="due_date" value="${new Date(Date.now()+14*86400000).toISOString().split('T')[0]}" required></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea name="notes" rows="2"></textarea></div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Borrow</button>
+      </div>
+    </form>
+  `);
+  setTimeout(() => {
+    document.getElementById('borrow-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = getFormData('borrow-form');
+      const bookId = parseInt(fd.book_id);
+      const memberId = parseInt(fd.member_id);
+      await erp.from('library_transactions').insert({
+        org_id: erpOrg.id, book_id: bookId, member_id: memberId,
+        borrow_date: fd.borrow_date, due_date: fd.due_date,
+        issued_by: erpProfile.id, notes: fd.notes,
+      });
+      const book = window._libBooks.find(b => b.id === bookId);
+      if (book) await erp.from('library_books').update({ available_copies: book.available_copies - 1 }).eq('id', bookId);
+      showToast('Book borrowed!', 'success');
+      closeSlideModal();
+      renderLibTransactions();
+    });
+  }, 50);
+}
+
+async function returnBook(txnId) {
+  const { data: txn } = await erp.from('library_transactions').select('*').eq('id', txnId).single();
+  if (!txn) return;
+  const today = new Date();
+  const dueDate = new Date(txn.due_date);
+  const daysOverdue = Math.max(0, Math.floor((today - dueDate) / 86400000));
+  const fineAmount = daysOverdue * 5;
+  const tdy = today.toISOString().split('T')[0];
+  await erp.from('library_transactions').update({ return_date: tdy, status: 'returned' }).eq('id', txnId);
+  const book = window._libBooks.find(b => b.id === txn.book_id);
+  if (book) await erp.from('library_books').update({ available_copies: book.available_copies + 1 }).eq('id', txn.book_id);
+  if (daysOverdue > 0) {
+    await erp.from('library_fines').insert({
+      org_id: erpOrg.id, transaction_id: txnId, member_id: txn.member_id,
+      amount: fineAmount, days_overdue: daysOverdue,
+    });
+    showToast(`Book returned! Fine: &#8377;${fineAmount} (${daysOverdue} days overdue)`, 'warning');
+  } else {
+    showToast('Book returned on time!', 'success');
+  }
+  renderLibTransactions();
+}
+
+async function renderLibFines() {
+  const orgId = erpOrg.id;
+  const [finesRes, txnsRes, booksRes, membersRes] = await Promise.all([
+    erp.from('library_fines').select('*').eq('org_id', orgId).order('created_at', { ascending: false }),
+    erp.from('library_transactions').select('*').eq('org_id', orgId),
+    erp.from('library_books').select('*').eq('org_id', orgId),
+    erp.from('library_members').select('*').eq('org_id', orgId),
+  ]);
+  const fines = finesRes.data || [];
+  const txns = txnsRes.data || [];
+  const books = booksRes.data || [];
+  const members = membersRes.data || [];
+  const txnMap = {}; txns.forEach(t => { txnMap[t.id] = t; });
+  const bookMap = {}; books.forEach(b => { bookMap[b.id] = b; });
+  const memberMap = {}; members.forEach(m => { memberMap[m.id] = m; });
+  const totalUnpaid = fines.filter(f => !f.paid).reduce((s, f) => s + parseFloat(f.amount), 0);
+
+  let html = `<div style="margin-bottom:12px;font-size:.9rem;color:var(--gray-600)">
+    Total unpaid fines: <strong style="color:var(--danger)">&#8377;${totalUnpaid.toFixed(2)}</strong> | Total fines: <strong>${fines.length}</strong>
+  </div><div class="table-wrap"><table><thead><tr><th>Member</th><th>Book</th><th>Amount</th><th>Days Overdue</th><th>Paid</th><th></th></tr></thead><tbody>`;
+  if (!fines.length) {
+    html += `<tr><td colspan="6" class="empty-state">No fines recorded.</td></tr>`;
+  } else {
+    fines.forEach(f => {
+      const txn = txnMap[f.transaction_id];
+      const book = txn ? bookMap[txn.book_id] : null;
+      const member = memberMap[f.member_id];
+      html += `<tr>
+        <td>${member ? member.first_name + ' ' + member.last_name : '-'}</td>
+        <td style="font-size:.85rem">${book?.title || '-'}</td>
+        <td><strong>&#8377;${parseFloat(f.amount).toFixed(2)}</strong></td>
+        <td>${f.days_overdue} days</td>
+        <td>${f.paid ? '<span class="badge badge-success">Paid</span>' : '<span class="badge badge-danger">Unpaid</span>'}</td>
+        <td>${!f.paid ? `<button class="btn btn-sm btn-primary" onclick="payFine(${f.id})">Mark Paid</button>` : ''}</td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table></div>`;
+  el('lib-content').innerHTML = html;
+}
+
+async function payFine(id) {
+  await erp.from('library_fines').update({ paid: true, paid_at: new Date().toISOString() }).eq('id', id);
+  showToast('Fine marked as paid!', 'success');
+  renderLibFines();
+}
+
+/* ============================================================
+   LIBRARY: STUDENT / TEACHER VIEW
+   ============================================================ */
+
+async function renderMyLibrary() {
+  const orgId = erpOrg.id;
+  const [booksRes, membersRes] = await Promise.all([
+    erp.from('library_books').select('*').eq('org_id', orgId).order('title'),
+    erp.from('library_members').select('*').eq('profile_id', erpProfile.id).maybeSingle(),
+  ]);
+  const books = booksRes.data || [];
+  const member = membersRes.data;
+  let html = `<div class="card"><div class="card-header"><h3>Library</h3></div><div class="card-body">
+    <div class="tabs" style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="renderMyLibCatalog()">Browse Books</button>
+      ${member ? `<button class="btn btn-sm btn-outline" onclick="renderMyLibBooks()">My Borrowed Books</button>` : ''}
+    </div>
+    <div id="my-lib-content"></div></div></div>`;
+  el('content-area').innerHTML = html;
+  renderMyLibCatalog();
+}
+
+async function renderMyLibCatalog() {
+  const orgId = erpOrg.id;
+  const { data: books } = await erp.from('library_books').select('*').eq('org_id', orgId).order('title');
+  const list = books || [];
+  let html = `<div style="margin-bottom:12px"><input class="search-bar" placeholder="Search books..." style="width:100%;max-width:400px" oninput="filterMyLibCatalog(this.value)"></div>
+    <div id="my-lib-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">`;
+  el('my-lib-content').innerHTML = html;
+  renderMyLibCards(list);
+}
+
+function renderMyLibCards(list) {
+  const container = document.getElementById('my-lib-grid');
+  if (!container) return;
+  let html = '';
+  if (!list.length) { html = '<div class="empty-state">No books in the library yet.</div>'; }
+  else {
+    list.forEach(b => {
+      html += `<div class="card" style="padding:12px;border:1px solid var(--border);border-radius:8px">
+        <div style="font-weight:600;font-size:.95rem">${b.title}</div>
+        <div style="font-size:.8rem;color:var(--gray-500)">${b.author}</div>
+        ${b.isbn ? `<div style="font-size:.75rem;color:var(--gray-400)">ISBN: ${b.isbn}</div>` : ''}
+        ${b.category ? `<span class="badge badge-info" style="margin-top:6px;background:var(--primary-light);color:var(--primary)">${b.category}</span>` : ''}
+        <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:.8rem">
+          <span>Copies: <strong>${b.available_copies}</strong>/${b.total_copies}</span>
+          <span style="color:var(--gray-500)">${b.shelf_location ? 'Shelf: ' + b.shelf_location : ''}</span>
+        </div>
+      </div>`;
+    });
+  }
+  container.innerHTML = html;
+}
+
+function filterMyLibCatalog(q) {
+  const cards = document.querySelectorAll('#my-lib-grid .card');
+  const query = q.toLowerCase();
+  cards.forEach(c => {
+    const text = c.textContent.toLowerCase();
+    c.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+
+async function renderMyLibBooks() {
+  const { data: member } = await erp.from('library_members').select('*').eq('profile_id', erpProfile.id).maybeSingle();
+  if (!member) { el('my-lib-content').innerHTML = '<div class="empty-state">You are not registered as a library member.</div>'; return; }
+  const [txnsRes, booksRes] = await Promise.all([
+    erp.from('library_transactions').select('*').eq('member_id', member.id).order('created_at', { ascending: false }),
+    erp.from('library_books').select('*').eq('org_id', erpOrg.id),
+  ]);
+  const txns = txnsRes.data || [];
+  const books = booksRes.data || [];
+  const bookMap = {}; books.forEach(b => { bookMap[b.id] = b; });
+  let html = `<div class="table-wrap"><table><thead><tr><th>Book</th><th>Borrowed</th><th>Due</th><th>Returned</th><th>Status</th></tr></thead><tbody>`;
+  if (!txns.length) {
+    html += `<tr><td colspan="5" class="empty-state">No books borrowed yet.</td></tr>`;
+  } else {
+    txns.forEach(t => {
+      const book = bookMap[t.book_id];
+      const overdue = t.status === 'borrowed' && new Date(t.due_date) < new Date();
+      const status = overdue ? 'overdue' : t.status;
+      const badge = status === 'returned' ? 'success' : status === 'overdue' ? 'danger' : 'warning';
+      html += `<tr>
+        <td>${book?.title || 'Unknown'}</td>
+        <td style="font-size:.8rem">${new Date(t.borrow_date).toLocaleDateString()}</td>
+        <td style="font-size:.8rem">${new Date(t.due_date).toLocaleDateString()}</td>
+        <td style="font-size:.8rem">${t.return_date ? new Date(t.return_date).toLocaleDateString() : '-'}</td>
+        <td><span class="badge badge-${badge}">${status}</span></td>
+      </tr>`;
+    });
+  }
+  html += `</tbody></table></div>`;
+  el('my-lib-content').innerHTML = html;
 }

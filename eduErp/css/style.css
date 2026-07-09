@@ -150,6 +150,26 @@ tbody tr:hover { background: var(--gray-50); }
 .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
 .loading { text-align: center; padding: 40px; color: var(--gray-400); }
 
+/* ============ TIMETABLE ============ */
+.timetable-grid { width: 100%; border-collapse: collapse; }
+.timetable-grid th, .timetable-grid td { border: 1px solid var(--gray-200); padding: 8px; text-align: center; vertical-align: middle; font-size: .8rem; }
+.timetable-grid th { background: var(--gray-50); font-weight: 600; color: var(--gray-600); }
+.tt-cell { cursor: pointer; min-height: 60px; transition: .15s; }
+.tt-cell.empty { background: var(--gray-50); color: var(--gray-300); }
+.tt-cell.empty:hover { background: var(--primary-light); color: var(--primary); }
+.tt-cell.occupied { background: #fff; }
+.tt-cell.occupied:hover { background: var(--primary-light); box-shadow: inset 0 0 0 2px var(--primary); }
+.tt-subject { font-weight: 600; color: var(--gray-800); }
+.tt-teacher { font-size: .75rem; color: var(--gray-500); }
+.tt-time { font-size: .7rem; color: var(--gray-400); }
+.tt-room { font-size: .7rem; color: var(--gray-500); margin-top: 2px; }
+.tt-add { font-size: 1.2rem; }
+.gap-1 { gap: 4px; }
+.note-item { margin-bottom: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; }
+.note-header { display: flex; justify-content: space-between; align-items: start; }
+.note-content { margin-top: 6px; color: var(--gray-600); white-space: pre-wrap; }
+.note-date { margin-top: 4px; font-size: .75rem; color: var(--gray-400); }
+
 /* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }
