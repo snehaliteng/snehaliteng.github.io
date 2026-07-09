@@ -340,8 +340,15 @@ document.getElementById('enroll-form').addEventListener('submit', async function
     const userId = authData.user?.id;
     if (!userId) throw new Error('Account creation failed');
 
-    // 2. Update profile
-    await _supa.from('profiles').upsert({ id: userId, full_name: data.admin_name, email: data.admin_email, phone: data.admin_phone || null, role: 'school_admin', org_id: null });
+    // Ensure session is active for subsequent RLS checks
+    if (!authData.session) {
+      const { error: signInErr } = await _supa.auth.signInWithPassword({ email: data.admin_email, password: data.admin_password });
+      if (signInErr) throw new Error('Login after signup failed: ' + signInErr.message);
+    }
+
+    // 2. Update profile (trigger created it — now fill in the details)
+    const { error: profErr } = await _supa.from('profiles').update({ full_name: data.admin_name, phone: data.admin_phone || null }).eq('user_id', userId);
+    if (profErr) throw new Error('Profile update failed: ' + profErr.message);
 
     // 3. Create organization
     const slug = data.org_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
@@ -355,7 +362,7 @@ document.getElementById('enroll-form').addEventListener('submit', async function
     if (orgErr) throw new Error(orgErr.message);
 
     // 4. Link profile to org
-    await _supa.from('profiles').update({ org_id: orgData.id }).eq('id', userId);
+    await _supa.from('profiles').update({ org_id: orgData.id }).eq('user_id', userId);
 
     // 5. Create payment record
     const payStatus = _enrollPlan.price === 0 ? 'completed' : 'pending';
