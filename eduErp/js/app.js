@@ -1005,7 +1005,7 @@ async function renderStudents() {
   renderFilteredTable('students', el('content-area'), [
     { type: 'search', fields: ['first_name','last_name','roll_number'], placeholder: 'Search name or roll...' },
     { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'active',label:'Active'},{value:'inactive',label:'Inactive'},{value:'graduated',label:'Graduated'}] }
-  ], 'Students', `<button class="btn btn-primary btn-sm" onclick="showAddStudent()">+ Add Student</button>`);
+  ], 'Students', `<button class="btn btn-primary btn-sm" onclick="showAddStudent()">+ Add Student</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('students')">Import CSV</button>`);
 }
 
 async function showAddStudent() {
@@ -1100,7 +1100,7 @@ async function renderTeachers() {
   renderFilteredTable('teachers', el('content-area'), [
     { type: 'search', fields: ['first_name','last_name','employee_id'], placeholder: 'Search name or ID...' },
     { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'active',label:'Active'},{value:'inactive',label:'Inactive'}] }
-  ], 'Teachers', `<button class="btn btn-primary btn-sm" onclick="showAddTeacher()">+ Add Teacher</button>`);
+  ], 'Teachers', `<button class="btn btn-primary btn-sm" onclick="showAddTeacher()">+ Add Teacher</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('teachers')">Import CSV</button>`);
 }
 
 function showAddTeacher() {
@@ -1182,7 +1182,7 @@ async function renderClasses() {
   renderFilteredTable('classes', el('content-area'), [
     { type: 'search', fields: ['name'], placeholder: 'Search class name...' },
     { type: 'select', key: 'academic_year', label: 'All Years', options: years.map(y => ({value:y, label:y})) }
-  ], 'Classes', `<button class="btn btn-primary btn-sm" onclick="showAddClass()">+ Add Class</button>`);
+  ], 'Classes', `<button class="btn btn-primary btn-sm" onclick="showAddClass()">+ Add Class</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('classes')">Import CSV</button>`);
 }
 
 async function assignStudents(classId) {
@@ -1482,7 +1482,7 @@ async function renderSubjects() {
   renderFilteredTable('subjects', el('content-area'), [
     { type: 'search', fields: ['name','code'], placeholder: 'Search subject...' },
     { type: 'select', key: 'class_id', label: 'All Classes', options: classOpts.map(([id,name]) => ({value:String(id), label:name})) }
-  ], 'Subjects', `<button class="btn btn-primary btn-sm" onclick="showAddSubject()">+ Add Subject</button>`);
+  ], 'Subjects', `<button class="btn btn-primary btn-sm" onclick="showAddSubject()">+ Add Subject</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('subjects')">Import CSV</button>`);
 }
 
 async function showAddSubject() {
@@ -1565,7 +1565,7 @@ async function renderSyllabus() {
     { type: 'search', fields: ['title'], placeholder: 'Search title...' },
     { type: 'select', key: 'class_id', label: 'All Classes', options: classOpts.map(([id,n]) => ({value:String(id), label:n})) },
     { type: 'select', key: 'subject_id', label: 'All Subjects', options: subjOpts.map(([id,n]) => ({value:String(id), label:n})) }
-  ], 'Syllabus', `<button class="btn btn-primary btn-sm" onclick="showAddSyllabus()">+ Add Syllabus</button>`);
+  ], 'Syllabus', `<button class="btn btn-primary btn-sm" onclick="showAddSyllabus()">+ Add Syllabus</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('syllabus')">Import CSV</button>`);
 }
 
 async function showAddSyllabus() {
@@ -1612,7 +1612,7 @@ async function renderExams() {
   renderFilteredTable('exams', el('content-area'), [
     { type: 'search', fields: ['title'], placeholder: 'Search exam...' },
     { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'draft',label:'Draft'},{value:'published',label:'Published'},{value:'completed',label:'Completed'}] }
-  ], 'Exams', `<button class="btn btn-primary btn-sm" onclick="showAddExam()">+ Create Exam</button>`);
+  ], 'Exams', `<button class="btn btn-primary btn-sm" onclick="showAddExam()">+ Create Exam</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('exams')">Import CSV</button>`);
 }
 
 async function showAddExam() {
@@ -1735,7 +1735,7 @@ async function renderFees() {
     { type: 'search', fields: [], placeholder: 'Search student...' },
     { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'paid',label:'Paid'},{value:'pending',label:'Pending'},{value:'overdue',label:'Overdue'}] },
     { type: 'select', key: 'type', label: 'All Types', options: fTypes.map(t => ({value:t, label:t.charAt(0).toUpperCase()+t.slice(1)})) }
-  ], 'Fees Records', `<button class="btn btn-primary btn-sm" onclick="showAddFee()">+ Add Fee</button>`);
+  ], 'Fees Records', `<button class="btn btn-primary btn-sm" onclick="showAddFee()">+ Add Fee</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('fees')">Import CSV</button>`);
 }
 
 async function showAddFee() {
@@ -1791,7 +1791,7 @@ async function renderDonations() {
     { type: 'search', fields: ['donor_name'], placeholder: 'Search donor...' },
     { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'completed',label:'Completed'},{value:'pending',label:'Pending'}] },
     { type: 'select', key: 'payment_method', label: 'All Methods', options: [{value:'cash',label:'Cash'},{value:'bank',label:'Bank Transfer'},{value:'online',label:'Online'},{value:'cheque',label:'Cheque'}] }
-  ], 'Donations', `<button class="btn btn-primary btn-sm" onclick="showAddDonation()">+ Record Donation</button>`);
+  ], 'Donations', `<button class="btn btn-primary btn-sm" onclick="showAddDonation()">+ Record Donation</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('donations')">Import CSV</button>`);
 }
 
 function showAddDonation() {
@@ -1856,7 +1856,7 @@ async function renderExpenses() {
     { type: 'search', fields: ['description'], placeholder: 'Search description...' },
     { type: 'select', key: 'category', label: 'All Categories', options: categories.map(c => ({value:c, label:c.charAt(0).toUpperCase()+c.slice(1)})) },
     { type: 'select', key: 'status', label: 'All Statuses', options: [{value:'approved',label:'Approved'},{value:'pending',label:'Pending'},{value:'rejected',label:'Rejected'}] }
-  ], 'Expenses', `<button class="btn btn-primary btn-sm" onclick="showAddExpense()">+ Add Expense</button>`);
+  ], 'Expenses', `<button class="btn btn-primary btn-sm" onclick="showAddExpense()">+ Add Expense</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('expenses')">Import CSV</button>`);
 }
 
 function showAddExpense() {
@@ -1922,7 +1922,7 @@ async function renderCalendar() {
     if (!grouped[m]) grouped[m] = [];
     grouped[m].push(e);
   });
-  let html = `<div class="card"><div class="card-header"><h3>Calendar</h3><button class="btn btn-primary btn-sm" onclick="showAddEvent()">+ Add Event</button></div><div class="card-body">`;
+  let html = `<div class="card"><div class="card-header"><h3>Calendar</h3><button class="btn btn-primary btn-sm" onclick="showAddEvent()">+ Add Event</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('events')">Import CSV</button></div><div class="card-body">`;
   html += `<div class="filter-bar">
     <input class="filter-input" id="fs-events" data-fields="title" placeholder="Search event..." oninput="reRenderCalendar()">
     <select data-ff="events" data-fk="event_type" onchange="reRenderCalendar()">
@@ -2022,6 +2022,300 @@ async function exportCSV(table) {
   a.download = `${table}_${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
   showToast(`${table} exported!`, 'success');
+}
+
+/* ============================================================
+   CSV IMPORT
+   ============================================================ */
+
+function parseCSV(text) {
+  const rows = []; let cur = []; let field = ''; let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i], nxt = text[i + 1];
+    if (inQ) {
+      if (ch === '"' && nxt === '"') { field += '"'; i++; }
+      else if (ch === '"') inQ = false;
+      else field += ch;
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ',') { cur.push(field); field = ''; }
+      else if (ch === '\n') {
+        cur.push(field.trim()); field = '';
+        if (cur.some(c => c !== '')) rows.push(cur);
+        cur = [];
+      } else if (ch !== '\r') field += ch;
+    }
+  }
+  cur.push(field.trim());
+  if (cur.some(c => c !== '')) rows.push(cur);
+  return rows;
+}
+
+const IMPORT_CFG = {
+  students: {
+    table: 'students', title: 'Students',
+    cols: [
+      { key: 'first_name', label: 'First Name', required: true },
+      { key: 'last_name', label: 'Last Name', required: true },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone' },
+      { key: 'roll_number', label: 'Roll Number' },
+      { key: 'class', label: 'Class (name + section, e.g. "Class 10 A")' },
+      { key: 'gender', label: 'Gender (male/female/other)' },
+      { key: 'guardian_name', label: 'Guardian Name' },
+      { key: 'guardian_phone', label: 'Guardian Phone' },
+    ],
+    sample: 'first_name,last_name,email,phone,roll_number,class,gender,guardian_name,guardian_phone\nArjun,Sharma,arjun@demo.com,9876543210,STU001,Class 10 A,male,Rajesh Sharma,9876543210\nDivya,Patel,divya@demo.com,9876543211,STU002,Class 9 B,female,Meena Patel,9876543211',
+    resolve: async (rows) => {
+      const names = [...new Set(rows.filter(r => r.class).map(r => r.class))];
+      if (!names.length) return rows;
+      const { data: classes } = await erp.from('classes').select('id,name,section').eq('org_id', erpOrg.id);
+      const map = {};
+      (classes || []).forEach(c => {
+        const k = `${c.name}${c.section ? ' ' + c.section : ''}`.toLowerCase().trim();
+        map[k] = c.id; map[c.name.toLowerCase().trim()] = c.id;
+      });
+      rows.forEach(r => { if (r.class) { r.class_id = map[r.class.toLowerCase().trim()] || null; delete r.class; } });
+      return rows;
+    }
+  },
+  teachers: {
+    table: 'teachers', title: 'Teachers',
+    cols: [
+      { key: 'first_name', label: 'First Name', required: true },
+      { key: 'last_name', label: 'Last Name', required: true },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone' },
+      { key: 'employee_id', label: 'Employee ID' },
+      { key: 'qualification', label: 'Qualification' },
+      { key: 'specialization', label: 'Specialization' },
+    ],
+    sample: 'first_name,last_name,email,phone,employee_id,qualification,specialization\nRajesh,Kumar,rajesh@demo.com,9876543210,TCH001,M.Sc. Mathematics,Mathematics\nPriya,Singh,priya@demo.com,9876543211,TCH002,M.A. English,English Literature',
+    resolve: null
+  },
+  classes: {
+    table: 'classes', title: 'Classes',
+    cols: [
+      { key: 'name', label: 'Name', required: true },
+      { key: 'section', label: 'Section' },
+      { key: 'room', label: 'Room' },
+      { key: 'academic_year', label: 'Academic Year' },
+    ],
+    sample: 'name,section,room,academic_year\nClass 10,A,Room 101,2025-26\nClass 9,B,Room 102,2025-26',
+    resolve: null
+  },
+  subjects: {
+    table: 'subjects', title: 'Subjects',
+    cols: [
+      { key: 'name', label: 'Name', required: true },
+      { key: 'code', label: 'Code' },
+      { key: 'class', label: 'Class (name + section)' },
+    ],
+    sample: 'name,code,class\nMathematics,MATH101,Class 10 A\nEnglish,ENG101,Class 9 B',
+    resolve: async (rows) => {
+      const names = [...new Set(rows.filter(r => r.class).map(r => r.class))];
+      if (!names.length) return rows;
+      const { data: classes } = await erp.from('classes').select('id,name,section').eq('org_id', erpOrg.id);
+      const map = {};
+      (classes || []).forEach(c => { const k = `${c.name}${c.section ? ' ' + c.section : ''}`.toLowerCase().trim(); map[k] = c.id; });
+      rows.forEach(r => { if (r.class) { r.class_id = map[r.class.toLowerCase().trim()] || null; delete r.class; } });
+      return rows;
+    }
+  },
+  fees: {
+    table: 'fees', title: 'Fees',
+    cols: [
+      { key: 'student_id', label: 'Student ID', required: true },
+      { key: 'amount', label: 'Amount', required: true },
+      { key: 'type', label: 'Type (tuition/exam/library/transport/other)', required: true },
+      { key: 'due_date', label: 'Due Date (YYYY-MM-DD)', required: true },
+    ],
+    sample: 'student_id,amount,type,due_date\n1,5000,tuition,2025-06-30\n2,4500,tuition,2025-06-30',
+    resolve: null
+  },
+  donations: {
+    table: 'donations', title: 'Donations',
+    cols: [
+      { key: 'donor_name', label: 'Donor Name', required: true },
+      { key: 'amount', label: 'Amount', required: true },
+      { key: 'donor_email', label: 'Email' },
+      { key: 'donor_phone', label: 'Phone' },
+      { key: 'payment_method', label: 'Method (cash/bank/online/cheque)' },
+      { key: 'date', label: 'Date (YYYY-MM-DD)' },
+      { key: 'status', label: 'Status (completed/pending)' },
+    ],
+    sample: 'donor_name,amount,donor_email,donor_phone,payment_method,date,status\nRavi Sharma,10000,ravi@demo.com,9876543210,online,2025-06-15,completed\nAnita Gupta,5000,anita@demo.com,9876543211,cash,2025-06-16,completed',
+    resolve: null
+  },
+  expenses: {
+    table: 'expenses', title: 'Expenses',
+    cols: [
+      { key: 'description', label: 'Description', required: true },
+      { key: 'amount', label: 'Amount', required: true },
+      { key: 'category', label: 'Category (salary/supplies/maintenance/utilities/other)', required: true },
+      { key: 'vendor', label: 'Vendor' },
+      { key: 'date', label: 'Date (YYYY-MM-DD)' },
+      { key: 'status', label: 'Status (approved/pending/rejected)' },
+    ],
+    sample: 'description,amount,category,vendor,date,status\nWhiteboard markers,1200,supplies,Stationery Shop,2025-06-10,approved\nElectricity bill,8500,utilities,Tata Power,2025-06-01,approved',
+    resolve: null
+  },
+  events: {
+    table: 'events', title: 'Events',
+    cols: [
+      { key: 'title', label: 'Title', required: true },
+      { key: 'event_date', label: 'Date (YYYY-MM-DD)', required: true },
+      { key: 'event_type', label: 'Type (general/exam/holiday/meeting/deadline)' },
+      { key: 'description', label: 'Description' },
+    ],
+    sample: 'title,event_date,event_type,description\nAnnual Day,2025-12-15,general,Annual day celebration\nSummer Break,2025-05-01,holiday,Summer holidays begin',
+    resolve: null
+  },
+  syllabus: {
+    table: 'syllabus', title: 'Syllabus',
+    cols: [
+      { key: 'title', label: 'Title', required: true },
+      { key: 'class', label: 'Class (name + section)', required: true },
+      { key: 'subject', label: 'Subject name', required: true },
+      { key: 'description', label: 'Description' },
+    ],
+    sample: 'title,class,subject,description\nAlgebra Basics,Class 10 A,Mathematics,Linear equations\nGrammar,Class 9 B,English,Parts of speech',
+    resolve: async (rows) => {
+      const cnames = [...new Set(rows.filter(r => r.class).map(r => r.class))];
+      const snames = [...new Set(rows.filter(r => r.subject).map(r => r.subject))];
+      if (!cnames.length && !snames.length) return rows;
+      const [cr, sr] = await Promise.all([
+        cnames.length ? erp.from('classes').select('id,name,section').eq('org_id', erpOrg.id) : { data: [] },
+        snames.length ? erp.from('subjects').select('id,name').eq('org_id', erpOrg.id) : { data: [] }
+      ]);
+      const cm = {}; (cr.data || []).forEach(c => { const k = `${c.name}${c.section ? ' ' + c.section : ''}`.toLowerCase().trim(); cm[k] = c.id; cm[c.name.toLowerCase().trim()] = c.id; });
+      const sm = {}; (sr.data || []).forEach(s => { sm[s.name.toLowerCase().trim()] = s.id; });
+      rows.forEach(r => {
+        if (r.class) { r.class_id = cm[r.class.toLowerCase().trim()] || null; delete r.class; }
+        if (r.subject) { r.subject_id = sm[r.subject.toLowerCase().trim()] || null; delete r.subject; }
+      });
+      return rows;
+    }
+  },
+  exams: {
+    table: 'exams', title: 'Exams',
+    cols: [
+      { key: 'title', label: 'Title', required: true },
+      { key: 'class_id', label: 'Class ID', required: true },
+      { key: 'subject_id', label: 'Subject ID' },
+      { key: 'total_marks', label: 'Total Marks' },
+      { key: 'pass_percentage', label: 'Pass Percentage' },
+      { key: 'duration_minutes', label: 'Duration (minutes)' },
+      { key: 'status', label: 'Status (draft/published/completed)' },
+    ],
+    sample: 'title,class_id,subject_id,total_marks,pass_percentage,duration_minutes,status\nMidterm Exam,1,2,100,40,60,draft\nFinal Exam,1,2,100,35,120,draft',
+    resolve: null
+  },
+  books: {
+    table: 'library_books', title: 'Library Books',
+    cols: [
+      { key: 'title', label: 'Title', required: true },
+      { key: 'author', label: 'Author', required: true },
+      { key: 'isbn', label: 'ISBN' },
+      { key: 'category', label: 'Category' },
+      { key: 'publisher', label: 'Publisher' },
+      { key: 'published_year', label: 'Published Year' },
+      { key: 'total_copies', label: 'Total Copies' },
+      { key: 'shelf_location', label: 'Shelf Location' },
+    ],
+    sample: 'title,author,isbn,category,publisher,published_year,total_copies,shelf_location\nMathematics Textbook,RD Sharma,9788121900001,Textbook,NCERT,2024,10,A-101\nEnglish Reader,Wren & Martin,9788121900002,Textbook,Oxford,2023,15,A-102',
+    resolve: null
+  }
+};
+
+async function showImportCSV(entity) {
+  const cfg = IMPORT_CFG[entity];
+  if (!cfg) { showToast('Invalid entity', 'error'); return; }
+  const req = cfg.cols.filter(c => c.required);
+  openSlideModal(`Import ${cfg.title}`, `
+    <div style="padding:0.5rem">
+      <p class="text-sm text-gray-500 mb-3">
+        Required columns: <strong>${req.map(c => c.label).join(', ')}</strong>.
+        <br><a href="#" onclick="downloadImportSample('${entity}'); return false;" class="text-primary font-medium">📥 Download sample format</a>
+      </p>
+      <div class="upload-zone" style="border:2px dashed #d1d5db;border-radius:8px;padding:2rem;text-align:center;cursor:pointer;background:#f9fafb;transition:border-color .2s"
+           onclick="document.getElementById('csv-input-${entity}').click()"
+           onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#d1d5db'">
+        <div class="text-4xl mb-2">📂</div>
+        <p class="text-gray-500">Click to select a CSV file</p>
+        <p class="text-xs text-gray-400 mt-1" id="csv-filename-${entity}">No file chosen</p>
+      </div>
+      <input type="file" id="csv-input-${entity}" accept=".csv" style="display:none">
+      <div id="csv-preview-${entity}" class="mt-3"></div>
+      <div class="form-actions" style="margin-top:1rem">
+        <button type="button" class="btn btn-outline" onclick="closeSlideModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-csv-${entity}" disabled onclick="importCSVData('${entity}')">Import</button>
+      </div>
+    </div>`);
+  const input = document.getElementById(`csv-input-${entity}`);
+  input.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById(`csv-filename-${entity}`).textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const text = ev.target.result;
+      const rows = parseCSV(text);
+      if (rows.length < 2) { showToast('CSV must have header row and at least one data row', 'error'); return; }
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const data = rows.slice(1);
+      const missing = req.filter(c => !headers.includes(c.key.toLowerCase()));
+      if (missing.length) { showToast('Missing required columns: ' + missing.map(c => c.label).join(', '), 'error'); return; }
+      window._csvData = { entity, headers, data };
+      let prev = '<p class="text-sm text-gray-600 mb-2">Found <strong>' + data.length + '</strong> records</p>';
+      if (data.length) {
+        prev += '<div class="table-wrap" style="max-height:220px;overflow-y:auto"><table class="table-sm"><thead><tr>' + rows[0].map(h => '<th>' + h + '</th>').join('') + '</tr></thead><tbody>';
+        data.slice(0, 8).forEach(r => { prev += '<tr>' + r.map(c => '<td>' + (c || '-') + '</td>').join('') + '</tr>'; });
+        if (data.length > 8) prev += '<tr><td colspan="' + headers.length + '" class="text-center text-gray-400 text-sm">... and ' + (data.length - 8) + ' more rows</td></tr>';
+        prev += '</tbody></table></div>';
+      }
+      document.getElementById('csv-preview-' + entity).innerHTML = prev;
+      document.getElementById('btn-csv-' + entity).disabled = false;
+    };
+    reader.readAsText(file);
+  });
+}
+
+async function importCSVData(entity) {
+  const cfg = IMPORT_CFG[entity];
+  const d = window._csvData;
+  if (!d || !d.headers || !d.data || d.entity !== entity) { showToast('No data loaded. Please upload a CSV file first.', 'error'); return; }
+  const btn = document.getElementById('btn-csv-' + entity);
+  btn.disabled = true; btn.textContent = '⏳ Importing...';
+  const colMap = {};
+  d.headers.forEach((h, i) => { const m = cfg.cols.find(c => c.key.toLowerCase() === h); if (m) colMap[i] = m.key; });
+  let rows = d.data.map(row => {
+    const obj = { org_id: erpOrg.id };
+    row.forEach((v, i) => { if (colMap[i] !== undefined && v.trim()) obj[colMap[i]] = v.trim(); });
+    return obj;
+  });
+  if (cfg.resolve) rows = await cfg.resolve(rows);
+  let success = 0, errors = [];
+  for (let i = 0; i < rows.length; i += 50) {
+    const batch = rows.slice(i, i + 50);
+    try {
+      const { error } = await erp.from(cfg.table).insert(batch);
+      if (error) errors.push(error.message); else success += batch.length;
+    } catch (err) { errors.push(err.message); }
+    btn.textContent = '⏳ ' + Math.min(i + 50, rows.length) + '/' + rows.length;
+  }
+  showToast('Imported ' + success + '/' + rows.length + ' records' + (errors.length ? ', ' + errors.length + ' errors' : ''), errors.length ? 'warning' : 'success');
+  if (errors.length) console.error('CSV import errors:', errors.slice(0, 5));
+  closeSlideModal();
+  navigate(currentPage);
+}
+
+function downloadImportSample(entity) {
+  const cfg = IMPORT_CFG[entity];
+  if (!cfg) return;
+  const blob = new Blob([cfg.sample], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = entity + '_sample.csv'; a.click();
 }
 
 /* ============================================================
@@ -2608,7 +2902,7 @@ async function renderLibBooks() {
   window._libBooks = list;
   let html = `<div class="flex-between" style="margin-bottom:12px">
     <input class="search-bar" placeholder="Search by title, author, isbn..." value="${_libSearch}" oninput="_libSearch=this.value;renderLibBooks()" style="width:300px">
-    <button class="btn btn-primary btn-sm" onclick="showLibBookForm(null)">+ Add Book</button>
+    <button class="btn btn-primary btn-sm" onclick="showLibBookForm(null)">+ Add Book</button><button class="btn btn-outline btn-sm ms-1" onclick="showImportCSV('books')">Import CSV</button>
   </div><div class="table-wrap"><table><thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Category</th><th>Copies</th><th>Avail</th><th>Shelf</th><th></th></tr></thead><tbody>`;
   const q = _libSearch.toLowerCase();
   const filtered = q ? list.filter(b => (b.title+' '+b.author+' '+(b.isbn||'')).toLowerCase().includes(q)) : list;
