@@ -343,21 +343,39 @@ document.getElementById('enroll-form').addEventListener('submit', async function
   const data = Object.fromEntries(fd);
   try {
     let userId;
+    let isExistingUser = false;
 
-    // 1. Create auth user (email + password)
+    // 1. Create or get auth user
     const { data: authData, error: authErr } = await _supa.auth.signUp({ email: data.admin_email, password: data.admin_password });
-    if (authErr) throw new Error(authErr.message);
-    userId = authData.user?.id;
-    if (!userId) throw new Error('Account creation failed');
-
-    // Ensure session is active for subsequent RLS checks
-    if (!authData.session) {
-      const { error: signInErr } = await _supa.auth.signInWithPassword({ email: data.admin_email, password: data.admin_password });
-      if (signInErr) throw new Error('Login after signup failed: ' + signInErr.message);
+    if (authErr) {
+      if (authErr.message.includes('already registered')) {
+        // User already exists — try signing in with provided password
+        isExistingUser = true;
+        const { data: signInData, error: signInErr } = await _supa.auth.signInWithPassword({ email: data.admin_email, password: data.admin_password });
+        if (signInErr || !signInData?.user) {
+          // Password doesn't match (Google-created user, etc.) — send reset email
+          await _supa.auth.resetPasswordForEmail(data.admin_email, { redirectTo: window.location.origin + '/eduErp/index.html' });
+          throw new Error('An account already exists with this email. A password reset link has been sent to your inbox. Please set your password and try enrolling again.');
+        }
+        userId = signInData.user.id;
+      } else {
+        throw new Error(authErr.message);
+      }
+    } else {
+      userId = authData.user?.id;
+      if (!userId) throw new Error('Account creation failed');
+      if (!authData.session) {
+        const { error: signInErr } = await _supa.auth.signInWithPassword({ email: data.admin_email, password: data.admin_password });
+        if (signInErr) throw new Error('Login after signup failed: ' + signInErr.message);
+      }
     }
 
-    // 2. Update profile (trigger created it — now fill in details)
-    const { error: profErr } = await _supa.from('profiles').update({ full_name: data.admin_name, phone: data.admin_phone || null }).eq('user_id', userId);
+    // 2. Update profile (trigger created it for new users — upsert for existing)
+    const { error: profErr } = await _supa.from('profiles').upsert({
+      user_id: userId, email: data.admin_email,
+      full_name: data.admin_name, phone: data.admin_phone || null,
+      role: 'school_admin'
+    }, { onConflict: 'user_id' }).select().single();
     if (profErr) throw new Error('Profile update failed: ' + profErr.message);
 
     // 3. Create organization
@@ -382,11 +400,19 @@ document.getElementById('enroll-form').addEventListener('submit', async function
       notes: 'Enrolled via landing page'
     });
 
-    // 6. Show success
+    // 6. Send password setup email for existing users
+    if (isExistingUser) {
+      await _supa.auth.resetPasswordForEmail(data.admin_email, { redirectTo: window.location.origin + '/eduErp/index.html' });
+    }
+
+    // 7. Show success
     document.getElementById('enroll-modal').classList.remove('open');
     const successMsg = document.getElementById('success-msg');
     const creds = document.getElementById('success-creds');
-    if (_enrollPlan.price > 0) {
+    if (isExistingUser) {
+      successMsg.textContent = 'Your enrollment has been submitted! A password setup link has been sent to your email. Check your inbox, set your password, then log in.';
+      creds.style.display = 'none';
+    } else if (_enrollPlan.price > 0) {
       successMsg.textContent = 'Your school has been registered! We\'ll contact you shortly to complete payment and activate your account.';
       creds.style.display = 'none';
     } else {
