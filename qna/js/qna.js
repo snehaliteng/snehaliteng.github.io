@@ -1,8 +1,4 @@
-const sb = supabase.createClient(
-  'https://vgipghqejzbcoighktij.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo'
-);
-
+let sb = null;
 let currentUser = null;
 let currentView = 'dashboard';
 let catCache = [];
@@ -142,6 +138,7 @@ async function purchasePlan(planId) {
 
 // Auth
 async function checkAuth() {
+  document.getElementById('load-overlay').classList.add('hidden');
   const { data: { user } } = await sb.auth.getUser();
   if (user) {
     currentUser = user;
@@ -1087,4 +1084,10 @@ document.addEventListener('click', function(e) {
 });
 
 // Init
-checkAuth();
+function initQNA() {
+  sb = supabase.createClient(
+    'https://vgipghqejzbcoighktij.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo'
+  );
+  checkAuth();
+}

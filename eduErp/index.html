@@ -14,8 +14,8 @@
 <div id="login-page" class="login-page">
   <div class="login-card">
     <h1>EduERP</h1>
-    <p>Education ERP System — Sign in to your account</p>
-    <form onsubmit="event.preventDefault(); handleLogin()">
+    <p id="login-desc">Education ERP System — Sign in to your account</p>
+    <form id="login-form" onsubmit="event.preventDefault(); handleLogin()">
       <div class="form-group">
         <label for="login-email">Email</label>
         <input id="login-email" type="email" placeholder="you@school.edu" required>
@@ -26,7 +26,19 @@
       </div>
       <div id="login-error" style="display:none;color:var(--danger);font-size:.85rem;margin-bottom:12px;"></div>
       <button type="submit" class="btn btn-primary" style="width:100%">Sign In</button>
+      <p style="margin-top:10px;text-align:center;font-size:.8rem"><a href="#" onclick="showResetForm();return false" style="color:var(--primary)">Forgot password?</a></p>
     </form>
+    <!-- Password Reset Form (hidden, shown on recovery) -->
+    <div id="reset-form" style="display:none">
+      <p style="font-size:.9rem;color:var(--gray-600);margin-bottom:16px">Enter your new password below.</p>
+      <div class="form-group">
+        <label for="reset-password">New Password</label>
+        <input id="reset-password" type="password" placeholder="Min 6 characters" minlength="6" required>
+      </div>
+      <div id="reset-error" style="display:none;color:var(--danger);font-size:.85rem;margin-bottom:12px;"></div>
+      <button type="button" class="btn btn-primary" style="width:100%" onclick="handleResetPassword()">Set New Password</button>
+      <p style="margin-top:10px;text-align:center;font-size:.8rem"><a href="#" onclick="showLoginForm();return false" style="color:var(--gray-500)">← Back to Sign In</a></p>
+    </div>
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200);font-size:.8rem;color:var(--gray-500);text-align:center;">
       <strong>Demo Accounts:</strong> (all use password <code>Demo@123</code>)<br>
       <small>📋 Admin: <code>demo@edu-erp.com</code></small><br>
@@ -105,6 +117,36 @@ function handleLogin() {
     errorEl.textContent = err.message || 'Login failed. Please check your credentials.';
     errorEl.style.display = 'block';
   });
+}
+
+function showResetForm() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('login-desc').style.display = 'none';
+  document.getElementById('reset-form').style.display = 'block';
+}
+
+function showLoginForm() {
+  document.getElementById('login-form').style.display = '';
+  document.getElementById('login-desc').style.display = '';
+  document.getElementById('reset-form').style.display = 'none';
+  document.getElementById('reset-error').style.display = 'none';
+}
+
+async function handleResetPassword() {
+  const pwd = document.getElementById('reset-password').value;
+  const errEl = document.getElementById('reset-error');
+  errEl.style.display = 'none';
+  if (pwd.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+  try {
+    const { error } = await erp.auth.updateUser({ password: pwd });
+    if (error) throw error;
+    alert('Password set successfully! You can now sign in.');
+    showLoginForm();
+    el('login-password').value = '';
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
 }
 </script>
 </body>

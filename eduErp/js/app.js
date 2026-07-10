@@ -106,6 +106,15 @@ const NAV = {
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Listen for password recovery flow (user clicked reset link from email)
+  erp.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      showLogin();
+      document.getElementById('login-form').style.display = 'none';
+      document.getElementById('login-desc').style.display = 'none';
+      document.getElementById('reset-form').style.display = 'block';
+    }
+  });
   await checkAuth();
   setupMobileToggle();
 });
@@ -952,11 +961,14 @@ async function renderEnrollments() {
   }
   html += `</tbody></table></div></div></div>`;
   if (others.length) {
-    html += `<div class="card mt-3"><div class="card-header"><h3>All Enrollments</h3></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>School</th><th>Email</th><th>Plan</th><th>Status</th><th>Payment</th><th>Date</th></tr></thead><tbody>`;
+    html += `<div class="card mt-3"><div class="card-header"><h3>All Enrollments</h3></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>School</th><th>Email</th><th>Plan</th><th>Status</th><th>Payment</th><th>Date</th><th></th></tr></thead><tbody>`;
     others.forEach(o => {
       const pay = o.payments?.[0];
       const payInfo = pay ? `<span class="badge badge-${pay.status === 'completed' ? 'success' : 'warning'}">${pay.status || 'pending'} ₹${pay.amount}</span>` : '-';
       const statusBadge = o.status === 'active' ? 'success' : o.status === 'rejected' ? 'danger' : 'warning';
+      const actions = o.status === 'active'
+        ? `<button class="btn btn-sm btn-outline" onclick="resendEnrollmentLink(${o.id})">Resend Link</button> <button class="btn btn-sm btn-danger ms-1" onclick="unenrollOrganization(${o.id})">Unenroll</button>`
+        : '';
       html += `<tr>
         <td><strong>${o.name}</strong></td>
         <td>${o.email || '-'}</td>
@@ -964,6 +976,7 @@ async function renderEnrollments() {
         <td><span class="badge badge-${statusBadge}">${o.status}</span></td>
         <td>${payInfo}</td>
         <td style="font-size:.8rem">${new Date(o.created_at).toLocaleDateString()}</td>
+        <td>${actions}</td>
       </tr>`;
     });
     html += `</tbody></table></div></div></div>`;
@@ -974,11 +987,19 @@ async function renderEnrollments() {
 async function approveEnrollment(id) {
   if (!confirm('Approve this enrollment? Payment will be marked as completed and the school will be activated.')) return;
   try {
+    // Get org details for sending email
+    const { data: org } = await erp.from('organizations').select('*').eq('id', id).single();
+    if (!org) throw new Error('Organization not found');
     await erp.from('organizations').update({ status: 'active' }).eq('id', id);
     // Update payment status to completed
     const { data: pay } = await erp.from('payments').select('id').eq('org_id', id).maybeSingle();
     if (pay) await erp.from('payments').update({ status: 'completed', paid_date: new Date().toISOString() }).eq('id', pay.id);
-    showToast('Enrollment approved! School is now active.', 'success');
+    // Send password setup email to the school admin
+    const { error: mailErr } = await erp.auth.resetPasswordForEmail(org.email, {
+      redirectTo: window.location.origin + '/eduErp/index.html'
+    });
+    if (mailErr) console.error('Failed to send setup email:', mailErr.message);
+    else showToast('Approved! Setup email sent to ' + org.email, 'success');
     navigate('enrollments');
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
@@ -990,6 +1011,32 @@ async function rejectEnrollment(id) {
   try {
     await erp.from('organizations').update({ status: 'rejected' }).eq('id', id);
     showToast('Enrollment rejected.', 'info');
+    navigate('enrollments');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function resendEnrollmentLink(id) {
+  if (!confirm('Resend password setup email to the school admin?')) return;
+  try {
+    const { data: org, error } = await erp.from('organizations').select('email').eq('id', id).single();
+    if (error || !org) throw new Error('Organization not found');
+    const { error: mailErr } = await erp.auth.resetPasswordForEmail(org.email, {
+      redirectTo: window.location.origin + '/eduErp/index.html'
+    });
+    if (mailErr) throw new Error(mailErr.message);
+    showToast('Setup email resent to ' + org.email, 'success');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function unenrollOrganization(id) {
+  if (!confirm('Unenroll this school? The organization will be deactivated. This can be reversed.')) return;
+  try {
+    await erp.from('organizations').update({ status: 'unenrolled' }).eq('id', id);
+    showToast('School has been unenrolled.', 'info');
     navigate('enrollments');
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
