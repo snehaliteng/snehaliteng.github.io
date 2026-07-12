@@ -445,9 +445,8 @@ async function loadDailySchedule() {
     html += allTasks.map(function(t) {
       var isCurrent = !t.is_completed && nowTime >= t.start_time && nowTime < t.end_time;
       return '<div class="task-item' + (isCurrent ? ' current-task' : '') + '" ' +
-        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '" ' +
-        'ondragover="dailyTaskDragOver(event)" ondrop="dailyTaskDrop(event)" ondragend="dailyTaskDragEnd(event)">' +
-        '<span class="drag-handle" draggable="true" ondragstart="dailyTaskDragStart(event)">&#x2630;</span>' +
+        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '">' +
+        '<span class="drag-handle" draggable="true">&#x2630;</span>' +
         '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
         '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
         '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
@@ -1226,9 +1225,8 @@ async function loadPermanentTasks() {
     const indent = depth * 24;
     const isExpanded = expandedPermTaskIds.has(t.id);
     return '<div class="card perm-task-card" style="margin-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
-      '<div class="task-item" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '" ' +
-      'ondragover="permTaskDragOver(event)" ondrop="permTaskDrop(event)" ondragend="permTaskDragEnd(event)">' +
-      '<span class="drag-handle" draggable="true" ondragstart="permTaskDragStart(event)">&#x2630;</span>' +
+      '<div class="task-item" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '">' +
+      '<span class="drag-handle" draggable="true">&#x2630;</span>' +
       (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-select" onchange="togglePermSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
       '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadPermanentTasks)">' +
@@ -1267,85 +1265,97 @@ function togglePermChildren(taskId) {
   }
 }
 
-function permTaskDragStart(e) {
-  var item = e.currentTarget.closest('.task-item');
-  e.dataTransfer.setData('text/plain', JSON.stringify({
-    id: parseInt(item.dataset.id),
-    parent: item.dataset.parent
-  }));
-  item.closest('.perm-task-card').classList.add('dragging');
-}
+// ======= Drag & Drop Reorder (Event Delegation) =======
 
-function permTaskDragOver(e) {
-  e.preventDefault();
-  e.currentTarget.closest('.perm-task-card').classList.add('drag-over');
-}
+(function() {
+  var c = document.getElementById('daily-tasks');
+  if (!c) return;
+  c.addEventListener('dragstart', function(e) {
+    var h = e.target.closest('.drag-handle');
+    if (!h) { e.preventDefault(); return; }
+    var item = h.closest('.task-item');
+    if (!item) { e.preventDefault(); return; }
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ id: parseInt(item.dataset.id), schedule: parseInt(item.dataset.schedule) }));
+    item.classList.add('dragging');
+  });
+  c.addEventListener('dragover', function(e) {
+    var item = e.target.closest('.task-item');
+    if (!item) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    item.classList.add('drag-over');
+  });
+  c.addEventListener('drop', async function(e) {
+    var targetEl = e.target.closest('.task-item');
+    if (!targetEl) return;
+    e.preventDefault();
+    targetEl.classList.remove('drag-over');
+    var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    var draggedId = data.id;
+    var items = Array.from(c.querySelectorAll('.task-item'));
+    var draggedIdx = items.findIndex(function(el) { return parseInt(el.dataset.id) === draggedId; });
+    var targetIdx = items.indexOf(targetEl);
+    if (draggedIdx === -1 || draggedIdx === targetIdx) return;
+    if (draggedIdx < targetIdx) targetEl.parentNode.insertBefore(items[draggedIdx], targetEl.nextSibling);
+    else targetEl.parentNode.insertBefore(items[draggedIdx], targetEl);
+    items = Array.from(c.querySelectorAll('.task-item'));
+    var updates = items.map(function(el, idx) {
+      return sb.from('todo_task_instances').update({ order_index: idx }).eq('id', parseInt(el.dataset.id));
+    });
+    await Promise.all(updates);
+  });
+  c.addEventListener('dragend', function(e) {
+    c.querySelectorAll('.task-item').forEach(function(el) { el.classList.remove('dragging', 'drag-over'); });
+  });
+})();
 
-function permTaskDragEnd(e) {
-  document.querySelectorAll('.perm-task-card').forEach(function(el) {
-    el.classList.remove('dragging', 'drag-over');
+(function() {
+  var c = document.getElementById('permanent-task-list');
+  if (!c) return;
+  c.addEventListener('dragstart', function(e) {
+    var h = e.target.closest('.drag-handle');
+    if (!h) { e.preventDefault(); return; }
+    var item = h.closest('.task-item');
+    if (!item) { e.preventDefault(); return; }
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ id: parseInt(item.dataset.id), parent: item.dataset.parent }));
+    item.closest('.perm-task-card').classList.add('dragging');
   });
-}
-
-async function permTaskDrop(e) {
-  e.preventDefault();
-  var handle = e.currentTarget;
-  var targetCard = handle.closest('.perm-task-card');
-  targetCard.classList.remove('drag-over');
-  var data = JSON.parse(e.dataTransfer.getData('text/plain'));
-  var draggedId = data.id;
-  var draggedParent = data.parent;
-  var targetItem = targetCard.querySelector('.task-item');
-  var targetId = parseInt(targetItem.dataset.id);
-  var targetParent = targetItem.dataset.parent;
-  if (draggedId === targetId || draggedParent !== targetParent) return;
-  var items = Array.from(document.querySelectorAll('.perm-task-card')).filter(function(el) {
-    return el.querySelector('.task-item').dataset.parent === draggedParent;
+  c.addEventListener('dragover', function(e) {
+    var item = e.target.closest('.task-item');
+    if (!item) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    item.closest('.perm-task-card').classList.add('drag-over');
   });
-  if (items.length < 2) return;
-  var newOrder = items.map(function(el) { return parseInt(el.querySelector('.task-item').dataset.id); });
-  var updates = newOrder.map(function(id, idx) {
-    return sb.from('todo_permanent_tasks').update({ order_index: idx }).eq('id', id);
+  c.addEventListener('drop', async function(e) {
+    var targetItem = e.target.closest('.task-item');
+    if (!targetItem) return;
+    e.preventDefault();
+    var targetCard = targetItem.closest('.perm-task-card');
+    targetCard.classList.remove('drag-over');
+    var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    var draggedId = data.id;
+    var draggedParent = data.parent;
+    var targetId = parseInt(targetItem.dataset.id);
+    var targetParent = targetItem.dataset.parent;
+    if (draggedId === targetId || draggedParent !== targetParent) return;
+    var cards = Array.from(c.querySelectorAll('.perm-task-card')).filter(function(el) {
+      return el.querySelector('.task-item').dataset.parent === draggedParent;
+    });
+    if (cards.length < 2) return;
+    var newOrder = cards.map(function(el) { return parseInt(el.querySelector('.task-item').dataset.id); });
+    var updates = newOrder.map(function(id, idx) {
+      return sb.from('todo_permanent_tasks').update({ order_index: idx }).eq('id', id);
+    });
+    await Promise.all(updates);
+    loadPermanentTasks();
   });
-  await Promise.all(updates);
-  loadPermanentTasks();
-}
-
-// Daily task drag reorder
-function dailyTaskDragStart(e) {
-  var item = e.currentTarget.closest('.task-item');
-  e.dataTransfer.setData('text/plain', JSON.stringify({
-    id: parseInt(item.dataset.id),
-    schedule: parseInt(item.dataset.schedule)
-  }));
-  item.classList.add('dragging');
-}
-function dailyTaskDragOver(e) {
-  e.preventDefault();
-  e.currentTarget.closest('.task-item').classList.add('drag-over');
-}
-function dailyTaskDragEnd(e) {
-  document.querySelectorAll('#daily-tasks .task-item').forEach(function(el) { el.classList.remove('dragging', 'drag-over'); });
-}
-async function dailyTaskDrop(e) {
-  e.preventDefault();
-  var handle = e.currentTarget;
-  var targetEl = handle.closest('.task-item');
-  targetEl.classList.remove('drag-over');
-  var data = JSON.parse(e.dataTransfer.getData('text/plain'));
-  var draggedId = data.id;
-  var items = Array.from(document.querySelectorAll('#daily-tasks .task-item'));
-  var draggedIdx = items.findIndex(function(el) { return parseInt(el.dataset.id) === draggedId; });
-  var targetIdx = items.indexOf(targetEl);
-  if (draggedIdx === -1 || draggedIdx === targetIdx) return;
-  if (draggedIdx < targetIdx) targetEl.parentNode.insertBefore(items[draggedIdx], targetEl.nextSibling);
-  else targetEl.parentNode.insertBefore(items[draggedIdx], targetEl);
-  items = Array.from(document.querySelectorAll('#daily-tasks .task-item'));
-  var updates = items.map(function(el, idx) {
-    return sb.from('todo_task_instances').update({ order_index: idx }).eq('id', parseInt(el.dataset.id));
+  c.addEventListener('dragend', function(e) {
+    c.querySelectorAll('.perm-task-card').forEach(function(el) { el.classList.remove('dragging', 'drag-over'); });
   });
-  await Promise.all(updates);
-}
+})();
 
 function togglePermSelect(taskId, checked) {
   if (checked) selectedPermTaskIds.add(taskId);
