@@ -445,9 +445,9 @@ async function loadDailySchedule() {
     html += allTasks.map(function(t) {
       var isCurrent = !t.is_completed && nowTime >= t.start_time && nowTime < t.end_time;
       return '<div class="task-item' + (isCurrent ? ' current-task' : '') + '" ' +
-        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '">' +
-        '<span class="drag-handle" draggable="true" ' +
-        'ondragstart="dailyTaskDragStart(event)" ondragover="dailyTaskDragOver(event)" ondrop="dailyTaskDrop(event)" ondragend="dailyTaskDragEnd(event)">&#x2630;</span>' +
+        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '" ' +
+        'ondragover="dailyTaskDragOver(event)" ondrop="dailyTaskDrop(event)" ondragend="dailyTaskDragEnd(event)">' +
+        '<span class="drag-handle" draggable="true" ondragstart="dailyTaskDragStart(event)">&#x2630;</span>' +
         '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
         '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
         '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
@@ -1226,9 +1226,9 @@ async function loadPermanentTasks() {
     const indent = depth * 24;
     const isExpanded = expandedPermTaskIds.has(t.id);
     return '<div class="card perm-task-card" style="margin-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
-      '<div class="task-item" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '">' +
-      '<span class="drag-handle" draggable="true" ' +
-      'ondragstart="permTaskDragStart(event)" ondragover="permTaskDragOver(event)" ondrop="permTaskDrop(event)" ondragend="permTaskDragEnd(event)">&#x2630;</span>' +
+      '<div class="task-item" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '" ' +
+      'ondragover="permTaskDragOver(event)" ondrop="permTaskDrop(event)" ondragend="permTaskDragEnd(event)">' +
+      '<span class="drag-handle" draggable="true" ondragstart="permTaskDragStart(event)">&#x2630;</span>' +
       (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-select" onchange="togglePermSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
       '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadPermanentTasks)">' +
