@@ -445,8 +445,8 @@ async function loadDailySchedule() {
     html += allTasks.map(function(t) {
       var isCurrent = !t.is_completed && nowTime >= t.start_time && nowTime < t.end_time;
       return '<div class="task-item' + (isCurrent ? ' current-task' : '') + '" ' +
-        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '">' +
-        '<span class="drag-handle" draggable="true">&#x2630;</span>' +
+        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '" draggable="true">' +
+        '<span class="drag-handle">&#x2630;</span>' +
         '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
         '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
         '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
@@ -1225,8 +1225,8 @@ async function loadPermanentTasks() {
     const indent = depth * 24;
     const isExpanded = expandedPermTaskIds.has(t.id);
     return '<div class="card perm-task-card" style="margin-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
-      '<div class="task-item" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '">' +
-      '<span class="drag-handle" draggable="true">&#x2630;</span>' +
+      '<div class="task-item" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '" draggable="true">' +
+      '<span class="drag-handle">&#x2630;</span>' +
       (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-select" onchange="togglePermSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
       '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadPermanentTasks)">' +
@@ -1265,19 +1265,29 @@ function togglePermChildren(taskId) {
   }
 }
 
-// ======= Drag & Drop Reorder (Event Delegation) =======
+var dragFromHandle = false;
+document.addEventListener('mousedown', function(e) {
+  dragFromHandle = !!e.target.closest('.drag-handle');
+});
 
+// Daily tasks — event delegation on #daily-tasks
 (function() {
   var c = document.getElementById('daily-tasks');
   if (!c) return;
   c.addEventListener('dragstart', function(e) {
-    var h = e.target.closest('.drag-handle');
-    if (!h) { e.preventDefault(); return; }
-    var item = h.closest('.task-item');
+    if (!dragFromHandle) { e.preventDefault(); return; }
+    dragFromHandle = false;
+    var item = e.target.closest('.task-item');
     if (!item) { e.preventDefault(); return; }
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', JSON.stringify({ id: parseInt(item.dataset.id), schedule: parseInt(item.dataset.schedule) }));
     item.classList.add('dragging');
+  });
+  c.addEventListener('dragenter', function(e) {
+    var item = e.target.closest('.task-item');
+    if (!item) return;
+    e.preventDefault();
+    item.classList.add('drag-over');
   });
   c.addEventListener('dragover', function(e) {
     var item = e.target.closest('.task-item');
@@ -1314,13 +1324,19 @@ function togglePermChildren(taskId) {
   var c = document.getElementById('permanent-task-list');
   if (!c) return;
   c.addEventListener('dragstart', function(e) {
-    var h = e.target.closest('.drag-handle');
-    if (!h) { e.preventDefault(); return; }
-    var item = h.closest('.task-item');
+    if (!dragFromHandle) { e.preventDefault(); return; }
+    dragFromHandle = false;
+    var item = e.target.closest('.task-item');
     if (!item) { e.preventDefault(); return; }
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', JSON.stringify({ id: parseInt(item.dataset.id), parent: item.dataset.parent }));
     item.closest('.perm-task-card').classList.add('dragging');
+  });
+  c.addEventListener('dragenter', function(e) {
+    var item = e.target.closest('.task-item');
+    if (!item) return;
+    e.preventDefault();
+    item.closest('.perm-task-card').classList.add('drag-over');
   });
   c.addEventListener('dragover', function(e) {
     var item = e.target.closest('.task-item');
