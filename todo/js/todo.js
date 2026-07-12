@@ -444,10 +444,10 @@ async function loadDailySchedule() {
     var nowTime = new Date().toTimeString().substring(0, 5);
     html += allTasks.map(function(t) {
       var isCurrent = !t.is_completed && nowTime >= t.start_time && nowTime < t.end_time;
-      return '<div class="task-item' + (isCurrent ? ' current-task' : '') + '" draggable="true" ' +
-        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '" ' +
-        'ondragstart="dailyTaskDragStart(event)" ondragover="dailyTaskDragOver(event)" ondrop="dailyTaskDrop(event)" ondragend="dailyTaskDragEnd(event)">' +
-        '<span class="drag-handle">&#x2630;</span>' +
+      return '<div class="task-item' + (isCurrent ? ' current-task' : '') + '" ' +
+        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '">' +
+        '<span class="drag-handle" draggable="true" ' +
+        'ondragstart="dailyTaskDragStart(event)" ondragover="dailyTaskDragOver(event)" ondrop="dailyTaskDrop(event)" ondragend="dailyTaskDragEnd(event)">&#x2630;</span>' +
         '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
         '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
         '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
@@ -1226,9 +1226,9 @@ async function loadPermanentTasks() {
     const indent = depth * 24;
     const isExpanded = expandedPermTaskIds.has(t.id);
     return '<div class="card perm-task-card" style="margin-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
-      '<div class="task-item" draggable="true" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '" ' +
-      'ondragstart="permTaskDragStart(event)" ondragover="permTaskDragOver(event)" ondrop="permTaskDrop(event)" ondragend="permTaskDragEnd(event)">' +
-      '<span class="drag-handle">&#x2630;</span>' +
+      '<div class="task-item" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '">' +
+      '<span class="drag-handle" draggable="true" ' +
+      'ondragstart="permTaskDragStart(event)" ondragover="permTaskDragOver(event)" ondrop="permTaskDrop(event)" ondragend="permTaskDragEnd(event)">&#x2630;</span>' +
       (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-select" onchange="togglePermSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
       '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadPermanentTasks)">' +
@@ -1268,12 +1268,12 @@ function togglePermChildren(taskId) {
 }
 
 function permTaskDragStart(e) {
-  if (!e.target.closest('.drag-handle')) { e.preventDefault(); return; }
+  var item = e.currentTarget.closest('.task-item');
   e.dataTransfer.setData('text/plain', JSON.stringify({
-    id: parseInt(e.currentTarget.dataset.id),
-    parent: e.currentTarget.dataset.parent
+    id: parseInt(item.dataset.id),
+    parent: item.dataset.parent
   }));
-  e.currentTarget.closest('.perm-task-card').classList.add('dragging');
+  item.closest('.perm-task-card').classList.add('dragging');
 }
 
 function permTaskDragOver(e) {
@@ -1289,21 +1289,22 @@ function permTaskDragEnd(e) {
 
 async function permTaskDrop(e) {
   e.preventDefault();
-  const targetCard = e.currentTarget.closest('.perm-task-card');
+  var handle = e.currentTarget;
+  var targetCard = handle.closest('.perm-task-card');
   targetCard.classList.remove('drag-over');
-  const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-  const draggedId = data.id;
-  const draggedParent = data.parent;
-  const targetId = parseInt(targetCard.querySelector('.task-item').dataset.id);
-  const targetParent = targetCard.querySelector('.task-item').dataset.parent;
+  var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+  var draggedId = data.id;
+  var draggedParent = data.parent;
+  var targetItem = targetCard.querySelector('.task-item');
+  var targetId = parseInt(targetItem.dataset.id);
+  var targetParent = targetItem.dataset.parent;
   if (draggedId === targetId || draggedParent !== targetParent) return;
-  const items = Array.from(document.querySelectorAll('.perm-task-card')).filter(function(el) {
+  var items = Array.from(document.querySelectorAll('.perm-task-card')).filter(function(el) {
     return el.querySelector('.task-item').dataset.parent === draggedParent;
   });
   if (items.length < 2) return;
-  const newOrder = items.map(function(el) { return parseInt(el.querySelector('.task-item').dataset.id); });
-  if (newOrder.length < 2) return;
-  const updates = newOrder.map(function(id, idx) {
+  var newOrder = items.map(function(el) { return parseInt(el.querySelector('.task-item').dataset.id); });
+  var updates = newOrder.map(function(id, idx) {
     return sb.from('todo_permanent_tasks').update({ order_index: idx }).eq('id', id);
   });
   await Promise.all(updates);
@@ -1312,28 +1313,28 @@ async function permTaskDrop(e) {
 
 // Daily task drag reorder
 function dailyTaskDragStart(e) {
-  if (!e.target.closest('.drag-handle')) { e.preventDefault(); return; }
+  var item = e.currentTarget.closest('.task-item');
   e.dataTransfer.setData('text/plain', JSON.stringify({
-    id: parseInt(e.currentTarget.dataset.id),
-    schedule: parseInt(e.currentTarget.dataset.schedule)
+    id: parseInt(item.dataset.id),
+    schedule: parseInt(item.dataset.schedule)
   }));
-  e.currentTarget.classList.add('dragging');
+  item.classList.add('dragging');
 }
 function dailyTaskDragOver(e) {
   e.preventDefault();
-  e.currentTarget.classList.add('drag-over');
+  e.currentTarget.closest('.task-item').classList.add('drag-over');
 }
 function dailyTaskDragEnd(e) {
   document.querySelectorAll('#daily-tasks .task-item').forEach(function(el) { el.classList.remove('dragging', 'drag-over'); });
 }
 async function dailyTaskDrop(e) {
   e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
+  var handle = e.currentTarget;
+  var targetEl = handle.closest('.task-item');
+  targetEl.classList.remove('drag-over');
   var data = JSON.parse(e.dataTransfer.getData('text/plain'));
   var draggedId = data.id;
-  var scheduleId = data.schedule;
   var items = Array.from(document.querySelectorAll('#daily-tasks .task-item'));
-  var targetEl = e.currentTarget;
   var draggedIdx = items.findIndex(function(el) { return parseInt(el.dataset.id) === draggedId; });
   var targetIdx = items.indexOf(targetEl);
   if (draggedIdx === -1 || draggedIdx === targetIdx) return;
