@@ -185,3 +185,202 @@ SELECT * FROM (VALUES
   (1, 'Result Day', 'Declaration of annual examination results', '2027-03-30'::date, 'deadline', (SELECT id FROM profiles WHERE email = 'demo@edu-erp.com' LIMIT 1))
 ) AS v
 WHERE NOT EXISTS (SELECT 1 FROM events WHERE org_id = 1 LIMIT 1);
+
+-- ============ CLASS SCHEDULES (Class 6A) ============
+-- Periods: 1(09:00-09:45), 2(09:45-10:30), 3(10:30-11:15), 4(11:30-12:15), 5(12:15-13:00), 6(13:45-14:30)
+INSERT INTO class_schedules (org_id, class_id, subject_id, teacher_id, day_of_week, period_number, start_time, end_time, academic_year)
+SELECT * FROM (VALUES
+  -- Monday
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 1, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 1, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 1, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 1, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 1, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 1, 6, '13:45'::time, '14:30'::time, '2026-27'),
+  -- Tuesday
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 2, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 2, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 2, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 2, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 2, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 2, 6, '13:45'::time, '14:30'::time, '2026-27'),
+  -- Wednesday
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 3, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 3, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 3, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 3, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 3, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 3, 6, '13:45'::time, '14:30'::time, '2026-27'),
+  -- Thursday
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 4, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 4, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 4, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 4, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 4, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 4, 6, '13:45'::time, '14:30'::time, '2026-27'),
+  -- Friday
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 5, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 5, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 5, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 5, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 5, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 5, 6, '13:45'::time, '14:30'::time, '2026-27'),
+  -- Saturday
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 6, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 6, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 6, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 6, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-003' LIMIT 1), 6, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 6' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG06' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 6, 6, '13:45'::time, '14:30'::time, '2026-27')
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM class_schedules WHERE org_id = 1 LIMIT 1);
+
+-- ============ CLASS SCHEDULES (Class 7A) ============
+-- 7A subjects: Math(001), Eng(002), Sci(006). Periods carefully chosen to avoid overlapping
+-- with 6A (same teachers 001 & 002 teach both classes).
+-- 6A schedule for reference: Mon(P1-001,P2-002,P3-003,P4-001,P5-002,P6-003), Tue(P1-002,P2-003,P3-001,P4-003,P5-001,P6-002),
+-- Wed(P1-003,P2-001,P3-002,P4-001,P5-002,P6-003), Thu(P1-001,P2-003,P3-002,P4-003,P5-001,P6-002),
+-- Fri(P1-002,P2-001,P3-003,P4-002,P5-003,P6-001), Sat(P1-001,P2-002,P3-003,P4-001,P5-003,P6-002)
+INSERT INTO class_schedules (org_id, class_id, subject_id, teacher_id, day_of_week, period_number, start_time, end_time, academic_year)
+SELECT * FROM (VALUES
+  -- Monday: P1-Sci(006), P3-Math(001), P6-Eng(002)  [001 free@P3, 002 free@P6]
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-006' LIMIT 1), 1, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 1, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 1, 6, '13:45'::time, '14:30'::time, '2026-27'),
+  -- Tuesday: P1-Math(001), P3-Eng(002), P5-Sci(006)  [001 free@P1, 002 free@P3]
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 2, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 2, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-006' LIMIT 1), 2, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  -- Wednesday: P1-Eng(002), P3-Sci(006), P5-Math(001)  [002 free@P1, 001 free@P5]
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 3, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-006' LIMIT 1), 3, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 3, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  -- Thursday: P1-Sci(006), P3-Math(001), P4-Eng(002)  [001 free@P3, 002 free@P4]
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-006' LIMIT 1), 4, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 4, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 4, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  -- Friday: P1-Math(001), P3-Eng(002), P5-Sci(006)  [001 free@P1, 002 free@P3]
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 5, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 5, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-006' LIMIT 1), 5, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  -- Saturday: P1-Eng(002), P3-Sci(006), P5-Math(001)  [002 free@P1, 001 free@P5]
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 6, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='SCI07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-006' LIMIT 1), 6, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH07' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 6, 5, '12:15'::time, '13:00'::time, '2026-27')
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM class_schedules WHERE org_id = 1 AND class_id = (SELECT id FROM classes WHERE name='Class 7' AND section='A' LIMIT 1) LIMIT 1);
+
+-- ============ CLASS SCHEDULES (Class 8A) ============
+-- 8A has Math(001) and Eng(002) only → 2 periods/day. Periods chosen to avoid overlap with both 6A AND 7A.
+INSERT INTO class_schedules (org_id, class_id, subject_id, teacher_id, day_of_week, period_number, start_time, end_time, academic_year)
+SELECT * FROM (VALUES
+  -- Monday: P2-Math(001), P4-Eng(002) [6A 001@P1,P4, 002@P2,P5; 7A 001@P3, 002@P6 → 001 free@P2, 002 free@P4]
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 1, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 1, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  -- Tuesday: P2-Eng(002), P4-Math(001) [6A 002@P1, 001@P3,P5; 7A 001@P1, 002@P3 → 001 free@P2,P4,P6; 002 free@P2,P4,P5]
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 2, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 2, 4, '11:30'::time, '12:15'::time, '2026-27'),
+  -- Wednesday: P3-Math(001), P6-Eng(002) [6A 001@P2,P4; 7A 001@P5, 002@P1 → 001 free@P3,P6; 002 free@P2,P4,P6]
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 3, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 3, 6, '13:45'::time, '14:30'::time, '2026-27'),
+  -- Thursday: P1-Eng(002), P2-Math(001) [6A 001@P1,P5, 002@P3,P6; 7A 001@P3, 002@P4 → 001 free@P2,P4,P6; 002 free@P1,P2,P5]
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 4, 1, '09:00'::time, '09:45'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 4, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  -- Friday: P3-Math(001), P5-Eng(002) [6A 001@P2,P6, 002@P1,P4; 7A 001@P1, 002@P3 → 001 free@P3,P4,P5; 002 free@P2,P5,P6]
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 5, 3, '10:30'::time, '11:15'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 5, 5, '12:15'::time, '13:00'::time, '2026-27'),
+  -- Saturday: P2-Math(001), P4-Eng(002) [6A 001@P1,P4, 002@P2,P6; 7A 001@P5, 002@P1 → 001 free@P2,P3,P6; 002 free@P3,P4,P5]
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='MTH08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-001' LIMIT 1), 6, 2, '09:45'::time, '10:30'::time, '2026-27'),
+  (1, (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1), (SELECT id FROM subjects WHERE code='ENG08' LIMIT 1), (SELECT id FROM teachers WHERE employee_id='TCH-002' LIMIT 1), 6, 4, '11:30'::time, '12:15'::time, '2026-27')
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM class_schedules WHERE org_id = 1 AND class_id = (SELECT id FROM classes WHERE name='Class 8' AND section='A' LIMIT 1) LIMIT 1);
+
+-- ============ LIBRARY BOOKS ============
+INSERT INTO library_books (org_id, title, author, isbn, publisher, published_year, category, total_copies, available_copies, shelf_location, description)
+SELECT * FROM (VALUES
+  (1, 'Mathematics for Class 6', 'R.S. Aggarwal', '978-817709-001-1', 'S. Chand', 2023, 'Textbook', 10, 10, 'A-01', 'NCERT-aligned mathematics textbook for Class 6'),
+  (1, 'Science for Class 6', 'Lakhmir Singh', '978-817709-002-8', 'S. Chand', 2023, 'Textbook', 10, 10, 'A-02', 'NCERT-aligned science textbook for Class 6'),
+  (1, 'English Grammar in Use', 'Raymond Murphy', '978-110753-001-5', 'Cambridge', 2020, 'Reference', 5, 5, 'B-01', 'Essential English grammar reference'),
+  (1, 'The Discovery of India', 'Jawaharlal Nehru', '978-014303-002-0', 'Penguin', 2010, 'History', 3, 3, 'C-01', 'Classic historical work on Indian heritage'),
+  (1, 'Wings of Fire', 'Dr. APJ Abdul Kalam', '978-817371-001-2', 'Universities Press', 2015, 'Biography', 5, 5, 'C-02', 'Autobiography of former President of India'),
+  (1, 'Harry Potter and the Philosophers Stone', 'J.K. Rowling', '978-140885-001-3', 'Bloomsbury', 2014, 'Fiction', 8, 8, 'D-01', 'Popular fantasy novel for young readers'),
+  (1, 'The Adventures of Tom Sawyer', 'Mark Twain', '978-014062-001-0', 'Penguin', 2008, 'Fiction', 4, 4, 'D-02', 'Classic American childrens literature'),
+  (1, 'Concise Physics for Class 7', 'R.P. Rishi', '978-817709-004-2', 'S. Chand', 2023, 'Textbook', 8, 8, 'A-03', 'Physics textbook for Class 7 students'),
+  (1, 'Chemistry for Class 8', 'Dr. S.P. Jauhar', '978-817709-005-9', 'S. Chand', 2023, 'Textbook', 8, 8, 'A-04', 'Chemistry textbook for Class 8 students'),
+  (1, 'Panchatantra Stories', 'Vishnu Sharma', '978-014045-001-7', 'Penguin', 2005, 'Fiction', 6, 6, 'D-03', 'Collection of ancient Indian fables'),
+  (1, 'A Brief History of Time', 'Stephen Hawking', '978-055338-002-0', 'Bantam', 2011, 'Science', 2, 2, 'B-02', 'Groundbreaking book on cosmology'),
+  (1, 'Computer Science with Python', 'Sumita Arora', '978-817709-007-3', 'S. Chand', 2024, 'Textbook', 6, 6, 'A-05', 'Python programming for Class 9-10 students')
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM library_books WHERE org_id = 1 LIMIT 1);
+
+-- ============ LIBRARY MEMBERS (from existing students) ============
+INSERT INTO library_members (org_id, student_id, member_id, first_name, last_name, email, membership_type, status)
+SELECT * FROM (VALUES
+  (1, (SELECT id FROM students WHERE roll_number = 'STU-001' LIMIT 1), 'LM-000001', 'Arjun', 'Sharma', 'arjun.s@demoschool.edu', 'student', 'active'),
+  (1, (SELECT id FROM students WHERE roll_number = 'STU-002' LIMIT 1), 'LM-000002', 'Divya', 'Patel', 'divya.p@demoschool.edu', 'student', 'active'),
+  (1, (SELECT id FROM students WHERE roll_number = 'STU-004' LIMIT 1), 'LM-000004', 'Sneha', 'Reddy', 'sneha.r@demoschool.edu', 'student', 'active'),
+  (1, (SELECT id FROM students WHERE roll_number = 'STU-006' LIMIT 1), 'LM-000006', 'Priya', 'Joshi', 'priya.j@demoschool.edu', 'student', 'active'),
+  (1, (SELECT id FROM students WHERE roll_number = 'STU-008' LIMIT 1), 'LM-000008', 'Isha', 'Nair', 'isha.n@demoschool.edu', 'student', 'active'),
+  (1, (SELECT id FROM students WHERE roll_number = 'STU-010' LIMIT 1), 'LM-000010', 'Ananya', 'Desai', 'ananya.d@demoschool.edu', 'student', 'active'),
+  (1, (SELECT id FROM students WHERE roll_number = 'STU-007' LIMIT 1), 'LM-000007', 'Karan', 'Mehta', 'karan.m@demoschool.edu', 'student', 'active')
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM library_members WHERE org_id = 1 LIMIT 1);
+
+-- Add a teacher as library member too
+INSERT INTO library_members (org_id, profile_id, student_id, member_id, first_name, last_name, email, membership_type, status)
+SELECT * FROM (VALUES
+  (1, (SELECT id FROM profiles WHERE email = 'rajesh.kumar@demoschool.edu' LIMIT 1), NULL::integer, 'LM-T001', 'Rajesh', 'Kumar', 'rajesh.kumar@demoschool.edu', 'teacher', 'active'),
+  (1, (SELECT id FROM profiles WHERE email = 'priya.sharma@demoschool.edu' LIMIT 1), NULL::integer, 'LM-T002', 'Priya', 'Sharma', 'priya.sharma@demoschool.edu', 'teacher', 'active')
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM library_members WHERE member_id IN ('LM-T001','LM-T002') LIMIT 1);
+
+-- ============ LIBRARY TRANSACTIONS ============
+-- Borrow some books (some returned, some still out, one overdue for fine demo)
+INSERT INTO library_transactions (org_id, book_id, member_id, borrow_date, due_date, return_date, status, issued_by, notes)
+SELECT * FROM (VALUES
+  -- Arjun borrowed Maths textbook - returned on time
+  (1, (SELECT id FROM library_books WHERE isbn = '978-817709-001-1' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-000001' LIMIT 1),
+   '2026-06-10'::date, '2026-06-24'::date, '2026-06-22'::date, 'returned', NULL::integer, 'Borrowed for exam preparation'),
+  -- Divya borrowed Harry Potter - returned
+  (1, (SELECT id FROM library_books WHERE isbn = '978-140885-001-3' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-000002' LIMIT 1),
+   '2026-06-15'::date, '2026-06-29'::date, '2026-06-28'::date, 'returned', NULL::integer, NULL),
+  -- Sneha borrowed Wings of Fire - still out (due soon)
+  (1, (SELECT id FROM library_books WHERE isbn = '978-817371-001-2' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-000004' LIMIT 1),
+   '2026-07-01'::date, '2026-07-15'::date, NULL, 'borrowed', NULL::integer, 'Requested by teacher'),
+  -- Priya borrowed English Grammar - still out
+  (1, (SELECT id FROM library_books WHERE isbn = '978-110753-001-5' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-000006' LIMIT 1),
+   '2026-07-02'::date, '2026-07-16'::date, NULL, 'borrowed', NULL::integer, NULL),
+  -- Isha borrowed Discovery of India - still out
+  (1, (SELECT id FROM library_books WHERE isbn = '978-014303-002-0' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-000008' LIMIT 1),
+   '2026-07-03'::date, '2026-07-17'::date, NULL, 'borrowed', NULL::integer, NULL),
+  -- Karan borrowed Tom Sawyer - returned late (will create fine)
+  (1, (SELECT id FROM library_books WHERE isbn = '978-014062-001-0' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-000007' LIMIT 1),
+   '2026-06-01'::date, '2026-06-15'::date, '2026-06-25'::date, 'returned', NULL::integer, 'Returned 10 days late'),
+  -- Ananya borrowed Panchatantra - still out (overdue!)
+  (1, (SELECT id FROM library_books WHERE isbn = '978-014045-001-7' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-000010' LIMIT 1),
+   '2026-05-20'::date, '2026-06-03'::date, NULL, 'borrowed', NULL::integer, 'Overdue - needs follow up'),
+  -- Rajesh (teacher) borrowed Brief History - still out
+  (1, (SELECT id FROM library_books WHERE isbn = '978-055338-002-0' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-T001' LIMIT 1),
+   '2026-07-05'::date, '2026-07-19'::date, NULL, 'borrowed', NULL::integer, NULL),
+  -- Divya borrowed Computer Science - returned on time
+  (1, (SELECT id FROM library_books WHERE isbn = '978-817709-007-3' LIMIT 1), (SELECT id FROM library_members WHERE member_id = 'LM-000002' LIMIT 1),
+   '2026-06-20'::date, '2026-07-04'::date, '2026-07-02'::date, 'returned', NULL::integer, NULL)
+) AS v
+WHERE NOT EXISTS (SELECT 1 FROM library_transactions WHERE org_id = 1 LIMIT 1);
+
+-- ============ LIBRARY FINES ============
+-- Karan's late return: 10 days overdue x Rs5 = Rs50
+INSERT INTO library_fines (org_id, transaction_id, member_id, amount, days_overdue, paid, paid_at)
+SELECT 1, txn.id, txn.member_id, 50.00, 10, true, '2026-06-25 14:30:00'::timestamptz
+FROM library_transactions txn
+JOIN library_books b ON txn.book_id = b.id
+WHERE b.isbn = '978-014062-001-0' AND txn.org_id = 1
+AND NOT EXISTS (SELECT 1 FROM library_fines WHERE org_id = 1 LIMIT 1);
+
+-- Ananya's overdue book: 36 days overdue x Rs5 = Rs180 (unpaid)
+INSERT INTO library_fines (org_id, transaction_id, member_id, amount, days_overdue, paid, paid_at)
+SELECT 1, txn.id, txn.member_id, 180.00, 36, false, NULL
+FROM library_transactions txn
+JOIN library_books b ON txn.book_id = b.id
+WHERE b.isbn = '978-014045-001-7' AND txn.org_id = 1
+AND NOT EXISTS (SELECT 1 FROM library_fines WHERE org_id = 1 AND paid = false LIMIT 1);

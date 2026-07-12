@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   id SERIAL PRIMARY KEY,
   user_id UUID UNIQUE NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('super_admin','school_admin','teacher','student')),
+  role TEXT NOT NULL CHECK (role IN ('super_admin','school_admin','teacher','student','librarian','parent')),
   org_id INTEGER REFERENCES organizations(id) ON DELETE SET NULL,
   full_name TEXT NOT NULL,
   phone TEXT,
@@ -288,6 +288,28 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 -- ============================================================
+-- TIMETABLE / CLASS SCHEDULES
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS class_schedules (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  class_id INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  subject_id INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+  teacher_id INTEGER NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+  day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+  period_number INTEGER NOT NULL CHECK (period_number > 0),
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  academic_year TEXT,
+  term TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(org_id, class_id, day_of_week, period_number),
+  UNIQUE(org_id, teacher_id, day_of_week, period_number)
+);
+
+-- ============================================================
 -- ASSIGNMENTS MODULE
 -- ============================================================
 
@@ -339,6 +361,155 @@ CREATE POLICY "student_self_submissions" ON assignment_submissions FOR ALL USING
 );
 
 -- ============================================================
+-- NOTES MODULE
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS notes (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  profile_id INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  content TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "own_notes" ON notes FOR ALL USING (
+  profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid())
+);
+
+-- ============================================================
+-- PARENT COMMUNICATION MODULE
+-- ============================================================
+
+-- Links parents to their children (one parent can have many children, one child can have many parents)
+CREATE TABLE IF NOT EXISTS parent_students (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  profile_id INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  relationship TEXT DEFAULT 'parent' CHECK (relationship IN ('parent','guardian','other')),
+  is_primary BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(profile_id, student_id)
+);
+
+-- Messages/communications from school/teachers to parents
+CREATE TABLE IF NOT EXISTS parent_communications (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  sender_id INTEGER NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  student_id INTEGER REFERENCES students(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  priority TEXT DEFAULT 'normal' CHECK (priority IN ('normal','important','urgent')),
+  sent_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE parent_students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE parent_communications ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_parent_students_profile ON parent_students(profile_id);
+CREATE INDEX IF NOT EXISTS idx_parent_students_student ON parent_students(student_id);
+CREATE INDEX IF NOT EXISTS idx_parent_comm_org ON parent_communications(org_id);
+CREATE INDEX IF NOT EXISTS idx_parent_comm_student ON parent_communications(student_id);
+CREATE INDEX IF NOT EXISTS idx_parent_comm_sender ON parent_communications(sender_id);
+
+-- ============================================================
+-- LIBRARY MODULE
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS library_books (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  author TEXT NOT NULL,
+  isbn TEXT,
+  publisher TEXT,
+  published_year INTEGER,
+  category TEXT,
+  total_copies INTEGER DEFAULT 1,
+  available_copies INTEGER DEFAULT 1,
+  shelf_location TEXT,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS library_members (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  student_id INTEGER REFERENCES students(id) ON DELETE SET NULL,
+  profile_id INTEGER REFERENCES profiles(id) ON DELETE SET NULL,
+  member_id TEXT UNIQUE,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  email TEXT,
+  phone TEXT,
+  membership_type TEXT DEFAULT 'student' CHECK (membership_type IN ('student','teacher','staff','external')),
+  status TEXT DEFAULT 'active' CHECK (status IN ('active','inactive','suspended')),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS library_transactions (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  book_id INTEGER NOT NULL REFERENCES library_books(id) ON DELETE CASCADE,
+  member_id INTEGER NOT NULL REFERENCES library_members(id) ON DELETE CASCADE,
+  borrow_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  due_date DATE NOT NULL,
+  return_date DATE,
+  status TEXT DEFAULT 'borrowed' CHECK (status IN ('borrowed','returned','overdue','lost')),
+  issued_by INTEGER REFERENCES profiles(id) ON DELETE SET NULL,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS library_fines (
+  id SERIAL PRIMARY KEY,
+  org_id INTEGER NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  transaction_id INTEGER NOT NULL REFERENCES library_transactions(id) ON DELETE CASCADE,
+  member_id INTEGER NOT NULL REFERENCES library_members(id) ON DELETE CASCADE,
+  amount DECIMAL(10,2) NOT NULL,
+  days_overdue INTEGER DEFAULT 0,
+  paid BOOLEAN DEFAULT false,
+  paid_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE library_books ENABLE ROW LEVEL SECURITY;
+ALTER TABLE library_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE library_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE library_fines ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'org_access_library_books') THEN
+    CREATE POLICY "org_access_library_books" ON library_books FOR ALL USING (
+      org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'org_access_library_members') THEN
+    CREATE POLICY "org_access_library_members" ON library_members FOR ALL USING (
+      org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'org_access_library_transactions') THEN
+    CREATE POLICY "org_access_library_transactions" ON library_transactions FOR ALL USING (
+      org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
+    );
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'org_access_library_fines') THEN
+    CREATE POLICY "org_access_library_fines" ON library_fines FOR ALL USING (
+      org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
+    );
+  END IF;
+END
+$$;
+
+-- ============================================================
 -- INDEXES
 -- ============================================================
 
@@ -353,7 +524,18 @@ CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(date);
 CREATE INDEX IF NOT EXISTS idx_exams_class ON exams(class_id);
 CREATE INDEX IF NOT EXISTS idx_exam_results_student ON exam_results(student_id);
 CREATE INDEX IF NOT EXISTS idx_fees_student ON fees(student_id);
+CREATE INDEX IF NOT EXISTS idx_class_schedules_class ON class_schedules(class_id);
+CREATE INDEX IF NOT EXISTS idx_class_schedules_teacher ON class_schedules(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_class_schedules_day ON class_schedules(day_of_week);
 CREATE INDEX IF NOT EXISTS idx_payments_org ON payments(org_id);
+CREATE INDEX IF NOT EXISTS idx_notes_profile ON notes(profile_id);
+CREATE INDEX IF NOT EXISTS idx_library_books_org ON library_books(org_id);
+CREATE INDEX IF NOT EXISTS idx_library_members_org ON library_members(org_id);
+CREATE INDEX IF NOT EXISTS idx_library_transactions_org ON library_transactions(org_id);
+CREATE INDEX IF NOT EXISTS idx_library_transactions_member ON library_transactions(member_id);
+CREATE INDEX IF NOT EXISTS idx_library_transactions_book ON library_transactions(book_id);
+CREATE INDEX IF NOT EXISTS idx_library_transactions_status ON library_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_library_fines_member ON library_fines(member_id);
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -375,6 +557,7 @@ ALTER TABLE exam_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE fees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE donations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE class_schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
 -- RLS helper functions (SECURITY DEFINER to avoid recursive policy evaluation)
@@ -464,12 +647,48 @@ CREATE POLICY "org_access_events" ON events FOR ALL USING (
   org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
 );
 
+CREATE POLICY "org_access_class_schedules" ON class_schedules FOR ALL USING (
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
+);
+
 -- Student self-access
 CREATE POLICY "student_self_attendance" ON attendance FOR SELECT USING (
   student_id IN (SELECT id FROM students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
 );
 CREATE POLICY "student_self_exam_results" ON exam_results FOR SELECT USING (
   student_id IN (SELECT id FROM students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
+);
+
+-- Parent self-access (view own children's data)
+CREATE POLICY "parent_self_students" ON parent_students FOR ALL USING (
+  profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid())
+);
+CREATE POLICY "org_access_parent_students" ON parent_students FOR ALL USING (
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
+);
+
+CREATE POLICY "parent_self_communications" ON parent_communications FOR SELECT USING (
+  student_id IN (SELECT student_id FROM parent_students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
+);
+CREATE POLICY "org_access_parent_communications" ON parent_communications FOR ALL USING (
+  org_id = get_user_org_id(auth.uid()) OR is_super_admin(auth.uid())
+);
+
+-- Parent can view their children's attendance, results, fees, assignments, schedule
+CREATE POLICY "parent_self_attendance" ON attendance FOR SELECT USING (
+  student_id IN (SELECT student_id FROM parent_students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
+);
+CREATE POLICY "parent_self_exam_results" ON exam_results FOR SELECT USING (
+  student_id IN (SELECT student_id FROM parent_students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
+);
+CREATE POLICY "parent_self_fees" ON fees FOR SELECT USING (
+  student_id IN (SELECT student_id FROM parent_students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
+);
+CREATE POLICY "parent_self_assignments" ON assignments FOR SELECT USING (
+  class_id IN (SELECT class_id FROM students WHERE id IN (SELECT student_id FROM parent_students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid())))
+);
+CREATE POLICY "parent_self_submissions" ON assignment_submissions FOR SELECT USING (
+  student_id IN (SELECT student_id FROM parent_students WHERE profile_id IN (SELECT id FROM profiles WHERE user_id = auth.uid()))
 );
 
 -- ============================================================
