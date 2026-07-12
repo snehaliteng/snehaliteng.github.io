@@ -130,6 +130,12 @@ async function checkAuth() {
   if (erpProfile.role === 'super_admin' && !erpOrg) {
     erpOrg = { id: 0, name: 'Super Admin', subscription_plan: 'premium', status: 'active' };
   }
+  if (!erpOrg && erpProfile.role !== 'super_admin') {
+    showLogin();
+    document.getElementById('login-error').textContent = 'No school is linked to your account. Please contact the admin or enroll again.';
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
   showApp();
 }
 
@@ -981,7 +987,54 @@ async function renderEnrollments() {
     });
     html += `</tbody></table></div></div></div>`;
   }
+  // Profiles without org (re-enroll candidates)
+  const { data: orphanProfiles } = await erp.from('profiles').select('id,email,full_name,phone,user_id').is('org_id', null).eq('role', 'school_admin').order('created_at', { ascending: false });
+  if (orphanProfiles?.length) {
+    html += `<div class="card mt-3"><div class="card-header"><h3>Re-enroll Users</h3></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th></th></tr></thead><tbody>`;
+    orphanProfiles.forEach(p => {
+      html += `<tr>
+        <td><strong>${p.full_name || '-'}</strong></td>
+        <td>${p.email || '-'}</td>
+        <td>${p.phone || '-'}</td>
+        <td><button class="btn btn-sm btn-success" onclick="reEnrollUser(${p.id})">Re-enroll</button></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div></div>`;
+  }
   el('content-area').innerHTML = html;
+}
+
+async function reEnrollUser(profileId) {
+  if (!confirm('Create a new pending enrollment for this user?')) return;
+  try {
+    const { data: prof } = await erp.from('profiles').select('*, organizations(*)').eq('id', profileId).single();
+    if (!prof) throw new Error('Profile not found');
+    if (prof.org_id) throw new Error('User already has an organization');
+    const { data: plan } = await erp.from('plans').select('*').eq('is_active', true).order('price').limit(1).single();
+    if (!plan) throw new Error('No active plan found');
+    const slug = (prof.full_name || 'school').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+    const { data: org, error: orgErr } = await erp.from('organizations').insert({
+      name: (prof.full_name || 'School') + ' School', slug, email: prof.email, phone: prof.phone || null,
+      subscription_plan: plan.slug, status: 'pending',
+      max_students: plan.max_students || 100, max_teachers: plan.max_teachers || 20
+    }).select().single();
+    if (orgErr) throw new Error(orgErr.message);
+    await erp.from('profiles').update({ org_id: org.id }).eq('id', profileId);
+    const payStatus = plan.price === 0 ? 'completed' : 'pending';
+    await erp.from('payments').insert({
+      org_id: org.id, plan_id: plan.id, amount: plan.price,
+      type: 'subscription', status: payStatus, payment_method: 'offline',
+      notes: 'Re-enrolled by admin'
+    });
+    const { error: mailErr } = await erp.auth.resetPasswordForEmail(prof.email, {
+      redirectTo: window.location.origin + '/eduErp/index.html'
+    });
+    if (mailErr) console.error('Failed to send setup email:', mailErr.message);
+    showToast('Re-enrollment created! Pending approval. Email sent to ' + prof.email, 'success');
+    navigate('enrollments');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 async function approveEnrollment(id) {

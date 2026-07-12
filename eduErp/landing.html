@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
   .pricing-card:hover { transform: translateY(-4px); }
   .feature-card { transition: all 0.3s ease; }
@@ -261,7 +262,7 @@
         <div class="flex justify-between mb-2"><span>Plan:</span><span id="ps-plan" class="font-semibold">Standard</span></div>
         <div class="flex justify-between mb-2"><span>Amount:</span><span id="ps-amount" class="font-semibold text-blue-600">₹4,999</span></div>
         <div class="flex justify-between"><span>Billing:</span><span id="ps-billing" class="font-semibold">Monthly</span></div>
-        <p class="text-xs text-gray-400 mt-2">Payment collected offline. We'll contact you to complete payment.</p>
+        <p class="text-xs text-gray-400 mt-2">Pay securely via Razorpay (Cards / UPI / Net Banking).</p>
       </div>
       <div class="form-actions">
         <button type="button" class="btn-outline" onclick="closeEnrollModal()">Cancel</button>
@@ -365,20 +366,82 @@ document.getElementById('enroll-form').addEventListener('submit', async function
       userId = authData.user?.id;
       if (!userId) throw new Error('Account creation failed');
       if (!authData.session) {
+        // No session — user may already exist (confirmed email) or needs email confirmation
         const { error: signInErr } = await _supa.auth.signInWithPassword({ email: data.admin_email, password: data.admin_password });
-        if (signInErr) throw new Error('Login after signup failed: ' + signInErr.message);
+        if (signInErr) {
+          // Existing user with unknown password (e.g. Google-created) — send reset email
+          await _supa.auth.resetPasswordForEmail(data.admin_email, { redirectTo: window.location.origin + '/eduErp/index.html' });
+          throw new Error('An account already exists with this email. A password reset link has been sent. Please check your email, set your password, then try again.');
+        }
       }
     }
 
-    // 2. Update profile (trigger created it for new users — upsert for existing)
+    // 2. Update profile
     const { error: profErr } = await _supa.from('profiles').upsert({
       user_id: userId, email: data.admin_email,
       full_name: data.admin_name, phone: data.admin_phone || null,
       role: 'school_admin'
-    }, { onConflict: 'user_id' }).select().single();
+    }, { onConflict: 'user_id' });
     if (profErr) throw new Error('Profile update failed: ' + profErr.message);
 
-    // 3. Create organization
+    if (_enrollPlan.price > 0) {
+      // PAID PLAN — Razorpay payment flow
+      const { data: { session } } = await _supa.auth.getSession();
+      if (!session) throw new Error('Session expired. Please try again.');
+      const EDGE_URL = 'https://vgipghqejzbcoighktij.supabase.co/functions/v1';
+
+      // Create Razorpay order
+      const orderRes = await fetch(EDGE_URL + '/edu-create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+        body: JSON.stringify({ plan_id: _enrollPlan.id })
+      });
+      if (!orderRes.ok) { const e = await orderRes.json(); throw new Error(e.error || 'Failed to create order'); }
+      const order = await orderRes.json();
+
+      // Open Razorpay checkout
+      const rzp = new Razorpay({
+        key: order.key_id,
+        amount: order.amount,
+        currency: order.currency || 'INR',
+        name: 'EduERP',
+        description: order.plan_name + ' Plan',
+        order_id: order.id,
+        prefill: { name: data.admin_name, email: data.admin_email, contact: data.admin_phone || '919974031480' },
+        theme: { color: '#2563eb' },
+        handler: async function(response) {
+          try {
+            btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Verifying...';
+            const vRes = await fetch(EDGE_URL + '/edu-verify-purchase', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                plan_id: _enrollPlan.id,
+                org_name: data.org_name,
+                org_email: data.admin_email,
+                org_phone: data.admin_phone || null,
+                user_name: data.admin_name
+              })
+            });
+            if (!vRes.ok) { const e = await vRes.json(); throw new Error(e.error || 'Verification failed'); }
+            const vData = await vRes.json();
+            document.getElementById('enroll-modal').classList.remove('open');
+            document.getElementById('success-msg').textContent = 'Payment successful! Your school enrollment is pending approval. We\'ll notify you once activated.';
+            document.getElementById('success-creds').style.display = 'none';
+            document.getElementById('success-modal').classList.add('open');
+          } catch (e) { alert('Payment verification failed: ' + e.message); }
+          btn.disabled = false; btn.textContent = 'Complete Enrollment';
+        },
+        modal: { ondismiss: function() { btn.disabled = false; btn.textContent = 'Complete Enrollment'; } }
+      });
+      rzp.open();
+      return; // Wait for Razorpay callback
+    }
+
+    // FREE PLAN — direct enrollment
     const slug = data.org_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
     const maxS = _enrollPlan.max_students || 100;
     const maxT = _enrollPlan.max_teachers || 20;
@@ -389,31 +452,23 @@ document.getElementById('enroll-form').addEventListener('submit', async function
     }).select().single();
     if (orgErr) throw new Error(orgErr.message);
 
-    // 4. Link profile to org
     await _supa.from('profiles').update({ org_id: orgData.id }).eq('user_id', userId);
 
-    // 5. Create payment record
-    const payStatus = _enrollPlan.price === 0 ? 'completed' : 'pending';
     await _supa.from('payments').insert({
       org_id: orgData.id, plan_id: _enrollPlan.id, amount: _enrollPlan.price,
-      type: 'subscription', status: payStatus, payment_method: 'offline',
-      notes: 'Enrolled via landing page'
+      type: 'subscription', status: 'completed', payment_method: 'offline',
+      notes: 'Free plan enrollment'
     });
 
-    // 6. Send password setup email for existing users
     if (isExistingUser) {
       await _supa.auth.resetPasswordForEmail(data.admin_email, { redirectTo: window.location.origin + '/eduErp/index.html' });
     }
 
-    // 7. Show success
     document.getElementById('enroll-modal').classList.remove('open');
     const successMsg = document.getElementById('success-msg');
     const creds = document.getElementById('success-creds');
     if (isExistingUser) {
       successMsg.textContent = 'Your enrollment has been submitted! A password setup link has been sent to your email. Check your inbox, set your password, then log in.';
-      creds.style.display = 'none';
-    } else if (_enrollPlan.price > 0) {
-      successMsg.textContent = 'Your school has been registered! We\'ll contact you shortly to complete payment and activate your account.';
       creds.style.display = 'none';
     } else {
       successMsg.textContent = 'Your school is ready! Login with the credentials below.';
