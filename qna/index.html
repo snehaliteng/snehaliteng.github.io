@@ -235,10 +235,9 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1RVMWL4SDK');</script>
 </head>
 <body>
-<div id="load-overlay">
+<div id="load-overlay" class="hidden">
   <h1>SnehalIT QNA</h1>
   <p>Interview Questions &amp; Answers Platform</p>
-  <button id="load-btn" onclick="initQNA()">Load</button>
 </div>
 
 <div id="login-overlay" class="hidden">
@@ -283,8 +282,8 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
   <div id="sidebar">
     <div class="brand"><span>SnehalIT</span><small>QNA Platform</small></div>
     <nav>
-      <div class="nav-item active" data-view="dashboard"><span>&#9881;</span> <span>Dashboard</span></div>
-      <div class="nav-item" data-view="questions"><span>&#10067;</span> <span>Questions</span></div>
+      <div class="nav-item" data-view="dashboard"><span>&#9881;</span> <span>Dashboard</span></div>
+      <div class="nav-item active" data-view="questions"><span>&#10067;</span> <span>Questions</span></div>
       <div class="nav-item" data-view="categories"><span>&#9776;</span> <span>Categories</span></div>
       <div class="nav-item" data-view="tags"><span>&#127991;</span> <span>Tags</span></div>
       <div class="nav-item" data-view="jobs"><span>&#128188;</span> <span>Job Tracker</span></div>
@@ -293,7 +292,7 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
   </div>
   <div id="main">
     <!-- Dashboard -->
-    <div class="panel active" id="panel-dashboard">
+    <div class="panel" id="panel-dashboard">
       <h1>Dashboard</h1>
       <p class="subtitle">Your QNA overview</p>
       <div class="stats-grid" id="dash-stats"></div>
@@ -304,18 +303,19 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
     </div>
 
     <!-- Questions -->
-    <div class="panel" id="panel-questions">
+    <div class="panel active" id="panel-questions">
       <h1>Questions</h1>
       <p class="subtitle">Browse, search, and manage interview questions</p>
       <div class="top-bar">
-        <input class="search-input" id="q-search" placeholder="Search questions..." oninput="debounceSearchQuestions()">
-        <select class="filter-select" id="q-cat-filter" onchange="loadQuestions()"></select>
-        <select class="filter-select" id="q-hide-filter" onchange="loadQuestions()">
+        <input class="search-input" id="q-search" placeholder="Search questions...">
+        <select class="filter-select" id="q-cat-filter"></select>
+        <select class="filter-select" id="q-hide-filter">
           <option value="all">All</option>
           <option value="visible">Visible</option>
           <option value="hidden">Hidden</option>
           <option value="unread">Unread</option>
         </select>
+        <button class="btn btn-primary btn-sm" onclick="loadQuestions()">Load</button>
         <button class="btn btn-primary btn-sm" onclick="showQModal()">+ New</button>
         <button class="btn btn-sm btn-secondary" onclick="exportQuestions()">&#x2913; Export</button>
         <button class="btn btn-sm btn-secondary" onclick="readAloudAllQuestions()">&#128264; Read All</button>
@@ -378,5 +378,6 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="js/qna.js"></script>
+<script>initQNA();</script>
 </body>
 </html>

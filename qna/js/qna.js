@@ -1,6 +1,6 @@
 let sb = null;
 let currentUser = null;
-let currentView = 'dashboard';
+let currentView = 'questions';
 let catCache = [];
 let tagCache = [];
 let qPage = 1;
@@ -138,7 +138,6 @@ async function purchasePlan(planId) {
 
 // Auth
 async function checkAuth() {
-  document.getElementById('load-overlay').classList.add('hidden');
   const { data: { user } } = await sb.auth.getUser();
   if (user) {
     currentUser = user;
@@ -151,7 +150,12 @@ async function checkAuth() {
     await loadCatFilter();
     await loadCategories();
     await loadTags();
-    await loadDashboard();
+    // Default to Questions view
+    document.querySelector('#panel-dashboard').classList.remove('active');
+    document.querySelector('#panel-questions').classList.add('active');
+    document.querySelector('[data-view="dashboard"]').classList.remove('active');
+    document.querySelector('[data-view="questions"]').classList.add('active');
+    currentView = 'questions';
   } else {
     document.getElementById('login-overlay').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
@@ -216,7 +220,7 @@ document.querySelectorAll('.nav-item').forEach(el => {
     currentView = view;
     document.getElementById('panel-' + view).classList.add('active');
     if (view === 'dashboard') loadDashboard();
-    if (view === 'questions') { qPage = 1; loadQuestions(); }
+    if (view === 'questions') { qPage = 1; document.getElementById('q-list').innerHTML = '<p style="color:#666;padding:16px;">Select a category and click Load to view questions.</p>'; document.getElementById('q-pagination').innerHTML = ''; }
     if (view === 'categories') loadCategories();
     if (view === 'tags') loadTags();
     if (view === 'jobs') loadJobs();
@@ -268,11 +272,6 @@ async function loadCatFilter() {
   sel.innerHTML = catOptionsHtml(data, null, true);
   // Also rebuild cat tree
   buildCatTree();
-}
-
-function debounceSearchQuestions() {
-  clearTimeout(window._qSearchTimer);
-  window._qSearchTimer = setTimeout(loadQuestions, 300);
 }
 
 async function loadQuestions() {

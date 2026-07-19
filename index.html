@@ -38,9 +38,9 @@
                         <div class="dropdown">
                             <a href="#" class="nav-link dropdown-toggle px-3 py-2 rounded-md text-sm font-medium">Applications</a>
                             <div class="dropdown-menu">
+                                <a href="apps.html">All Apps</a>
                                 <a href="tutorials/">Tutorials</a>
                                 <a href="blog/">Blog</a>
-                                <!-- <a href="pomodoro/index.html">Pomodoro Timer</a> -->
                                 <a href="todo/index.html">Todo</a>
                                 <a href="ecommerce/index.html">Marketplace</a>
                                 <a href="qna/index.html">QNA</a>
@@ -70,9 +70,9 @@
                 <div>
                     <a href="#" id="mobile-apps-toggle" class="block px-3 py-2 rounded-md text-base font-medium nav-link" onclick="toggleMobileApps(event)">Applications ▸</a>
                     <div id="mobile-apps-submenu" class="mobile-submenu">
+                        <a href="apps.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">All Apps</a>
                         <a href="tutorials/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Tutorials</a>
                         <a href="blog/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Blog</a>
-                        <!-- <a href="pomodoro/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Pomodoro Timer</a> -->
                         <a href="todo/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Todo</a>
                         <a href="ecommerce/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Marketplace</a>
                         <a href="qna/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">QNA</a>
@@ -143,6 +143,84 @@
                     <div class="text-4xl md:text-5xl font-bold mb-2">24/7</div>
                     <div class="text-lg">Support</div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Applications Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Applications</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Explore our full suite of web applications and tools</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <a href="ecommerce/index.html" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Marketplace</h3>
+                    <p class="text-gray-600">Multi-vendor e-commerce platform with product browsing, cart, checkout, and vendor management.</p>
+                </a>
+                <a href="todo/index.html" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-green-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Todo App</h3>
+                    <p class="text-gray-600">Task management with lists, drag-reorder, permanent tasks, and progress tracking.</p>
+                </a>
+                <a href="qna/index.html" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-purple-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">QNA Platform</h3>
+                    <p class="text-gray-600">Questions & Answers platform on technology topics with categories, search, and community answers.</p>
+                </a>
+                <a href="eduErp/landing.html" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-yellow-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 7l-9-5 9-5 9 5-9 5z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">EduERP</h3>
+                    <p class="text-gray-600">School management system with timetable, attendance, exams, fees, library, and multi-tenant SaaS.</p>
+                </a>
+                <a href="tutorials/" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-indigo-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Tutorials</h3>
+                    <p class="text-gray-600">In-depth technical courses across 33+ topics: programming, cloud, AI, system design, and more.</p>
+                </a>
+                <a href="blog/" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-red-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Blog</h3>
+                    <p class="text-gray-600">Articles, tutorials, and insights on software engineering, cloud architecture, AI, and more.</p>
+                </a>
+                <a href="society%20management/index.html" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-teal-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Society Management</h3>
+                    <p class="text-gray-600">Housing society management: residents, maintenance, notices, forum, facility booking, security.</p>
+                </a>
+                <a href="allinone/app/index.html" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-orange-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">All-in-One ERP</h3>
+                    <p class="text-gray-600">Complete ERP: invoices, inventory, POS, parties, GST, bank reconciliation, financial statements.</p>
+                </a>
+                <a href="ZippyRide/web/index.html" class="service-card bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 block">
+                    <div class="text-pink-600 mb-4">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">ZippyRide</h3>
+                    <p class="text-gray-600">Ride-sharing admin dashboard: drivers, riders, trips, payments, support, and settings.</p>
+                </a>
+            </div>
+            <div class="text-center mt-12">
+                <a href="apps.html" class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg">View All Apps &rarr;</a>
             </div>
         </div>
     </section>
@@ -556,6 +634,7 @@
                         <li><a href="index.html" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
                         <li><a href="services.html" class="text-gray-400 hover:text-white transition-colors">Services</a></li>
                         <li><a href="portfolio.html" class="text-gray-400 hover:text-white transition-colors">Portfolio</a></li>
+                        <li><a href="apps.html" class="text-gray-400 hover:text-white transition-colors">All Apps</a></li>
                         <li><a href="tutorials/" class="text-gray-400 hover:text-white transition-colors">Tutorials</a></li>
                         <li><a href="blog/" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
                         <li><a href="ecommerce/index.html" class="text-gray-400 hover:text-white transition-colors">Marketplace</a></li>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9334539225953790" crossorigin="anonymous"></script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Apps - Snehal IT Eng | Applications & Tools</title>
+    <meta name="description" content="Browse all applications, tools, tutorials, and demos available on Snehal IT Eng.">
+    <meta property="og:title" content="All Apps - Snehal IT Eng">
+    <meta property="og:description" content="Complete directory of all applications and tools on Snehal IT Eng.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://snehaliteng.com/apps">
+    <meta property="og:image" content="images/og-image.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1RVMWL4SDK"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1RVMWL4SDK');</script>
+</head>
+<body class="font-sans text-gray-800 bg-gray-50">
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-white shadow-md z-50" id="navbar">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <a href="index.html" class="text-2xl font-bold text-blue-600">Snehal<span class="text-gray-800">IT</span><span class="text-blue-400">Eng</span></a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="index.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="services.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Services</a>
+                        <a href="portfolio.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+                        <div class="dropdown">
+                            <a href="#" class="nav-link dropdown-toggle px-3 py-2 rounded-md text-sm font-medium">Applications</a>
+                            <div class="dropdown-menu">
+                                <a href="apps.html">All Apps</a>
+                                <a href="tutorials/">Tutorials</a>
+                                <a href="blog/">Blog</a>
+                                <a href="todo/index.html">Todo</a>
+                                <a href="ecommerce/index.html">Marketplace</a>
+                                <a href="qna/index.html">QNA</a>
+                                <a href="eduErp/landing.html">EduERP</a>
+                            </div>
+                        </div>
+                        <a href="about.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">About</a>
+                        <a href="careers.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Careers</a>
+                        <a href="contact.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-800 hover:text-blue-600 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Home</a>
+                <a href="services.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Services</a>
+                <a href="portfolio.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Portfolio</a>
+                <div>
+                    <a href="#" id="mobile-apps-toggle" class="block px-3 py-2 rounded-md text-base font-medium nav-link" onclick="toggleMobileApps(event)">Applications ▸</a>
+                    <div id="mobile-apps-submenu" class="mobile-submenu">
+                        <a href="apps.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">All Apps</a>
+                        <a href="tutorials/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Tutorials</a>
+                        <a href="blog/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Blog</a>
+                        <a href="todo/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Todo</a>
+                        <a href="ecommerce/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Marketplace</a>
+                        <a href="qna/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">QNA</a>
+                        <a href="eduErp/landing.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">EduERP</a>
+                    </div>
+                </div>
+                <a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">About</a>
+                <a href="careers.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Careers</a>
+                <a href="contact.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pt-24 pb-12 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">All Applications</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto">Complete directory of every app, tool, tutorial, and demo available on Snehal IT Eng.</p>
+        </div>
+    </section>
+
+    <!-- Section: Interactive Web Apps -->
+    <section class="py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Interactive Web Apps</h2>
+                <p class="text-gray-600">Full-featured applications with login, data persistence, and rich functionality.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <a href="ecommerce/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-blue-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Marketplace</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Multi-vendor e-commerce with product browsing, cart, checkout, and vendor dashboard.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+
+                <a href="todo/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-green-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Todo App</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Task management with lists, drag-reorder, permanent tasks, and progress tracking.</p>
+                    <span class="inline-block mt-3 text-green-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+
+                <a href="qna/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-purple-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">QNA Platform</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Questions & Answers on technology, with categories, search, and user contributions.</p>
+                    <span class="inline-block mt-3 text-purple-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+
+                <a href="society management/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-indigo-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">Society Management</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Housing society management: residents, maintenance, notices, forum, facility booking, security, complaints.</p>
+                    <span class="inline-block mt-3 text-indigo-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+
+                <a href="eduErp/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-yellow-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 7l-9-5 9-5 9 5-9 5z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors">EduERP</h3>
+                    <p class="text-gray-600 mt-2 text-sm">School management system: timetable, attendance, exams, fees, library, multi-tenant SaaS.</p>
+                    <span class="inline-block mt-3 text-yellow-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+
+                <a href="allinone/app/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-red-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors">All-in-One ERP</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Complete ERP with invoices, inventory, POS, GST, bank reconciliation, financial statements.</p>
+                    <span class="inline-block mt-3 text-red-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+
+                <a href="LocationHistory/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-teal-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">Location History</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Map-based location tracking with Leaflet, login, stats dashboard, and timeline.</p>
+                    <span class="inline-block mt-3 text-teal-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+
+                <a href="ZippyRide/web/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-orange-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">ZippyRide Admin</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Ride-sharing admin dashboard: drivers, riders, trips, payments, support tickets, settings.</p>
+                    <span class="inline-block mt-3 text-orange-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+
+                <a href="pomodoro/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-pink-600 mb-3">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-pink-600 transition-colors">Pomodoro Timer</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Configurable focus/break intervals, alarms, and background timer for productivity.</p>
+                    <span class="inline-block mt-3 text-pink-600 text-sm font-medium">Launch &rarr;</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Blog -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Blog</h2>
+                <p class="text-gray-600">Articles, tutorials, and insights on software engineering, cloud, and AI.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <a href="blog/index.html" class="group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Blog Home</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Browse all articles and tutorials.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">Read &rarr;</span>
+                </a>
+                <a href="blog/login.html" class="group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Blog Login</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Author authentication page.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">Go &rarr;</span>
+                </a>
+                <a href="blog/create-article.html" class="group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Write Article</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Create and publish new articles.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">Go &rarr;</span>
+                </a>
+                <a href="blog/create-topic.html" class="group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Manage Topics</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Create and organize blog categories.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">Go &rarr;</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Portfolio Demos -->
+    <section class="py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Portfolio Demos</h2>
+                <p class="text-gray-600">Sample client websites showcasing different industries.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <a href="portfolio/jewelleryshop/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors">Ornate Jewels</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Premium jewellery shop website with products, gallery, testimonials.</p>
+                    <span class="inline-block mt-3 text-yellow-600 text-sm font-medium">View &rarr;</span>
+                </a>
+                <a href="portfolio/watchstore/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Timeless Elegance</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Luxury watch store with product showcase and gallery.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">View &rarr;</span>
+                </a>
+                <a href="portfolio/medicalstore/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">ABC Medical Store</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Medical store website with products and contact.</p>
+                    <span class="inline-block mt-3 text-green-600 text-sm font-medium">View &rarr;</span>
+                </a>
+                <a href="portfolio/dentalclinic/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">Dr. ABC Dental Clinic</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Dental clinic with services, about, and contact sections.</p>
+                    <span class="inline-block mt-3 text-indigo-600 text-sm font-medium">View &rarr;</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Tutorials -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Tutorial Courses</h2>
+                <p class="text-gray-600">In-depth technical courses across programming, cloud, AI, and more.</p>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <a href="tutorials/html/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">HTML</span>
+                </a>
+                <a href="tutorials/css/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">CSS</span>
+                </a>
+                <a href="tutorials/Javascript/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">JavaScript</span>
+                </a>
+                <a href="tutorials/angular/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Angular</span>
+                </a>
+                <a href="tutorials/react/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">React</span>
+                </a>
+                <a href="tutorials/dotnetcore/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">.NET Core</span>
+                </a>
+                <a href="tutorials/c%23/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">C#</span>
+                </a>
+                <a href="tutorials/python/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Python</span>
+                </a>
+                <a href="tutorials/nodejs/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Node.js</span>
+                </a>
+                <a href="tutorials/android/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Android</span>
+                </a>
+                <a href="tutorials/ios/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">iOS</span>
+                </a>
+                <a href="tutorials/dsa/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">DSA</span>
+                </a>
+                <a href="tutorials/dsa-leetcode-roadmap/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">DSA LeetCode</span>
+                </a>
+                <a href="tutorials/ai/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">AI</span>
+                </a>
+                <a href="tutorials/ai-102/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">AI-102</span>
+                </a>
+                <a href="tutorials/ai-system-design/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">AI Sys Design</span>
+                </a>
+                <a href="tutorials/ai-engineer-core/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Core AI Eng</span>
+                </a>
+                <a href="tutorials/ai-agentic-track/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Agentic AI</span>
+                </a>
+                <a href="tutorials/genai/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Generative AI</span>
+                </a>
+                <a href="tutorials/ml/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">ML</span>
+                </a>
+                <a href="tutorials/ml-system-design/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">ML Sys Design</span>
+                </a>
+                <a href="tutorials/supabase/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Supabase</span>
+                </a>
+                <a href="tutorials/fastapi-tutorial/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">FastAPI</span>
+                </a>
+                <a href="tutorials/playwright-tutorial/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Playwright</span>
+                </a>
+                <a href="tutorials/pwa/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">PWA</span>
+                </a>
+                <a href="tutorials/system-design-fundamentals/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Sys Design</span>
+                </a>
+                <a href="tutorials/snowflake-tutorial/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Snowflake</span>
+                </a>
+                <a href="tutorials/foundry-fundamentals/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Foundry</span>
+                </a>
+                <a href="tutorials/maf-fundamentals/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Agent Framework</span>
+                </a>
+                <a href="tutorials/claude-vibe-course/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Claude Vibe</span>
+                </a>
+                <a href="tutorials/project-management/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Proj Mgmt</span>
+                </a>
+                <a href="tutorials/interpersonal-skills/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Interpersonal</span>
+                </a>
+                <a href="tutorials/mindset-mastery/index.html" class="group bg-gray-50 rounded-lg py-4 px-5 hover:bg-blue-50 hover:shadow transition-all border border-gray-100">
+                    <span class="font-medium text-gray-800 group-hover:text-blue-600">Mindset</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Games & Fun -->
+    <section class="py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Games & Fun</h2>
+                <p class="text-gray-600">Interactive entertainment and games.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="android/games/freefiremax/index.html" class="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">Free Fire Max 3D</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Browser-based 3D battle royale game with WASD controls.</p>
+                    <span class="inline-block mt-3 text-orange-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: More Tools -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">More Tools & Links</h2>
+                <p class="text-gray-600">Additional resources and pages.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="usr/snehal/crd.html" class="group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Digital Business Card</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Personal digital business card for Snehal Kadiya.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">View &rarr;</span>
+                </a>
+                <a href="allinone/index.html" class="group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">All-in-One ERP System Design</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Comprehensive system design blueprint for the ERP system.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">View &rarr;</span>
+                </a>
+                <a href="eduErp/landing.html" class="group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">EduERP Landing Page</h3>
+                    <p class="text-gray-600 mt-2 text-sm">Marketing page for the EduERP school management system.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">View &rarr;</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold text-blue-400 mb-4">Snehal<span class="text-white">IT</span><span class="text-blue-300">Eng</span></h3>
+                    <p class="text-gray-400">Innovative IT solutions for the digital era.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="services.html" class="text-gray-400 hover:text-white transition-colors">Services</a></li>
+                        <li><a href="portfolio.html" class="text-gray-400 hover:text-white transition-colors">Portfolio</a></li>
+                        <li><a href="apps.html" class="text-gray-400 hover:text-white transition-colors">All Apps</a></li>
+                        <li><a href="tutorials/" class="text-gray-400 hover:text-white transition-colors">Tutorials</a></li>
+                        <li><a href="blog/" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="about.html" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Apps</h4>
+                    <ul class="space-y-2">
+                        <li><a href="ecommerce/index.html" class="text-gray-400 hover:text-white transition-colors">Marketplace</a></li>
+                        <li><a href="qna/index.html" class="text-gray-400 hover:text-white transition-colors">QNA</a></li>
+                        <li><a href="todo/index.html" class="text-gray-400 hover:text-white transition-colors">Todo</a></li>
+                        <li><a href="eduErp/index.html" class="text-gray-400 hover:text-white transition-colors">EduERP</a></li>
+                        <li><a href="society%20management/index.html" class="text-gray-400 hover:text-white transition-colors">Society Mgmt</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact Us</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>Email: snehaliteng@gmail.com</li>
+                        <li>LinkedIn: <a href="https://www.linkedin.com/in/snehal-kadiya-7364ba1b/" class="hover:text-white">/in/snehal-kadiya-7364ba1b/</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2026 Snehal IT Eng. All rights reserved. | <a href="#" class="hover:text-white">Download Brochure</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    function toggleMobileApps(e) {
+        e.preventDefault();
+        var sub = document.getElementById('mobile-apps-submenu');
+        var toggle = document.getElementById('mobile-apps-toggle');
+        sub.classList.toggle('open');
+        toggle.textContent = sub.classList.contains('open') ? 'Applications ▾' : 'Applications ▸';
+    }
+    </script>
+    <script src="js/main.js"></script>
+</body>
+</html>
