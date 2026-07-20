@@ -261,7 +261,7 @@ const PlansModule = (() => {
   async function checkAccess() {
     const user = AuthModule.currentUser;
     if (!user) return false;
-    if (user.profile?.role === 'admin') return true;
+    if (user.profile?.role === 'admin' || user.profile?.role === 'super_admin') return true;
     try {
       const client = supabaseClient.getClient();
       const { data, error } = await client.from('society_purchases').select('*, society_plans(*)').eq('user_id', user.id).single();
