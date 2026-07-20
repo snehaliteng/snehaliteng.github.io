@@ -202,6 +202,7 @@
       document.getElementById('stat-pv').textContent = d.totalPageviews.toLocaleString();
       document.getElementById('stat-uv').textContent = d.uniqueVisitors.toLocaleString();
       document.getElementById('stat-ppv').textContent = d.uniqueVisitors > 0 ? (d.totalPageviews / d.uniqueVisitors).toFixed(1) : '0';
+      document.getElementById('stat-logged').textContent = (d.uniqueLoggedUsers || 0);
 
       renderTrend(d.dailyTrend);
       renderDoughnut('deviceChart', deviceChart, d.devices.map(function(x){return x.type}), d.devices.map(function(x){return x.count}));
