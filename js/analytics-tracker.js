@@ -71,38 +71,25 @@
   function getLoggedUser() {
     try {
       var projectRef = SUPABASE_URL.split('//')[1].split('.')[0];
-      var raw = localStorage.getItem('sb-' + projectRef + '-auth-token');
-      if (raw) {
-        var parsed = JSON.parse(raw);
-        var sess = parsed?.currentSession || parsed?.session || parsed;
-        var user = sess?.user;
-        if (user?.email) return { email: user.email, id: user.id };
-      }
+      var keys = ['sb-' + projectRef + '-auth-token'];
       for (var i = 0; i < localStorage.length; i++) {
-        var key = localStorage.key(i);
-        if (key && key.startsWith('sb-') && key.endsWith('-auth-token') && key !== 'sb-' + projectRef + '-auth-token') {
-          try {
-            var s = JSON.parse(localStorage.getItem(key));
-            var u = (s?.currentSession || s?.session || s)?.user;
-            if (u?.email) return { email: u.email, id: u.id };
-          } catch (e2) {}
-        }
+        var k = localStorage.key(i);
+        if (k && k.startsWith('sb-') && k.indexOf('auth-token') !== -1 && keys.indexOf(k) === -1) keys.push(k);
+      }
+      for (var j = 0; j < keys.length; j++) {
+        try {
+          var raw = localStorage.getItem(keys[j]);
+          if (!raw) continue;
+          var parsed = JSON.parse(raw);
+          var user = null;
+          if (parsed?.currentSession?.user?.email) user = parsed.currentSession.user;
+          else if (parsed?.session?.user?.email) user = parsed.session.user;
+          else if (parsed?.user?.email) user = parsed.user;
+          else if (parsed?.email) user = parsed;
+          if (user?.email) return { email: user.email, id: user.id };
+        } catch (e2) {}
       }
     } catch (e) {}
-    try {
-      if (window._admin && window._admin.auth) {
-        var p = window._admin.auth.getUser();
-        if (p && typeof p.then === 'function') return null;
-      }
-      var clients = [window._admin, window._sb, window.ec, window._shop, window.sb, window.sbc];
-      for (var c = 0; c < clients.length; c++) {
-        try {
-          if (clients[c] && clients[c].auth && typeof clients[c].auth.getUser === 'function') {
-            var r = clients[c].auth.getUser();
-          }
-        } catch (e3) {}
-      }
-    } catch (e4) {}
     return null;
   }
 
