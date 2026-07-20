@@ -12,12 +12,14 @@ let isRegisterMode = false
 sb.auth.onAuthStateChange((event, session) => {
   if (session?.user) {
     currentUser = session.user
+    if (window.sitengSetUser) window.sitengSetUser(session.user.email, session.user.id)
     document.getElementById('login-overlay').style.display = 'none'
     document.getElementById('app').style.display = 'flex'
     document.getElementById('admin-name').textContent = session.user.email || 'Admin'
     loadDashboard()
   } else {
     currentUser = null
+    if (window.sitengSetUser) window.sitengSetUser(null)
     document.getElementById('app').style.display = 'none'
     document.getElementById('login-overlay').style.display = 'flex'
   }

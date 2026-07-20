@@ -174,6 +174,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     else err.textContent = error.message;
     return;
   }
+  if (window.sitengSetUser) window.sitengSetUser(data.user?.email, data.user?.id);
   checkAuth();
 });
 
@@ -199,6 +200,7 @@ document.getElementById('login-password').addEventListener('keydown', (e) => {
 
 document.getElementById('logout-link').addEventListener('click', async () => {
   await sb.auth.signOut();
+  if (window.sitengSetUser) window.sitengSetUser(null);
   currentUser = null;
   checkAuth();
 });

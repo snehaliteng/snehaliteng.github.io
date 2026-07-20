@@ -45,6 +45,7 @@ async function ecLogin(email, password) {
   const { data, error } = await ec.auth.signInWithPassword({ email, password });
   if (error) throw error;
   ecCurrentUser = data.user;
+  if (window.sitengSetUser) window.sitengSetUser(data.user?.email, data.user?.id);
   return data.user;
 }
 
@@ -58,6 +59,7 @@ async function ecLogout() {
   const { error } = await ec.auth.signOut();
   if (error) throw error;
   ecCurrentUser = null;
+  if (window.sitengSetUser) window.sitengSetUser(null);
 }
 
 async function ecSocialLogin(provider) {

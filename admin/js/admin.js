@@ -50,6 +50,7 @@ function showAlert(msg, type) {
 
 async function signOut() {
   await _admin.auth.signOut();
+  if (window.sitengSetUser) window.sitengSetUser(null);
   window.location.href = '../';
 }
 

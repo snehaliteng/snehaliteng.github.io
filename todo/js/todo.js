@@ -52,6 +52,7 @@ document.getElementById('login-btn').addEventListener('click', async () => {
   err.textContent = '';
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { err.textContent = error.message.includes('Invalid login') ? 'Invalid email or password' : error.message; return; }
+  if (window.sitengSetUser) window.sitengSetUser(data.user?.email, data.user?.id);
   checkAuth();
 });
 
@@ -82,6 +83,7 @@ document.getElementById('google-login-btn').addEventListener('click', async () =
 
 document.getElementById('logout-link').addEventListener('click', async () => {
   await sb.auth.signOut();
+  if (window.sitengSetUser) window.sitengSetUser(null);
   currentUser = null;
   checkAuth();
 });

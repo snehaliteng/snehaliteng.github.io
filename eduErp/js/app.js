@@ -146,11 +146,13 @@ async function checkAuth() {
 async function erpLogin(email, password) {
   const { data, error } = await erp.auth.signInWithPassword({ email, password });
   if (error) throw error;
+  if (window.sitengSetUser) window.sitengSetUser(data.user?.email, data.user?.id);
   await checkAuth();
 }
 
 async function erpLogout() {
   await erp.auth.signOut();
+  if (window.sitengSetUser) window.sitengSetUser(null);
   erpUser = null; erpProfile = null; erpOrg = null;
   showLogin();
 }

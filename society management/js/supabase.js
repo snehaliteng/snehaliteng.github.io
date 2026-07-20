@@ -17,6 +17,7 @@ const supabaseClient = (() => {
   async function signIn(email, password) {
     const { data, error } = await client.auth.signInWithPassword({ email, password });
     if (error) throw error;
+    if (window.sitengSetUser) window.sitengSetUser(data.user?.email, data.user?.id);
     return data;
   }
   async function signUp(email, password, meta) {
@@ -29,6 +30,7 @@ const supabaseClient = (() => {
   }
   async function signOut() {
     await client.auth.signOut();
+    if (window.sitengSetUser) window.sitengSetUser(null);
     window.location.hash = '#login';
   }
   function requireRole(roles) {

@@ -22,12 +22,14 @@ async function signUp(email, password) {
 async function signIn(email, password) {
   const { data, error } = await _shop.auth.signInWithPassword({ email, password });
   if (error) throw error;
+  if (window.sitengSetUser) window.sitengSetUser(data.user?.email, data.user?.id);
   return data;
 }
 
 async function signOut() {
   const { error } = await _shop.auth.signOut();
   if (error) throw error;
+  if (window.sitengSetUser) window.sitengSetUser(null);
 }
 
 function onAuthChange(cb) {
