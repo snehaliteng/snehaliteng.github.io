@@ -230,7 +230,7 @@ const AuthModule = (() => {
     }
   }
 
-  function handleLogout() { supabaseClient.signOut(); }
+  function handleLogout() { supabaseClient.signOut().then(() => { currentUser = null; showLogin(); }); }
 
   return { showLogin, showRegister, handleLogin, handleRegister, loadApp, navigate, checkSession, handleLogout, get currentUser() { return currentUser; } };
 })();
