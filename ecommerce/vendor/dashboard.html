@@ -494,10 +494,16 @@ document.getElementById('vendor-reg-form').addEventListener('submit', async func
       .maybeSingle();
     if (planErr) throw planErr;
     if (!planCheck) {
-      ecShowAlert('You need an active Ecommerce Plan to register as a vendor. Contact admin.', 'error');
-      btn.disabled = false;
-      btn.textContent = 'Register Store';
-      return;
+      var { data: freePlan, error: fpErr } = await ec.from('ec_plans').select('id').eq('price', 0).eq('active', true).order('sort_order').limit(1).maybeSingle();
+      if (fpErr) throw fpErr;
+      if (freePlan) {
+        var { error: insErr } = await ec.from('user_ec_plans').insert({ user_id: ecCurrentUser.id, plan_id: freePlan.id, status: 'active' });
+        if (insErr) throw insErr;
+      } else {
+        ecShowAlert('No free plan available. Contact admin.', 'error');
+        btn.disabled = false; btn.textContent = 'Register Store';
+        return;
+      }
     }
     var slug = ecCurrentUser.email.split('@')[0].replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-' + Date.now().toString(36);
     var { data: existingSlug } = await ec.from('ec_vendors').select('id').eq('slug', slug).maybeSingle();
