@@ -70,7 +70,8 @@
 
   function getLoggedUser() {
     try {
-      var raw = localStorage.getItem('sb-' + SUPABASE_URL.split('//')[1] + '-auth-token');
+      var projectRef = SUPABASE_URL.split('//')[1].split('.')[0];
+      var raw = localStorage.getItem('sb-' + projectRef + '-auth-token');
       if (!raw) return null;
       var parsed = JSON.parse(raw);
       var user = parsed?.currentSession?.user;

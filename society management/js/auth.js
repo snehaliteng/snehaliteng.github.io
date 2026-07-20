@@ -143,6 +143,18 @@ const AuthModule = (() => {
         { icon: '📝', label: 'Complaints', id: 'complaints' },
         { icon: '📈', label: 'Reports', id: 'reports' },
       ],
+      super_admin: [
+        { icon: '📊', label: 'Dashboard', id: 'dashboard' },
+        { icon: '👥', label: 'Residents', id: 'residents' },
+        { icon: '💰', label: 'Maintenance', id: 'maintenance' },
+        { icon: '📢', label: 'Notice Board', id: 'notices' },
+        { icon: '💬', label: 'Forum', id: 'forum' },
+        { icon: '🏋️', label: 'Facilities', id: 'facilities' },
+        { icon: '🔒', label: 'Security', id: 'security' },
+        { icon: '📝', label: 'Complaints', id: 'complaints' },
+        { icon: '📈', label: 'Reports', id: 'reports' },
+        { icon: '🎫', label: 'Plan Assignment', id: 'plans' },
+      ],
       resident: [
         { icon: '📊', label: 'Dashboard', id: 'dashboard' },
         { icon: '💰', label: 'My Bills', id: 'maintenance' },
@@ -197,7 +209,8 @@ const AuthModule = (() => {
     const titles = {
       dashboard: '📊 Dashboard', residents: '👥 Resident Management', maintenance: '💰 Maintenance & Billing',
       notices: '📢 Notice Board', forum: '💬 Resident Forum', facilities: '🏋️ Facility Booking',
-      security: '🔒 Security & Visitors', complaints: '📝 Complaints', reports: '📈 Reports & Analytics'
+      security: '🔒 Security & Visitors', complaints: '📝 Complaints', reports: '📈 Reports & Analytics',
+      plans: '🎫 Plan Assignment'
     };
     document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
     const el = document.getElementById('pageContent');
@@ -212,6 +225,7 @@ const AuthModule = (() => {
       case 'security': await SecurityModule.render(el); break;
       case 'complaints': await ComplaintsModule.render(el); break;
       case 'reports': await ReportsModule.render(el); break;
+      case 'plans': await PlanAssignment.render(el); break;
       default: el.innerHTML = '<h2>Page not found</h2>';
     }
   }
