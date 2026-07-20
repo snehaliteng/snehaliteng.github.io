@@ -81,10 +81,17 @@ const AuthModule = (() => {
     if (password.length < 6) { showError('Password must be at least 6 characters'); return; }
     try {
       await supabaseClient.signUp(email, password, { full_name: name, flat_number: flat, role: 'resident' });
-      errEl.classList.remove('hidden');
-      errEl.textContent = 'Registration successful! Check your email to confirm.';
-      errEl.style.background = '#e6f4ea';
-      errEl.style.color = '#0f9d58';
+      // Auto-confirm user via Edge Function
+      try {
+        await fetch('https://vgipghqejzbcoighktij.supabase.co/functions/v1/society-confirm-user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+      } catch (e) { /* ignore — user may already be confirmed */ }
+      // Sign in immediately
+      await supabaseClient.signIn(email, password);
+      await loadApp();
     } catch (e) {
       showError(e.message || 'Registration failed');
     }

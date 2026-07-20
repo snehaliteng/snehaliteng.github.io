@@ -327,7 +327,7 @@ async function loadHistory() {
   if (!from || !to) { resetFilters(); return }
 
   try {
-    const url = SUPABASE_URL + '/rest/v1/location_history?select=id,phone,latitude,longitude,accuracy,battery_level,recorded_at&order=recorded_at.asc'
+    const url = SUPABASE_URL + '/rest/v1/location_history?select=id,phone,latitude,longitude,accuracy,battery_level,recorded_at&phone=eq.' + encodeURIComponent(currentPhone) + '&order=recorded_at.asc'
     document.getElementById('debug-result').style.display = 'block'
     document.getElementById('debug-result').innerHTML = 'Fetching...'
     const res = await fetch(url, {
