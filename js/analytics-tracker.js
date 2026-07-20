@@ -72,11 +72,37 @@
     try {
       var projectRef = SUPABASE_URL.split('//')[1].split('.')[0];
       var raw = localStorage.getItem('sb-' + projectRef + '-auth-token');
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      var user = parsed?.currentSession?.user;
-      if (user?.email) return { email: user.email, id: user.id };
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        var sess = parsed?.currentSession || parsed?.session || parsed;
+        var user = sess?.user;
+        if (user?.email) return { email: user.email, id: user.id };
+      }
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        if (key && key.startsWith('sb-') && key.endsWith('-auth-token') && key !== 'sb-' + projectRef + '-auth-token') {
+          try {
+            var s = JSON.parse(localStorage.getItem(key));
+            var u = (s?.currentSession || s?.session || s)?.user;
+            if (u?.email) return { email: u.email, id: u.id };
+          } catch (e2) {}
+        }
+      }
     } catch (e) {}
+    try {
+      if (window._admin && window._admin.auth) {
+        var p = window._admin.auth.getUser();
+        if (p && typeof p.then === 'function') return null;
+      }
+      var clients = [window._admin, window._sb, window.ec, window._shop, window.sb, window.sbc];
+      for (var c = 0; c < clients.length; c++) {
+        try {
+          if (clients[c] && clients[c].auth && typeof clients[c].auth.getUser === 'function') {
+            var r = clients[c].auth.getUser();
+          }
+        } catch (e3) {}
+      }
+    } catch (e4) {}
     return null;
   }
 
@@ -113,9 +139,55 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', track);
+    document.addEventListener('DOMContentLoaded', function () {
+      track();
+      setTimeout(function () {
+        var user = getLoggedUser();
+        if (user) {
+          fetchGeo().then(function (geo) {
+            send({
+              session_id: getSid(),
+              page_path: location.pathname + location.search,
+              page_title: document.title,
+              referrer: null,
+              device_type: detectDevice(),
+              browser: detectBrowser(),
+              os: detectOS(),
+              screen_width: window.innerWidth,
+              event_type: 'pageview',
+              user_email: user.email,
+              user_id: user.id,
+              ip_address: geo.ip || null,
+              country: geo.country || null
+            });
+          });
+        }
+      }, 1500);
+    });
   } else {
     track();
+    setTimeout(function () {
+      var user = getLoggedUser();
+      if (user) {
+        fetchGeo().then(function (geo) {
+          send({
+            session_id: getSid(),
+            page_path: location.pathname + location.search,
+            page_title: document.title,
+            referrer: null,
+            device_type: detectDevice(),
+            browser: detectBrowser(),
+            os: detectOS(),
+            screen_width: window.innerWidth,
+            event_type: 'pageview',
+            user_email: user.email,
+            user_id: user.id,
+            ip_address: geo.ip || null,
+            country: geo.country || null
+          });
+        });
+      }
+    }, 1500);
   }
 
   window.addEventListener('beforeunload', function () {
