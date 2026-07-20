@@ -117,6 +117,8 @@
     return null;
   }
 
+  var EXCLUDED_EMAILS = ['snehaliteng@gmail.com'];
+
   function buildPayload(geo, user, eventType) {
     return {
       session_id: getSid(),
@@ -136,6 +138,7 @@
   }
 
   function send(data) {
+    if (data.user_email && EXCLUDED_EMAILS.indexOf(data.user_email) !== -1) return;
     try {
       fetch(ENDPOINT, {
         method: 'POST',

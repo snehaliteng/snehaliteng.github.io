@@ -35,6 +35,7 @@ const ResidentsModule = (() => {
         <td><span class="badge badge-secondary">${r.role}</span></td>
         <td>
           <button class="btn-outline btn-sm" onclick="ResidentsModule.showEditForm('${r.id}')">✏️</button>
+          <button class="btn-outline btn-sm" onclick="ResidentsModule.deleteResident('${r.id}', '${escHtml(r.full_name)}')" style="margin-left:4px;color:var(--danger);">🗑️</button>
         </td>
       </tr>`).join('');
   }
@@ -122,10 +123,21 @@ const ResidentsModule = (() => {
       </div>`;
   }
 
+  async function deleteResident(id, name) {
+    if (!confirm(`Are you sure you want to delete "${name}"? This will also remove their auth account.`)) return;
+    try {
+      const client = supabaseClient.getClient();
+      await client.from('profiles').delete().eq('id', id);
+      try { await client.auth.admin.deleteUser(id); } catch (e) { /* auth user may not exist */ }
+      showToast('Resident deleted', 'success');
+      await loadResidents();
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+
   function search() {
     const q = document.getElementById('residentSearch')?.value;
     loadResidents(q);
   }
 
-  return { render, showAddForm, showEditForm, saveResident, search };
+  return { render, showAddForm, showEditForm, saveResident, deleteResident, search };
 })();

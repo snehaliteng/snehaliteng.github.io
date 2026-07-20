@@ -11,7 +11,9 @@ const DashboardModule = (() => {
         const { count: bills } = await client.from('maintenance_bills').select('*', { count: 'exact', head: true }).eq('status', 'pending');
         const { count: complaints } = await client.from('complaints').select('*', { count: 'exact', head: true }).neq('status', 'resolved').neq('status', 'closed');
         const { count: visitors } = await client.from('visitors').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-        stats = { residents, bills, complaints, visitors };
+        const { count: documents } = await client.from('documents').select('*', { count: 'exact', head: true });
+        const { count: staff } = await client.from('profiles').select('*', { count: 'exact', head: true }).in('role', ['staff', 'security']);
+        stats = { residents, bills, complaints, visitors, documents, staff };
       } else if (role === 'resident') {
         const { count: myBills } = await client.from('maintenance_bills').select('*', { count: 'exact', head: true }).eq('resident_id', user.id).eq('status', 'pending');
         const { count: myComplaints } = await client.from('complaints').select('*', { count: 'exact', head: true }).eq('resident_id', user.id).neq('status', 'resolved');
@@ -33,10 +35,13 @@ const DashboardModule = (() => {
               <button class="btn-primary" onclick="AuthModule.navigate('maintenance')">💰 Generate Bills</button>
               <button class="btn-outline" onclick="AuthModule.navigate('notices')">📢 New Notice</button>
               <button class="btn-outline" onclick="AuthModule.navigate('complaints')">📝 View Complaints</button>
+              <button class="btn-outline" onclick="AuthModule.navigate('staff')">🧑‍🔧 Manage Staff</button>
+              <button class="btn-outline" onclick="AuthModule.navigate('documents')">📁 Documents</button>
             ` : role === 'resident' ? `
               <button class="btn-primary" onclick="AuthModule.navigate('maintenance')">💰 Pay Maintenance</button>
               <button class="btn-outline" onclick="AuthModule.navigate('complaints')">📝 Raise Complaint</button>
               <button class="btn-outline" onclick="AuthModule.navigate('facilities')">🏋️ Book Facility</button>
+              <button class="btn-outline" onclick="AuthModule.navigate('documents')">📁 Documents</button>
             ` : role === 'security' ? `
               <button class="btn-primary" onclick="AuthModule.navigate('security')">🔒 Manage Visitors</button>
             ` : `
@@ -56,9 +61,11 @@ const DashboardModule = (() => {
     if (role === 'admin') {
       cards = [
         { icon: '👥', value: stats.residents || 0, label: 'Total Residents' },
+        { icon: '🧑‍🔧', value: stats.staff || 0, label: 'Staff Members' },
         { icon: '💰', value: stats.bills || 0, label: 'Pending Bills' },
         { icon: '📝', value: stats.complaints || 0, label: 'Open Complaints' },
         { icon: '🔒', value: stats.visitors || 0, label: 'Pending Visitors' },
+        { icon: '📁', value: stats.documents || 0, label: 'Documents' },
       ];
     } else if (role === 'resident') {
       cards = [

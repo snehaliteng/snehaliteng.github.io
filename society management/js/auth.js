@@ -135,23 +135,27 @@ const AuthModule = (() => {
       admin: [
         { icon: '📊', label: 'Dashboard', id: 'dashboard' },
         { icon: '👥', label: 'Residents', id: 'residents' },
+        { icon: '🧑‍🔧', label: 'Staff', id: 'staff' },
         { icon: '💰', label: 'Maintenance', id: 'maintenance' },
         { icon: '📢', label: 'Notice Board', id: 'notices' },
         { icon: '💬', label: 'Forum', id: 'forum' },
         { icon: '🏋️', label: 'Facilities', id: 'facilities' },
         { icon: '🔒', label: 'Security', id: 'security' },
         { icon: '📝', label: 'Complaints', id: 'complaints' },
+        { icon: '📁', label: 'Documents', id: 'documents' },
         { icon: '📈', label: 'Reports', id: 'reports' },
       ],
       super_admin: [
         { icon: '📊', label: 'Dashboard', id: 'dashboard' },
         { icon: '👥', label: 'Residents', id: 'residents' },
+        { icon: '🧑‍🔧', label: 'Staff', id: 'staff' },
         { icon: '💰', label: 'Maintenance', id: 'maintenance' },
         { icon: '📢', label: 'Notice Board', id: 'notices' },
         { icon: '💬', label: 'Forum', id: 'forum' },
         { icon: '🏋️', label: 'Facilities', id: 'facilities' },
         { icon: '🔒', label: 'Security', id: 'security' },
         { icon: '📝', label: 'Complaints', id: 'complaints' },
+        { icon: '📁', label: 'Documents', id: 'documents' },
         { icon: '📈', label: 'Reports', id: 'reports' },
         { icon: '🎫', label: 'Plan Assignment', id: 'plans' },
       ],
@@ -162,16 +166,20 @@ const AuthModule = (() => {
         { icon: '💬', label: 'Forum', id: 'forum' },
         { icon: '🏋️', label: 'Book Facility', id: 'facilities' },
         { icon: '📝', label: 'Complaints', id: 'complaints' },
+        { icon: '📁', label: 'Documents', id: 'documents' },
       ],
       security: [
         { icon: '📊', label: 'Dashboard', id: 'dashboard' },
         { icon: '🔒', label: 'Visitor Log', id: 'security' },
         { icon: '📢', label: 'Notice Board', id: 'notices' },
+        { icon: '📁', label: 'Documents', id: 'documents' },
       ],
       staff: [
         { icon: '📊', label: 'Dashboard', id: 'dashboard' },
         { icon: '📝', label: 'Complaints', id: 'complaints' },
+        { icon: '📋', label: 'My Duties', id: 'staff' },
         { icon: '📢', label: 'Notice Board', id: 'notices' },
+        { icon: '📁', label: 'Documents', id: 'documents' },
       ]
     };
     const items = menuItems[role] || menuItems.resident;
@@ -210,7 +218,7 @@ const AuthModule = (() => {
       dashboard: '📊 Dashboard', residents: '👥 Resident Management', maintenance: '💰 Maintenance & Billing',
       notices: '📢 Notice Board', forum: '💬 Resident Forum', facilities: '🏋️ Facility Booking',
       security: '🔒 Security & Visitors', complaints: '📝 Complaints', reports: '📈 Reports & Analytics',
-      plans: '🎫 Plan Assignment'
+      plans: '🎫 Plan Assignment', documents: '📁 Document Storage', staff: '🧑‍🔧 Staff Management'
     };
     document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
     const el = document.getElementById('pageContent');
@@ -226,6 +234,8 @@ const AuthModule = (() => {
       case 'complaints': await ComplaintsModule.render(el); break;
       case 'reports': await ReportsModule.render(el); break;
       case 'plans': await PlanAssignment.render(el); break;
+      case 'documents': await DocumentsModule.render(el); break;
+      case 'staff': await StaffModule.render(el); break;
       default: el.innerHTML = '<h2>Page not found</h2>';
     }
   }
