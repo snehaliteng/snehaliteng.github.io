@@ -264,10 +264,10 @@ const PlansModule = (() => {
     if (user.profile?.role === 'admin' || user.profile?.role === 'super_admin') return true;
     try {
       const client = supabaseClient.getClient();
-      const { data, error } = await client.from('society_purchases').select('*, society_plans(*)').eq('user_id', user.id).single();
+      const { data, error } = await client.from('society_purchases').select('*, society_plans(*)').eq('user_id', user.id).eq('status', 'active').limit(1);
       if (error && error.code === '42P01') return true;
-      if (data && data.status === 'active') {
-        window._userPlan = data;
+      if (data && data.length > 0) {
+        window._userPlan = data[0];
         return true;
       }
       return false;
