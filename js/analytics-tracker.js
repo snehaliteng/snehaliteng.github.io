@@ -1,6 +1,7 @@
 /**
  * SnehalITEng Analytics Tracker — lightweight, drop-in script.
  * Usage: <script src="/js/analytics-tracker.js" defer></script>
+ * Detects logged-in user, IP, and country automatically.
  */
 (function () {
   'use strict';
@@ -44,6 +45,40 @@
     return 'desktop';
   }
 
+  function getCachedGeo() {
+    try {
+      var cached = sessionStorage.getItem('_geo');
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return null;
+  }
+
+  function fetchGeo() {
+    var cached = getCachedGeo();
+    if (cached && cached._ts && Date.now() - cached._ts < 3600000) {
+      return Promise.resolve(cached);
+    }
+    return fetch('https://ipapi.co/json/')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var geo = { ip: d.ip || null, country: d.country_name || null, city: d.city || null, region: d.region || null, _ts: Date.now() };
+        try { sessionStorage.setItem('_geo', JSON.stringify(geo)); } catch (e) {}
+        return geo;
+      })
+      .catch(function () { return { ip: null, country: null, city: null, region: null }; });
+  }
+
+  function getLoggedUser() {
+    try {
+      var raw = localStorage.getItem('sb-' + SUPABASE_URL.split('//')[1] + '-auth-token');
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      var user = parsed?.currentSession?.user;
+      if (user?.email) return { email: user.email, id: user.id };
+    } catch (e) {}
+    return null;
+  }
+
   function send(data) {
     try {
       fetch(ENDPOINT, {
@@ -56,16 +91,23 @@
   }
 
   function track() {
-    send({
-      session_id: getSid(),
-      page_path: location.pathname + location.search,
-      page_title: document.title,
-      referrer: document.referrer || null,
-      device_type: detectDevice(),
-      browser: detectBrowser(),
-      os: detectOS(),
-      screen_width: window.innerWidth,
-      event_type: 'pageview'
+    var user = getLoggedUser();
+    fetchGeo().then(function (geo) {
+      send({
+        session_id: getSid(),
+        page_path: location.pathname + location.search,
+        page_title: document.title,
+        referrer: document.referrer || null,
+        device_type: detectDevice(),
+        browser: detectBrowser(),
+        os: detectOS(),
+        screen_width: window.innerWidth,
+        event_type: 'pageview',
+        user_email: user ? user.email : null,
+        user_id: user ? user.id : null,
+        ip_address: geo.ip || null,
+        country: geo.country || null
+      });
     });
   }
 
@@ -76,6 +118,8 @@
   }
 
   window.addEventListener('beforeunload', function () {
+    var user = getLoggedUser();
+    var geo = getCachedGeo();
     send({
       session_id: getSid(),
       page_path: location.pathname + location.search,
@@ -84,7 +128,11 @@
       browser: detectBrowser(),
       os: detectOS(),
       screen_width: window.innerWidth,
-      event_type: 'exit'
+      event_type: 'exit',
+      user_email: user ? user.email : null,
+      user_id: user ? user.id : null,
+      ip_address: geo ? geo.ip : null,
+      country: geo ? geo.country : null
     });
   });
 })();

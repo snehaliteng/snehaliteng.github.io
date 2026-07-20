@@ -11,7 +11,7 @@ const supabaseClient = (() => {
   async function getCurrentUser() {
     const { data: { user } } = await client.auth.getUser();
     if (!user) return null;
-    const { data: profile } = await client.from('profiles').select('*').eq('id', user.id).single();
+    const { data: profile } = await client.from('profiles').select('*').eq('user_id', user.id).single();
     return { ...user, profile };
   }
   async function signIn(email, password) {

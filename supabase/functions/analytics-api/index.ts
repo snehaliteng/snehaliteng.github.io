@@ -32,7 +32,7 @@ serve(async (req) => {
 
     const { data: pvRows } = await supabase
       .from('site_analytics')
-      .select('created_at, session_id, page_path, device_type, browser, os, event_type')
+      .select('created_at, session_id, page_path, device_type, browser, os, event_type, user_email, user_id, ip_address, country')
       .gte('created_at', sinceStr)
       .order('created_at', { ascending: false })
       .limit(50000)
@@ -46,22 +46,28 @@ serve(async (req) => {
     const sessions = new Set(rows.map(r => r.session_id))
     const uniqueVisitors = sessions.size
 
+    // Unique logged-in users
+    const loggedEmails = new Set(rows.filter(r => r.user_email).map(r => r.user_email))
+    const uniqueLoggedUsers = loggedEmails.size
+
     // Real-time active (last 5 min)
     const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000)
-    const realtimeSessions = new Set(rows.filter(r => new Date(r.created_at) > fiveMinAgo).map(r => r.session_id))
+    const realtimeRows = rows.filter(r => new Date(r.created_at) > fiveMinAgo)
+    const realtimeSessions = new Set(realtimeRows.map(r => r.session_id))
 
     // Daily trend
-    const dailyMap: Record<string, { pv: number; uv: Set<string> }> = {}
+    const dailyMap: Record<string, { pv: number; uv: Set<string>; lu: Set<string> }> = {}
     for (const r of rows) {
       if (r.event_type !== 'pageview') continue
       const day = r.created_at.substring(0, 10)
-      if (!dailyMap[day]) dailyMap[day] = { pv: 0, uv: new Set() }
+      if (!dailyMap[day]) dailyMap[day] = { pv: 0, uv: new Set(), lu: new Set() }
       dailyMap[day].pv++
       dailyMap[day].uv.add(r.session_id)
+      if (r.user_email) dailyMap[day].lu.add(r.user_email)
     }
     const dailyTrend = Object.entries(dailyMap)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, v]) => ({ date, pageviews: v.pv, visitors: v.uv.size }))
+      .map(([date, v]) => ({ date, pageviews: v.pv, visitors: v.uv.size, loggedUsers: v.lu.size }))
 
     // Top pages
     const pageMap: Record<string, number> = {}
@@ -98,15 +104,57 @@ serve(async (req) => {
     }
     const osList = Object.entries(osMap).map(([name, count]) => ({ name, count }))
 
+    // Country breakdown
+    const countryMap: Record<string, number> = {}
+    for (const r of rows) {
+      if (r.event_type !== 'pageview') continue
+      countryMap[r.country || 'Unknown'] = (countryMap[r.country || 'Unknown'] || 0) + 1
+    }
+    const countries = Object.entries(countryMap)
+      .sort(([, a], [, b]) => b - a)
+      .map(([name, count]) => ({ name, count }))
+
+    // Logged-in users with their pages
+    const userPages: Record<string, { pages: Set<string>; visits: number; lastSeen: string }> = {}
+    for (const r of rows) {
+      if (!r.user_email) continue
+      if (!userPages[r.user_email]) userPages[r.user_email] = { pages: new Set(), visits: 0, lastSeen: r.created_at }
+      userPages[r.user_email].pages.add(r.page_path)
+      userPages[r.user_email].visits++
+      if (r.created_at > userPages[r.user_email].lastSeen) userPages[r.user_email].lastSeen = r.created_at
+    }
+    const loggedInUsers = Object.entries(userPages)
+      .map(([email, v]) => ({ email, visits: v.visits, pages: [...v.pages], lastSeen: v.lastSeen }))
+      .sort((a, b) => b.visits - a.visits)
+
+    // Recent visitors (last 20 pageviews with user info)
+    const recentVisitors = rows
+      .filter(r => r.event_type === 'pageview')
+      .slice(0, 20)
+      .map(r => ({
+        email: r.user_email || 'Anonymous',
+        page: r.page_path,
+        browser: r.browser,
+        os: r.os,
+        device: r.device_type,
+        country: r.country,
+        ip: r.ip_address,
+        time: r.created_at,
+      }))
+
     return new Response(JSON.stringify({
       totalPageviews: totalPV,
       uniqueVisitors,
+      uniqueLoggedUsers,
       realtimeActive: realtimeSessions.size,
       dailyTrend,
       topPages,
       devices,
       browsers,
       os: osList,
+      countries,
+      loggedInUsers,
+      recentVisitors,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
   } catch (err) {
