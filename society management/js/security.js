@@ -102,8 +102,8 @@ const SecurityModule = (() => {
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       let hostId = null;
       if (flat) {
-        const { data: profiles } = await supabaseClient.getClient().from('profiles').select('id').eq('flat_number', flat).limit(1);
-        if (profiles && profiles.length > 0) hostId = profiles[0].id;
+        const { data: profiles } = await supabaseClient.getClient().from('profiles').select('user_id').eq('flat_number', flat).limit(1);
+        if (profiles && profiles.length > 0) hostId = profiles[0].user_id;
       }
       await supabaseClient.getClient().from('visitors').insert({
         name, phone, vehicle_number: vehicle, purpose,
@@ -169,13 +169,13 @@ const SecurityModule = (() => {
 
   async function showAssignParking() {
     const { data: slots } = await supabaseClient.getClient().from('parking_slots').select('*').eq('is_occupied', false);
-    const { data: residents } = await supabaseClient.getClient().from('profiles').select('id, full_name, flat_number').neq('role', 'admin');
+    const { data: residents } = await supabaseClient.getClient().from('profiles').select('user_id, full_name, flat_number').neq('role', 'admin');
     const modal = document.getElementById('securityModal');
     modal.innerHTML = `
       <div class="modal" style="max-width:450px;">
         <h2>Assign Parking Slot</h2>
         <div class="form-group"><label>Slot</label><select id="pk_slot">${(slots || []).map(s => `<option value="${s.id}">${s.slot_number} (${s.type})</option>`).join('') || '<option>No free slots</option>'}</select></div>
-        <div class="form-group"><label>Resident</label><select id="pk_resident">${(residents || []).map(r => `<option value="${r.id}">${r.full_name} - ${r.flat_number || ''}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Resident</label><select id="pk_resident">${(residents || []).map(r => `<option value="${r.user_id}">${r.full_name} - ${r.flat_number || ''}</option>`).join('')}</select></div>
         <div class="form-group"><label>Vehicle Number</label><input id="pk_vehicle" placeholder="MH-01-AB-1234"></div>
         <div class="form-group"><label>Vehicle Model</label><input id="pk_model" placeholder="Honda City"></div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">

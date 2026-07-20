@@ -119,7 +119,7 @@ const MaintenanceModule = (() => {
       const method = document.getElementById('pm_method').value;
       const client = supabaseClient.getClient();
       const txnId = 'TXN' + Date.now() + Math.random().toString(36).slice(2, 6).toUpperCase();
-      await client.from('payments').insert({
+      await client.from('society_payments').insert({
         bill_id: billId, resident_id: user.id, amount, payment_method: method,
         transaction_id: txnId, status: 'success', paid_at: new Date().toISOString()
       });

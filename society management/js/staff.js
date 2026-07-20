@@ -53,8 +53,8 @@ const StaffModule = (() => {
         <td>${escHtml(s.flat_number || '-')}</td>
         <td><span class="badge badge-${s.is_active ? 'success' : 'danger'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
         <td>
-          <button class="btn-outline btn-sm" onclick="StaffModule.showEditStaff('${s.id}')">✏️</button>
-          <button class="btn-outline btn-sm" onclick="StaffModule.toggleActive('${s.id}', ${!s.is_active})" style="margin-left:4px;">${s.is_active ? '🔴' : '🟢'}</button>
+          <button class="btn-outline btn-sm" onclick="StaffModule.showEditStaff('${s.user_id}')">✏️</button>
+          <button class="btn-outline btn-sm" onclick="StaffModule.toggleActive('${s.user_id}', ${!s.is_active})" style="margin-left:4px;">${s.is_active ? '🔴' : '🟢'}</button>
         </td>
       </tr>`).join('')
     }</tbody></table></div>`;
@@ -67,7 +67,7 @@ const StaffModule = (() => {
     const client = supabaseClient.getClient();
     let staff = { full_name: '', email: '', phone: '', flat_number: '', role: 'staff', is_active: true };
     if (id) {
-      const { data } = await client.from('profiles').select('*').eq('id', id).single();
+      const { data } = await client.from('profiles').select('*').eq('user_id', id).single();
       if (data) staff = data;
     }
     const modal = document.getElementById('staffModal');
@@ -105,7 +105,7 @@ const StaffModule = (() => {
     try {
       const client = supabaseClient.getClient();
       if (id) {
-        await client.from('profiles').update(data).eq('id', id);
+        await client.from('profiles').update(data).eq('user_id', id);
       } else {
         const email = document.getElementById('sf_email').value.trim();
         if (!email) { showToast('Email is required', 'error'); return; }
@@ -121,7 +121,7 @@ const StaffModule = (() => {
   async function toggleActive(id, active) {
     try {
       const client = supabaseClient.getClient();
-      await client.from('profiles').update({ is_active: active }).eq('id', id);
+      await client.from('profiles').update({ is_active: active }).eq('user_id', id);
       showToast(active ? 'Staff activated' : 'Staff deactivated', 'success');
       await renderTab();
     } catch (e) { showToast(e.message, 'error'); }
@@ -146,7 +146,7 @@ const StaffModule = (() => {
         <table><thead><tr><th>Staff</th><th>Role</th><th>Status</th><th>Check In</th><th>Check Out</th><th>Actions</th></tr></thead><tbody>${
           (!staff || staff.length === 0) ? '<tr><td colspan="6" class="text-center" style="padding:24px;color:var(--text-secondary)">No staff members</td></tr>' :
           staff.map(s => {
-            const att = attMap[s.id];
+            const att = attMap[s.user_id];
             const status = att?.status || 'absent';
             const colors = { present: 'success', absent: 'danger', half_day: 'warning', leave: 'info', holiday: 'secondary' };
             return `<tr>
@@ -156,10 +156,10 @@ const StaffModule = (() => {
               <td>${att?.check_in ? new Date(att.check_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
               <td>${att?.check_out ? new Date(att.check_out).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
               <td style="display:flex;gap:4px;">
-                ${!att ? `<button class="btn-outline btn-sm" onclick="StaffModule.markAttendance('${s.id}', 'present')">✅</button>
-                <button class="btn-outline btn-sm" onclick="StaffModule.markAttendance('${s.id}', 'absent')">❌</button>
-                <button class="btn-outline btn-sm" onclick="StaffModule.markAttendance('${s.id}', 'leave')">🏖️</button>` :
-                `<button class="btn-outline btn-sm" onclick="StaffModule.checkOut('${s.id}')">🚪 Check Out</button>`}
+                ${!att ? `<button class="btn-outline btn-sm" onclick="StaffModule.markAttendance('${s.user_id}', 'present')">✅</button>
+                <button class="btn-outline btn-sm" onclick="StaffModule.markAttendance('${s.user_id}', 'absent')">❌</button>
+                <button class="btn-outline btn-sm" onclick="StaffModule.markAttendance('${s.user_id}', 'leave')">🏖️</button>` :
+                `<button class="btn-outline btn-sm" onclick="StaffModule.checkOut('${s.user_id}')">🚪 Check Out</button>`}
               </td>
             </tr>`;
           }).join('')
@@ -183,11 +183,11 @@ const StaffModule = (() => {
 
   async function markAllPresent() {
     const client = supabaseClient.getClient();
-    const { data: staff } = await client.from('profiles').select('id').in('role', ['staff', 'security']).eq('is_active', true);
+    const { data: staff } = await client.from('profiles').select('user_id').in('role', ['staff', 'security']).eq('is_active', true);
     if (!staff || staff.length === 0) { showToast('No staff found', 'error'); return; }
     const today = new Date().toISOString().slice(0, 10);
     const now = new Date().toISOString();
-    const rows = staff.map(s => ({ staff_id: s.id, attendance_date: today, status: 'present', check_in: now }));
+    const rows = staff.map(s => ({ staff_id: s.user_id, attendance_date: today, status: 'present', check_in: now }));
     try {
       const { error } = await client.from('staff_attendance').upsert(rows, { onConflict: 'staff_id,attendance_date' });
       if (error) throw error;
@@ -397,11 +397,11 @@ const StaffModule = (() => {
   // ─── HELPERS ───
   async function loadStaffDropdown(selectId) {
     const client = supabaseClient.getClient();
-    const { data } = await client.from('profiles').select('id, full_name, role').in('role', ['staff', 'security']).eq('is_active', true).order('full_name');
+    const { data } = await client.from('profiles').select('user_id, full_name, role').in('role', ['staff', 'security']).eq('is_active', true).order('full_name');
     const select = document.getElementById(selectId);
     if (select && data) {
       select.innerHTML = '<option value="">Select staff...</option>' +
-        data.map(s => `<option value="${s.id}">${escHtml(s.full_name)} (${s.role})</option>`).join('');
+        data.map(s => `<option value="${s.user_id}">${escHtml(s.full_name)} (${s.role})</option>`).join('');
     }
   }
 

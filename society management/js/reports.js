@@ -17,7 +17,7 @@ const ReportsModule = (() => {
     const client = supabaseClient.getClient();
     try {
       const { data: bills } = await client.from('maintenance_bills').select('amount, paid_amount, status');
-      const { data: payments } = await client.from('payments').select('amount, paid_at, payment_method, profiles!payments_resident_id_fkey(full_name, flat_number)').order('paid_at', { ascending: false }).limit(10);
+      const { data: payments } = await client.from('society_payments').select('amount, paid_at, payment_method').order('paid_at', { ascending: false }).limit(10);
       const { data: complaints } = await client.from('complaints').select('category, status');
       const { data: expenses } = await client.from('expenses').select('amount');
       const { data: residents } = await client.from('profiles').select('id').neq('role', 'admin');
@@ -41,8 +41,8 @@ const ReportsModule = (() => {
       document.getElementById('recentPayments').innerHTML = (payments || []).length > 0 ?
         (payments || []).map(p => `
           <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
-            <strong>${escHtml(p.profiles?.full_name || 'Unknown')}</strong> (${p.profiles?.flat_number || '-'})
-            <span style="float:right;"><strong>₹${p.amount}</strong> <span class="badge badge-info">${p.payment_method}</span></span>
+            <strong>Payment</strong>
+            <span style="float:right;"><strong>₹${p.amount}</strong> <span class="badge badge-info">${p.payment_method || '-'}</span></span>
             <div style="font-size:11px;color:var(--text-secondary);">${new Date(p.paid_at).toLocaleDateString()}</div>
           </div>`).join('') : '<p style="color:var(--text-secondary);">No payments recorded</p>';
 

@@ -109,7 +109,7 @@ const ComplaintsModule = (() => {
   }
 
   async function showEdit(id, currentStatus, assignedTo) {
-    const { data: staff } = await supabaseClient.getClient().from('profiles').select('id, full_name').eq('role', 'staff');
+    const { data: staff } = await supabaseClient.getClient().from('profiles').select('user_id, full_name').eq('role', 'staff');
     const modal = document.getElementById('complaintModal');
     modal.innerHTML = `
       <div class="modal" style="max-width:450px;">
@@ -126,7 +126,7 @@ const ComplaintsModule = (() => {
         <div class="form-group"><label>Assign To</label>
           <select id="comp_assign">
             <option value="">Unassigned</option>
-            ${(staff || []).map(s => `<option value="${s.id}" ${s.id === assignedTo ? 'selected' : ''}>${s.full_name}</option>`).join('')}
+            ${(staff || []).map(s => `<option value="${s.user_id}" ${s.user_id === assignedTo ? 'selected' : ''}>${s.full_name}</option>`).join('')}
           </select>
         </div>
         <div class="form-group"><label>Resolution Notes</label><textarea id="comp_notes" rows="3"></textarea></div>
