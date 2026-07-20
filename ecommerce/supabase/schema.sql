@@ -70,7 +70,9 @@ CREATE INDEX idx_products_category ON ec_products(category_id);
 CREATE INDEX idx_products_vendor ON ec_products(vendor_id);
 ALTER TABLE ec_products ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "anyone read products" ON ec_products FOR SELECT USING (true);
-CREATE POLICY "vendor manage products" ON ec_products FOR ALL USING (vendor_id IN (SELECT id FROM ec_vendors WHERE user_id = auth.uid()));
+CREATE POLICY "vendor manage products" ON ec_products FOR ALL
+  USING (vendor_id IN (SELECT id FROM ec_vendors WHERE user_id = auth.uid()))
+  WITH CHECK (vendor_id IN (SELECT id FROM ec_vendors WHERE user_id = auth.uid()));
 CREATE POLICY "admin all products" ON ec_products FOR ALL USING (auth.jwt()->>'email' = 'snehaliteng@gmail.com');
 
 -- User Addresses
@@ -244,6 +246,7 @@ CREATE TABLE IF NOT EXISTS user_ec_plans (
 ALTER TABLE user_ec_plans ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "user_ec_plans admin all" ON user_ec_plans FOR ALL USING (auth.jwt()->>'email' = 'snehaliteng@gmail.com');
 CREATE POLICY "user_ec_plans user own" ON user_ec_plans FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "user_ec_plans user insert own" ON user_ec_plans FOR INSERT WITH CHECK (user_id = auth.uid());
 
 -- Default plans
 INSERT INTO ec_plans (name, description, max_products, max_categories, commission_rate, featured_products, priority_support, custom_domain, bulk_import, api_access, analytics, price, sort_order)

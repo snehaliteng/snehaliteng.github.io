@@ -263,5 +263,6 @@
     }
     async function deleteBudget(id) { if(!confirm('Delete this budget?')) return; await erp.from('budgets').delete().eq('id',id); loadBudgets(); }
   </script>
+<script src="/js/analytics-tracker.js" defer></script>
 </body>
 </html>

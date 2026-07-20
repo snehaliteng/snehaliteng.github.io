@@ -145,5 +145,6 @@
     function editAccount(id, code, name, type) { editId = id; document.getElementById('form-title').textContent = 'Edit Account'; document.getElementById('code').value = code; document.getElementById('acct_name').value = name; document.getElementById('acct_type').value = type; document.getElementById('form-section').classList.remove('hidden'); }
     async function deleteAccount(id) { if (!confirm('Delete this account?')) return; try { await erp.from('chart_of_accounts').update({ is_active: false }).eq('id', id); showAlert('Account deleted.', 'success'); await loadAccounts(); } catch (err) { showAlert(err.message, 'error'); } }
   </script>
+<script src="/js/analytics-tracker.js" defer></script>
 </body>
 </html>

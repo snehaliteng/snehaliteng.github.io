@@ -245,5 +245,6 @@
     }
     async function deleteChallan(id) { if(!confirm('Delete this challan?')) return; await erp.from('tds_challans').delete().eq('id',id); loadChallans(); }
   </script>
+<script src="/js/analytics-tracker.js" defer></script>
 </body>
 </html>

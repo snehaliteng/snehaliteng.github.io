@@ -54,7 +54,7 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
       <div class="flex items-center gap-4">
         <span id="nav-store-name" class="text-sm font-medium text-gray-600 hidden md:inline"></span>
         <span id="nav-user-email" class="text-sm text-gray-400 hidden md:inline"></span>
-        <button onclick="handleLogout()" class="text-sm font-medium text-red-500 hover:text-red-700 transition">Logout</button>
+        <span id="nav-auth-section"></span>
       </div>
     </div>
   </div>
@@ -383,8 +383,17 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
           <input type="text" id="pf-sku" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Images (URLs, comma-separated)</label>
-          <input type="text" id="pf-images" placeholder="https://..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
+          <div class="flex items-center gap-2 mb-2">
+            <label for="pf-files" class="cursor-pointer inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition border border-blue-200">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              Upload Images
+            </label>
+            <input type="file" id="pf-files" multiple accept="image/*" class="hidden" onchange="previewProductImages(this)">
+            <span class="text-xs text-gray-400">JPG, PNG, WebP (max 5MB each)</span>
+          </div>
+          <div id="pf-image-preview" class="flex flex-wrap gap-2 mb-2"></div>
+          <input type="text" id="pf-images" placeholder="Or paste image URLs, comma-separated" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -399,6 +408,39 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
   </div>
 </div>
 
+<!-- ============ LOGIN MODAL ============ -->
+<div id="login-modal-overlay" class="modal-overlay fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+  <div class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-md">
+    <div class="flex items-center justify-between p-4 border-b">
+      <h2 id="login-modal-title" class="text-lg font-bold text-gray-800">Login</h2>
+      <button onclick="closeLoginModal()" class="text-gray-400 hover:text-gray-600 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+    </div>
+    <div id="login-modal-body" class="p-4">
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" id="login-email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input type="password" id="login-password" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <button type="submit" id="login-submit-btn" class="btn-primary w-full">Login</button>
+      </form>
+      <div class="mt-4 text-center">
+        <a href="#" onclick="showResetPassword(event)" class="text-sm text-blue-600 hover:text-blue-800">Forgot Password?</a>
+      </div>
+      <div class="relative my-4">
+        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+        <div class="relative flex justify-center text-sm"><span class="bg-white px-2 text-gray-500">Or continue with</span></div>
+      </div>
+      <button onclick="ecSocialLogin('google');" class="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"><svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</button>
+      <div class="mt-4 text-center text-sm text-gray-600">Don't have an account? <a href="#" onclick="toggleAuthMode(event)" class="text-blue-600 hover:text-blue-800 font-medium">Sign Up</a></div>
+      <div id="login-error" class="text-red-500 text-sm mt-2 text-center hidden"></div>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="../js/ecommerce.js"></script>
 <script>
@@ -409,6 +451,7 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
 let vendor = null;
 let editingProductId = null;
 let currentPage = 1;
+let isLoginMode = true;
 
 // ============================================================
 // INIT
@@ -417,15 +460,94 @@ document.addEventListener('DOMContentLoaded', async function() {
   try {
     await ecCheckAuth();
     if (!ecCurrentUser) {
-      window.location.href = '../index.html';
+      openLoginModal();
       return;
     }
+    updateAuthUI();
     document.getElementById('nav-user-email').textContent = ecCurrentUser.email;
     await loadVendor();
   } catch (e) {
     console.error('Init error:', e);
-    window.location.href = '../index.html';
+    openLoginModal();
   }
+});
+
+function updateAuthUI() {
+  var el = document.getElementById('nav-auth-section');
+  if (!el) return;
+  if (ecCurrentUser) {
+    el.innerHTML = '<button onclick="handleLogout()" class="text-sm font-medium text-red-500 hover:text-red-700 transition">Logout</button>';
+  } else {
+    el.innerHTML = '<button onclick="openLoginModal()" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition">Login</button>';
+  }
+}
+
+// ============================================================
+// AUTH MODAL
+// ============================================================
+function openLoginModal() {
+  document.getElementById('login-modal-overlay').classList.add('open');
+  isLoginMode = true;
+  document.getElementById('login-modal-title').textContent = 'Login';
+  document.getElementById('login-submit-btn').textContent = 'Login';
+  document.getElementById('login-error').classList.add('hidden');
+}
+
+function closeLoginModal() {
+  document.getElementById('login-modal-overlay').classList.remove('open');
+}
+
+function toggleAuthMode(e) {
+  e.preventDefault();
+  isLoginMode = !isLoginMode;
+  document.getElementById('login-modal-title').textContent = isLoginMode ? 'Login' : 'Sign Up';
+  document.getElementById('login-submit-btn').textContent = isLoginMode ? 'Login' : 'Sign Up';
+  document.getElementById('login-error').classList.add('hidden');
+}
+
+function showResetPassword(e) {
+  e.preventDefault();
+  var email = document.getElementById('login-email').value.trim();
+  if (!email) { ecShowAlert('Please enter your email first', 'error'); return; }
+  ec.auth.resetPasswordForEmail(email, { redirectTo: EC_SITE_URL + '/ecommerce/vendor/dashboard.html' }).then(function() {
+    ecShowAlert('Password reset email sent!', 'success');
+  }).catch(function(err) {
+    ecShowAlert(err.message, 'error');
+  });
+}
+
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  var email = document.getElementById('login-email').value.trim();
+  var password = document.getElementById('login-password').value;
+  var errorEl = document.getElementById('login-error');
+  var btn = document.getElementById('login-submit-btn');
+  errorEl.classList.add('hidden');
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    if (isLoginMode) {
+      await ecLogin(email, password);
+    } else {
+      await ecSignup(email, password);
+      errorEl.textContent = 'Signup successful! Check your email to confirm.';
+      errorEl.classList.remove('hidden');
+      errorEl.classList.add('text-green-500');
+      btn.disabled = false;
+      btn.textContent = isLoginMode ? 'Login' : 'Sign Up';
+      return;
+    }
+    closeLoginModal();
+    updateAuthUI();
+    document.getElementById('nav-user-email').textContent = ecCurrentUser.email;
+    await loadVendor();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.classList.remove('hidden');
+    errorEl.classList.add('text-red-500');
+  }
+  btn.disabled = false;
+  btn.textContent = isLoginMode ? 'Login' : 'Sign Up';
 });
 
 // ============================================================
@@ -712,6 +834,8 @@ function openProductModal(data) {
     document.getElementById('pf-images').value = (data.images && data.images.length) ? data.images.join(', ') : '';
     document.getElementById('pf-description').value = data.description || '';
   }
+  document.getElementById('pf-image-preview').innerHTML = '';
+  document.getElementById('pf-files').value = '';
   document.getElementById('product-modal').classList.add('open');
 }
 
@@ -730,6 +854,42 @@ document.getElementById('pf-slug').addEventListener('input', function() {
   this.dataset.manuallyEdited = 'true';
 });
 
+function previewProductImages(input) {
+  var preview = document.getElementById('pf-image-preview');
+  preview.innerHTML = '';
+  if (!input.files || !input.files.length) return;
+  Array.from(input.files).forEach(function(f) {
+    if (f.size > 5*1024*1024) { ecShowAlert(f.name + ' exceeds 5MB limit', 'error'); return; }
+    if (!f.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var div = document.createElement('div');
+      div.className = 'relative w-16 h-16';
+      div.innerHTML = '<img src="' + e.target.result + '" class="w-16 h-16 object-cover rounded-lg border"><span class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center cursor-pointer" onclick="removeProductImagePreview(this)">&times;</span>';
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function removeProductImagePreview(el) {
+  el.parentElement.remove();
+}
+
+async function uploadProductImage(file) {
+  var formData = new FormData();
+  formData.append('file', file);
+  var token = await ec.auth.getSession().then(function(s) { return s.data?.session?.access_token; });
+  var res = await fetch(EC_SUPABASE_URL + '/functions/v1/ec-upload-image', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token },
+    body: formData
+  });
+  var result = await res.json();
+  if (!res.ok || result.error) throw new Error(result.error || 'Upload failed');
+  return result.url;
+}
+
 document.getElementById('product-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   var btn = document.getElementById('pf-submit-btn');
@@ -738,7 +898,20 @@ document.getElementById('product-form').addEventListener('submit', async functio
   try {
     var id = document.getElementById('pf-id').value;
     var imagesStr = document.getElementById('pf-images').value.trim();
-    var images = imagesStr ? imagesStr.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+    var images = imagesStr ? imagesStr.split(',').map(function(s) {
+      s = s.trim();
+      var dm = s.match(/drive\.google\.com\/file\/d\/([^/]+)\//);
+      if (dm) s = 'https://drive.google.com/uc?export=view&id=' + dm[1];
+      return s;
+    }).filter(Boolean) : [];
+    var fileInput = document.getElementById('pf-files');
+    if (fileInput.files && fileInput.files.length) {
+      btn.textContent = 'Uploading images...';
+      for (var fi = 0; fi < fileInput.files.length; fi++) {
+        var url = await uploadProductImage(fileInput.files[fi]);
+        images.push(url);
+      }
+    }
     var payload = {
       vendor_id: vendor.id,
       name: document.getElementById('pf-name').value.trim(),
@@ -1226,5 +1399,6 @@ async function handleLogout() {
 }
 
 </script>
+<script src="/js/analytics-tracker.js" defer></script>
 </body>
 </html>

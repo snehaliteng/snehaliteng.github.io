@@ -197,5 +197,6 @@
 
     async function deleteAsset(id) { if(!confirm('Delete this asset?')) return; await erp.from('fixed_assets').delete().eq('id',id); loadData(); }
   </script>
+<script src="/js/analytics-tracker.js" defer></script>
 </body>
 </html>

@@ -22,7 +22,21 @@ serve(async (req) => {
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
-    const { order_id } = await req.json()
+    const { order_id, delete_order_id, delete_order_ids } = await req.json()
+
+    if (delete_order_ids && Array.isArray(delete_order_ids)) {
+      await supabase.from('shop_order_items').delete().in('order_id', delete_order_ids)
+      const { error } = await supabase.from('shop_orders').delete().in('id', delete_order_ids)
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ ok: true, deleted: delete_order_ids.length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    if (delete_order_id) {
+      await supabase.from('shop_order_items').delete().eq('order_id', delete_order_id)
+      const { error } = await supabase.from('shop_orders').delete().eq('id', delete_order_id)
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
     if (order_id) {
       const { data: items, error: itemsErr } = await supabase
