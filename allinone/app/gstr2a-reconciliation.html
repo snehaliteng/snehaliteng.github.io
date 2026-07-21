@@ -216,6 +216,6 @@
     }
     async function deleteGSTR(id) { if(!confirm('Delete this record?')) return; await erp.from('gst_records').delete().eq('id',id); await loadGSTR(); await loadReconciliation(); }
   </script>
-<script src="/js/analytics-tracker.js" defer></script>
+<script src="../../js/analytics-tracker.js" defer></script>
 </body>
 </html>

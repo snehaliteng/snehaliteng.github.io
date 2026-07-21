@@ -109,6 +109,6 @@
     }
     async function deleteParty(id) { if (!confirm('Delete this party?')) return; try { await erp.from('parties').update({ is_active: false }).eq('id', id); showAlert('Deleted.', 'success'); await loadParties(); } catch (err) { showAlert(err.message, 'error'); } }
   </script>
-<script src="/js/analytics-tracker.js" defer></script>
+<script src="../../js/analytics-tracker.js" defer></script>
 </body>
 </html>

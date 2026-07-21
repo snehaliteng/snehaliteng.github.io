@@ -3,7 +3,7 @@
 -- Profiles / Residents (extends Supabase auth.users)
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  role TEXT NOT NULL CHECK (role IN ('admin', 'resident', 'security', 'staff')) DEFAULT 'resident',
+  role TEXT NOT NULL CHECK (role IN ('admin', 'super_admin', 'resident', 'security', 'staff')) DEFAULT 'resident',
   full_name TEXT NOT NULL,
   phone TEXT,
   email TEXT,

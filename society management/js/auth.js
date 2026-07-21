@@ -61,13 +61,15 @@ const AuthModule = (() => {
   async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const errEl = document.getElementById('authError');
     if (!email || !password) { showError('Please fill in all fields'); return; }
+    const btn = document.querySelector('.auth-card .btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
     try {
       await supabaseClient.signIn(email, password);
       await loadApp();
     } catch (e) {
       showError(e.message || 'Login failed');
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
     }
   }
 
@@ -126,7 +128,7 @@ const AuthModule = (() => {
       return;
     }
     renderLayout(currentUser);
-    navigate('dashboard');
+    await navigate('dashboard');
   }
 
   function renderLayout(user) {

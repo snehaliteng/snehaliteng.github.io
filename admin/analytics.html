@@ -45,6 +45,7 @@
         <button class="range-btn" data-range="7d">7 Days</button>
         <button class="range-btn" data-range="30d">30 Days</button>
         <button onclick="loadAnalytics()" class="ml-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">Refresh</button>
+        <button onclick="deleteSnehalitengData()" class="ml-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700">Delete /snehaliteng/ Data</button>
       </div>
     </div>
 
@@ -180,6 +181,24 @@
       loadAnalytics();
     });
 
+    async function deleteSnehalitengData() {
+      if (!confirm('Delete all /snehaliteng/ analytics data from database? This cannot be undone.')) return;
+      try {
+        var session = await _admin.auth.getSession();
+        var token = session.data?.session?.access_token;
+        var res = await fetch('https://vgipghqejzbcoighktij.supabase.co/functions/v1/analytics-api', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+        });
+        var d = await res.json();
+        if (!res.ok) throw new Error(d.error || 'Failed');
+        document.getElementById('alert-box').innerHTML = '<div class="bg-green-100 text-green-700 p-3 rounded text-sm mb-4">' + d.message + '</div>';
+        loadAnalytics();
+      } catch (err) {
+        document.getElementById('alert-box').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded text-sm mb-4">' + err.message + '</div>';
+      }
+    }
+
     async function loadAnalytics() {
       try {
         var session = await _admin.auth.getSession();
@@ -197,11 +216,31 @@
       }
     }
 
+    var isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+    function isAdminRoute(path) {
+      if (isLocalhost || !path) return false;
+      return path.indexOf('/admin/') === 0 || path.indexOf('/snehaliteng/') === 0;
+    }
+
+    function filterAdminPages(pages) {
+      return pages.filter(function(p) { return !isAdminRoute(p.path); });
+    }
+
+    function filterAdminVisitors(visitors) {
+      return visitors.filter(function(v) { return !isAdminRoute(v.page); });
+    }
+
     function renderDashboard(d) {
+      var filteredTopPages = filterAdminPages(d.topPages || []);
+      var filteredVisitors = filterAdminVisitors(d.recentVisitors || []);
+      var adminPageviewCount = (d.topPages || []).filter(function(p) { return isAdminRoute(p.path); }).reduce(function(sum, p) { return sum + p.count; }, 0);
+      var filteredPV = Math.max(0, d.totalPageviews - adminPageviewCount);
+
       document.getElementById('stat-realtime').textContent = d.realtimeActive;
-      document.getElementById('stat-pv').textContent = d.totalPageviews.toLocaleString();
+      document.getElementById('stat-pv').textContent = filteredPV.toLocaleString();
       document.getElementById('stat-uv').textContent = d.uniqueVisitors.toLocaleString();
-      document.getElementById('stat-ppv').textContent = d.uniqueVisitors > 0 ? (d.totalPageviews / d.uniqueVisitors).toFixed(1) : '0';
+      document.getElementById('stat-ppv').textContent = d.uniqueVisitors > 0 ? (filteredPV / d.uniqueVisitors).toFixed(1) : '0';
       document.getElementById('stat-logged').textContent = (d.uniqueLoggedUsers || 0);
 
       renderTrend(d.dailyTrend);
@@ -209,9 +248,9 @@
       renderDoughnut('browserChart', browserChart, d.browsers.map(function(x){return x.name}), d.browsers.map(function(x){return x.count}));
       renderDoughnut('osChart', osChart, d.os.map(function(x){return x.name}), d.os.map(function(x){return x.count}));
       renderDoughnut('countryChart', countryChart, d.countries.map(function(x){return x.name}), d.countries.map(function(x){return x.count}));
-      renderTopPages(d.topPages);
+      renderTopPages(filteredTopPages);
       renderLoggedUsers(d.loggedInUsers || []);
-      renderVisitors(d.recentVisitors || []);
+      renderVisitors(filteredVisitors);
     }
 
     function renderTrend(trend) {
@@ -295,6 +334,5 @@
       }).join('');
     }
   </script>
-<script src="/js/analytics-tracker.js" defer></script>
 </body>
 </html>

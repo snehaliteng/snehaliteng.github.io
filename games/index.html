@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9334539225953790" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games - Snehal IT Eng | Play Free Browser Games</title>
+    <meta name="description" content="Play 40+ free browser-based HTML5 games including Snake, Tetris, 2048, Memory, Minesweeper, Word Search, Nonogram, and more.">
+    <meta property="og:title" content="Free Browser Games - Snehal IT Eng">
+    <meta property="og:description" content="Play 40+ free HTML5 games in your browser. Arcade, Puzzle, Board, and Brain games.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://snehaliteng.com/games/">
+    <meta property="og:image" content="../images/og-image.svg">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1RVMWL4SDK"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1RVMWL4SDK');</script>
+    <style>
+        .game-card:hover .game-icon { transform: scale(1.15) rotate(-5deg); }
+        .game-icon { transition: transform 0.3s ease; }
+        .category-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; }
+    </style>
+</head>
+<body class="font-sans text-gray-800 bg-gray-50">
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-white shadow-md z-50" id="navbar">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <a href="../index.html" class="text-2xl font-bold text-blue-600">Snehal<span class="text-gray-800">IT</span><span class="text-blue-400">Eng</span></a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="../index.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                        <a href="../services.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Services</a>
+                        <a href="../portfolio.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
+                        <div class="dropdown">
+                            <a href="#" class="nav-link dropdown-toggle px-3 py-2 rounded-md text-sm font-medium">Applications</a>
+                            <div class="dropdown-menu">
+                                <a href="../apps.html">All Apps</a>
+                                <a href="../tutorials/">Tutorials</a>
+                                <a href="../blog/">Blog</a>
+                                <a href="../todo/index.html">Todo</a>
+                                <a href="../ecommerce/index.html">Marketplace</a>
+                                <a href="../qna/index.html">QNA</a>
+                                <a href="../eduErp/landing.html">EduERP</a>
+                                <a href="../games/index.html">Games</a>
+                            </div>
+                        </div>
+                        <a href="../about.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">About</a>
+                        <a href="../careers.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Careers</a>
+                        <a href="../contact.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-800 hover:text-blue-600 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="../index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Home</a>
+                <a href="../services.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Services</a>
+                <a href="../portfolio.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Portfolio</a>
+                <div>
+                    <a href="#" id="mobile-apps-toggle" class="block px-3 py-2 rounded-md text-base font-medium nav-link" onclick="toggleMobileApps(event)">Applications ▸</a>
+                    <div id="mobile-apps-submenu" class="mobile-submenu">
+                        <a href="../apps.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">All Apps</a>
+                        <a href="../tutorials/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Tutorials</a>
+                        <a href="../blog/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Blog</a>
+                        <a href="../todo/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Todo</a>
+                        <a href="../ecommerce/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Marketplace</a>
+                        <a href="../qna/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">QNA</a>
+                        <a href="../eduErp/landing.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">EduERP</a>
+                        <a href="../games/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Games</a>
+                    </div>
+                </div>
+                <a href="../about.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">About</a>
+                <a href="../careers.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Careers</a>
+                <a href="../contact.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pt-24 pb-12 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="text-6xl mb-4">🎮</div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Free Browser Games</h1>
+            <p class="text-xl text-purple-100 max-w-3xl mx-auto">Play 40+ free browser games - Arcade, Puzzle, Board, and Brain teasers. No downloads needed!</p>
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <button onclick="filterGames('all')" class="filter-btn active px-4 py-2 rounded-full bg-white text-purple-700 font-medium text-sm hover:bg-purple-100 transition-all" data-filter="all">All Games</button>
+                <button onclick="filterGames('puzzle')" class="filter-btn px-4 py-2 rounded-full bg-purple-500 text-white font-medium text-sm hover:bg-purple-400 transition-all" data-filter="puzzle">Puzzle</button>
+                <button onclick="filterGames('arcade')" class="filter-btn px-4 py-2 rounded-full bg-purple-500 text-white font-medium text-sm hover:bg-purple-400 transition-all" data-filter="arcade">Arcade</button>
+                <button onclick="filterGames('board')" class="filter-btn px-4 py-2 rounded-full bg-purple-500 text-white font-medium text-sm hover:bg-purple-400 transition-all" data-filter="board">Board</button>
+                <button onclick="filterGames('brain')" class="filter-btn px-4 py-2 rounded-full bg-purple-500 text-white font-medium text-sm hover:bg-purple-400 transition-all" data-filter="brain">Brain</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Games Grid -->
+    <section class="py-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div id="games-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+                <!-- 1. Snake -->
+                <a href="snake.html" data-category="arcade" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🐍</div>
+                    <span class="category-badge bg-green-100 text-green-700">Arcade</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors mt-2">Snake</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Classic snake game. Eat food, grow longer, don't hit the walls!</p>
+                    <span class="inline-block mt-3 text-green-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 2. Tic Tac Toe -->
+                <a href="tictactoe.html" data-category="board" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">⭕</div>
+                    <span class="category-badge bg-blue-100 text-blue-700">Board</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mt-2">Tic Tac Toe</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Classic X and O game. Play against AI or a friend.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 3. Memory Cards -->
+                <a href="memory.html" data-category="puzzle" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🃏</div>
+                    <span class="category-badge bg-pink-100 text-pink-700">Puzzle</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-pink-600 transition-colors mt-2">Memory Cards</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Match pairs of cards. Test your memory and concentration.</p>
+                    <span class="inline-block mt-3 text-pink-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 4. 2048 -->
+                <a href="game2048.html" data-category="puzzle" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🔢</div>
+                    <span class="category-badge bg-orange-100 text-orange-700">Puzzle</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors mt-2">2048</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Slide and merge tiles to reach 2048. Addictive number puzzle!</p>
+                    <span class="inline-block mt-3 text-orange-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 5. Tetris -->
+                <a href="tetris.html" data-category="arcade" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🧱</div>
+                    <span class="category-badge bg-cyan-100 text-cyan-700">Arcade</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-cyan-600 transition-colors mt-2">Tetris</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Stack falling blocks and clear lines. The timeless classic!</p>
+                    <span class="inline-block mt-3 text-cyan-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 6. Pong -->
+                <a href="pong.html" data-category="arcade" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🏓</div>
+                    <span class="category-badge bg-teal-100 text-teal-700">Arcade</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-teal-600 transition-colors mt-2">Pong</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Classic paddle ball game. Beat the AI in this retro favorite.</p>
+                    <span class="inline-block mt-3 text-teal-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 7. Brick Breaker -->
+                <a href="brickbreaker.html" data-category="arcade" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🧱</div>
+                    <span class="category-badge bg-red-100 text-red-700">Arcade</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors mt-2">Brick Breaker</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Break all the bricks with the ball and paddle. Classic arcade fun!</p>
+                    <span class="inline-block mt-3 text-red-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 8. Minesweeper -->
+                <a href="minesweeper.html" data-category="brain" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">💣</div>
+                    <span class="category-badge bg-gray-100 text-gray-700">Brain</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-gray-600 transition-colors mt-2">Minesweeper</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Find all the mines without detonating them. Logic and deduction!</p>
+                    <span class="inline-block mt-3 text-gray-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 9. Sudoku -->
+                <a href="sudoku.html" data-category="brain" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🔢</div>
+                    <span class="category-badge bg-indigo-100 text-indigo-700">Brain</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors mt-2">Sudoku</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Fill the grid with numbers 1-9. Multiple difficulty levels.</p>
+                    <span class="inline-block mt-3 text-indigo-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 10. Flappy Bird -->
+                <a href="flappybird.html" data-category="arcade" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🐦</div>
+                    <span class="category-badge bg-yellow-100 text-yellow-700">Arcade</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors mt-2">Flappy Bird</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Tap to fly through pipes. How far can you go?</p>
+                    <span class="inline-block mt-3 text-yellow-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 11. Whack-a-Mole -->
+                <a href="whackamole.html" data-category="arcade" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🔨</div>
+                    <span class="category-badge bg-amber-100 text-amber-700">Arcade</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-amber-600 transition-colors mt-2">Whack-a-Mole</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Hit the moles as they pop up. Test your reflexes!</p>
+                    <span class="inline-block mt-3 text-amber-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 12. Simon Says -->
+                <a href="simon.html" data-category="brain" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🧠</div>
+                    <span class="category-badge bg-violet-100 text-violet-700">Brain</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-violet-600 transition-colors mt-2">Simon Says</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Repeat the sequence. How long can your memory last?</p>
+                    <span class="inline-block mt-3 text-violet-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 13. Rock Paper Scissors -->
+                <a href="rps.html" data-category="board" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">✊</div>
+                    <span class="category-badge bg-rose-100 text-rose-700">Board</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-rose-600 transition-colors mt-2">Rock Paper Scissors</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Classic hand game against the computer. Best of 5!</p>
+                    <span class="inline-block mt-3 text-rose-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 14. Connect Four -->
+                <a href="connect4.html" data-category="board" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🔴</div>
+                    <span class="category-badge bg-red-100 text-red-700">Board</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors mt-2">Connect Four</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Drop discs and connect four in a row. Strategic fun!</p>
+                    <span class="inline-block mt-3 text-red-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 15. Space Invaders -->
+                <a href="spaceinvaders.html" data-category="arcade" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">👾</div>
+                    <span class="category-badge bg-emerald-100 text-emerald-700">Arcade</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors mt-2">Space Invaders</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Defend Earth from alien invaders. Retro arcade shooter!</p>
+                    <span class="inline-block mt-3 text-emerald-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 16. Quiz Game -->
+                <a href="quiz.html" data-category="brain" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">❓</div>
+                    <span class="category-badge bg-sky-100 text-sky-700">Brain</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-sky-600 transition-colors mt-2">Quiz Game</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Test your general knowledge with fun trivia questions.</p>
+                    <span class="inline-block mt-3 text-sky-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 17. Math Challenge -->
+                <a href="mathgame.html" data-category="brain" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🧮</div>
+                    <span class="category-badge bg-lime-100 text-lime-700">Brain</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-lime-600 transition-colors mt-2">Math Challenge</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Solve math problems against the clock. Practice makes perfect!</p>
+                    <span class="inline-block mt-3 text-lime-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 18. Typing Speed -->
+                <a href="typingspeed.html" data-category="brain" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">⌨️</div>
+                    <span class="category-badge bg-fuchsia-100 text-fuchsia-700">Brain</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-fuchsia-600 transition-colors mt-2">Typing Speed</h3>
+                    <p class="text-gray-600 mt-1 text-sm">How fast can you type? Measure your WPM and accuracy.</p>
+                    <span class="inline-block mt-3 text-fuchsia-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 19. Crossword Puzzle -->
+                <a href="crossword.html" data-category="puzzle" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">✏️</div>
+                    <span class="category-badge bg-stone-100 text-stone-700">Puzzle</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-stone-600 transition-colors mt-2">Crossword</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Fill in the crossword puzzle with words from the clues.</p>
+                    <span class="inline-block mt-3 text-stone-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 20. Cookie Clicker -->
+                <a href="cookieclicker.html" data-category="arcade" class="game-card group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="game-icon text-5xl mb-3">🍪</div>
+                    <span class="category-badge bg-amber-100 text-amber-700">Arcade</span>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-amber-600 transition-colors mt-2">Cookie Clicker</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Click to bake cookies and buy upgrades. Endlessly satisfying!</p>
+                    <span class="inline-block mt-3 text-amber-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Puzzle Games Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Puzzle Games</h2>
+                <p class="text-gray-600">Challenge your brain with 20 logic and puzzle games.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+                <!-- 1. Word Search -->
+                <a href="wordsearch.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🔍</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Word Search</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Find hidden words in a letter grid. Click and drag to select.</p>
+                    <span class="inline-block mt-3 text-blue-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 2. Sliding Puzzle -->
+                <a href="slidingpuzzle.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🔢</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Sliding Puzzle</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Slide tiles into order. Classic 15-puzzle brain teaser.</p>
+                    <span class="inline-block mt-3 text-green-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 3. Tower of Hanoi -->
+                <a href="towerofhanoi.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🗼</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">Tower of Hanoi</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Move all disks to the last peg. No large on small!</p>
+                    <span class="inline-block mt-3 text-purple-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 4. Maze -->
+                <a href="maze.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🏰</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">Maze</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Navigate through procedurally generated mazes.</p>
+                    <span class="inline-block mt-3 text-indigo-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 5. Color Sort -->
+                <a href="colorsort.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🎨</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-pink-600 transition-colors">Color Sort</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Sort colored balls into tubes. Logic and planning!</p>
+                    <span class="inline-block mt-3 text-pink-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 6. Jigsaw Puzzle -->
+                <a href="jigsaw.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🧩</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-amber-600 transition-colors">Jigsaw Puzzle</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Swap puzzle pieces to complete the picture.</p>
+                    <span class="inline-block mt-3 text-amber-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 7. Pattern Match -->
+                <a href="patternmatch.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🧠</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-cyan-600 transition-colors">Pattern Match</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Memorize and recreate the pattern. How far can you go?</p>
+                    <span class="inline-block mt-3 text-cyan-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 8. Word Scramble -->
+                <a href="wordscramble.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🔀</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">Word Scramble</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Unscramble the letters to find the word. Multiple categories!</p>
+                    <span class="inline-block mt-3 text-teal-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 9. Tangram -->
+                <a href="tangram.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">📐</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-rose-600 transition-colors">Tangram</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Arrange 7 geometric pieces to match the silhouette.</p>
+                    <span class="inline-block mt-3 text-rose-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 10. Logic Grid -->
+                <a href="logicgrid.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">📊</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-violet-600 transition-colors">Logic Grid</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Deduce the answer from clues. Pure logic puzzle!</p>
+                    <span class="inline-block mt-3 text-violet-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 11. Nonogram -->
+                <a href="nonogram.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">⬛</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">Nonogram</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Fill cells using number clues to reveal a picture.</p>
+                    <span class="inline-block mt-3 text-gray-700 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 12. Cryptogram -->
+                <a href="cryptogram.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🔐</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors">Cryptogram</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Decode the encrypted quote by substituting letters.</p>
+                    <span class="inline-block mt-3 text-emerald-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 13. Pentomino -->
+                <a href="pentomino.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🧱</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">Pentomino</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Place 12 five-square shapes to fill the grid.</p>
+                    <span class="inline-block mt-3 text-orange-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 14. Number Chain -->
+                <a href="numberchain.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🔗</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-sky-600 transition-colors">Number Chain</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Connect matching numbers without crossing paths.</p>
+                    <span class="inline-block mt-3 text-sky-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 15. Word Chain -->
+                <a href="wordchain.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">⛓️</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-lime-600 transition-colors">Word Chain</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Each word starts with the last letter of the previous.</p>
+                    <span class="inline-block mt-3 text-lime-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 16. Kakuro -->
+                <a href="kakuro.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">➕</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-red-600 transition-colors">Kakuro</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Fill cells with digits that sum to the clues. Math puzzle!</p>
+                    <span class="inline-block mt-3 text-red-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 17. Futoshiki -->
+                <a href="futoshiki.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">⚖️</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors">Futoshiki</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Number puzzle with inequality constraints between cells.</p>
+                    <span class="inline-block mt-3 text-yellow-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 18. Hitori -->
+                <a href="hitori.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">🩷</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-fuchsia-600 transition-colors">Hitori</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Shade duplicate numbers while keeping the grid connected.</p>
+                    <span class="inline-block mt-3 text-fuchsia-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 19. Pattern Lock -->
+                <a href="patternlocks.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">📱</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">Pattern Lock</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Memorize and reproduce the dot pattern. Visual memory!</p>
+                    <span class="inline-block mt-3 text-indigo-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+                <!-- 20. Spot the Difference -->
+                <a href="spotdiff.html" class="game-card group bg-gray-50 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
+                    <div class="text-5xl mb-3">👁️</div>
+                    <h3 class="text-lg font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">Spot the Difference</h3>
+                    <p class="text-gray-600 mt-1 text-sm">Find differences between two grids. Sharp eyes needed!</p>
+                    <span class="inline-block mt-3 text-teal-600 text-sm font-medium">Play &rarr;</span>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold text-blue-400 mb-4">Snehal<span class="text-white">IT</span><span class="text-blue-300">Eng</span></h3>
+                    <p class="text-gray-400">Innovative IT solutions for the digital era.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="../index.html" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="../services.html" class="text-gray-400 hover:text-white transition-colors">Services</a></li>
+                        <li><a href="../portfolio.html" class="text-gray-400 hover:text-white transition-colors">Portfolio</a></li>
+                        <li><a href="../apps.html" class="text-gray-400 hover:text-white transition-colors">All Apps</a></li>
+                        <li><a href="../tutorials/" class="text-gray-400 hover:text-white transition-colors">Tutorials</a></li>
+                        <li><a href="../blog/" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="../about.html" class="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Apps</h4>
+                    <ul class="space-y-2">
+                        <li><a href="../ecommerce/index.html" class="text-gray-400 hover:text-white transition-colors">Marketplace</a></li>
+                        <li><a href="../qna/index.html" class="text-gray-400 hover:text-white transition-colors">QNA</a></li>
+                        <li><a href="../todo/index.html" class="text-gray-400 hover:text-white transition-colors">Todo</a></li>
+                        <li><a href="../eduErp/index.html" class="text-gray-400 hover:text-white transition-colors">EduERP</a></li>
+                        <li><a href="../games/index.html" class="text-gray-400 hover:text-white transition-colors">Games</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Contact Us</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>Email: snehaliteng@gmail.com</li>
+                        <li>LinkedIn: <a href="https://www.linkedin.com/in/snehal-kadiya-7364ba1b/" class="hover:text-white">/in/snehal-kadiya-7364ba1b/</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2026 Snehal IT Eng. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    function toggleMobileApps(e) {
+        e.preventDefault();
+        var sub = document.getElementById('mobile-apps-submenu');
+        var toggle = document.getElementById('mobile-apps-toggle');
+        sub.classList.toggle('open');
+        toggle.textContent = sub.classList.contains('open') ? 'Applications ▾' : 'Applications ▸';
+    }
+
+    function filterGames(category) {
+        var cards = document.querySelectorAll('#games-grid .game-card');
+        var btns = document.querySelectorAll('.filter-btn');
+        btns.forEach(function(btn) {
+            btn.classList.remove('active');
+            btn.classList.add('bg-purple-500', 'text-white');
+            btn.classList.remove('bg-white', 'text-purple-700');
+        });
+        var activeBtn = document.querySelector('[data-filter="' + category + '"]');
+        if (activeBtn) {
+            activeBtn.classList.add('active', 'bg-white', 'text-purple-700');
+            activeBtn.classList.remove('bg-purple-500', 'text-white');
+        }
+        cards.forEach(function(card) {
+            if (category === 'all' || card.getAttribute('data-category') === category) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    </script>
+    <script src="../js/main.js"></script>
+    <script src="../js/analytics-tracker.js" defer></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 const SUPABASE_URL = 'https://vgipghqejzbcoighktij.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnaXBnaHFlanpiY29pZ2hrdGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjQ2MjIsImV4cCI6MjA5NTMwMDYyMn0.KoDwAZarGWOLwKXOwycA8wuIiIrksvZy7dyaO0-ehUo';
 
-const _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const _sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 async function getCurrentUser() {
   const { data: { user }, error } = await _sb.auth.getUser();
@@ -23,6 +23,15 @@ async function signIn(email, password) {
   const { data, error } = await _sb.auth.signInWithPassword({ email, password });
   if (error) throw error;
   if (window.sitengSetUser) window.sitengSetUser(data.user?.email, data.user?.id);
+  return data;
+}
+
+async function signInWithGoogle() {
+  const { data, error } = await _sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname.replace(/login\.html.*/, 'index.html') }
+  });
+  if (error) throw error;
   return data;
 }
 

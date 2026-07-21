@@ -98,6 +98,6 @@
       recDiv.innerHTML = `<table class="w-full"><thead><tr class="bg-gray-50 border-b text-left"><th class="p-2 font-semibold">Invoice</th><th class="p-2 font-semibold">Customer</th><th class="p-2 font-semibold">Date</th><th class="p-2 font-semibold">Amount</th><th class="p-2 font-semibold">Status</th></tr></thead><tbody>${invs.slice(0, 20).map(i => `<tr class="border-b"><td class="p-2 font-mono text-xs">${escapeHtml(i.invoice_no)}</td><td class="p-2">${escapeHtml(i.parties?.name || '-')}</td><td class="p-2 text-xs">${formatDate(i.invoice_date)}</td><td class="p-2 font-medium">${formatCurrency(i.total)}</td><td class="p-2 text-xs">${i.status}</td></tr>`).join('')}</tbody></table>`;
     }
   </script>
-<script src="/js/analytics-tracker.js" defer></script>
+<script src="../../js/analytics-tracker.js" defer></script>
 </body>
 </html>

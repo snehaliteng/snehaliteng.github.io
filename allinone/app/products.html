@@ -116,6 +116,6 @@
     }
     async function deleteProduct(id) { if (!confirm('Delete this product?')) return; try { await erp.from('products').update({ is_active: false }).eq('id', id); showAlert('Deleted.', 'success'); await loadProducts(); } catch (err) { showAlert(err.message, 'error'); } }
   </script>
-<script src="/js/analytics-tracker.js" defer></script>
+<script src="../../js/analytics-tracker.js" defer></script>
 </body>
 </html>
