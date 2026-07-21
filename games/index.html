@@ -1,10 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9334539225953790" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games - Snehal IT Eng | Play Free Browser Games</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Games">
+<link rel="apple-touch-icon" href="icon-192.svg">
     <meta name="description" content="Play 40+ free browser-based HTML5 games including Snake, Tetris, 2048, Memory, Minesweeper, Word Search, Nonogram, and more.">
     <meta property="og:title" content="Free Browser Games - Snehal IT Eng">
     <meta property="og:description" content="Play 40+ free HTML5 games in your browser. Arcade, Puzzle, Board, and Brain games.">
@@ -542,5 +548,15 @@
     </script>
     <script src="../js/main.js"></script>
     <script src="../js/analytics-tracker.js" defer></script>
+<div id="pwa-install" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:none">
+<button onclick="installPWA()" style="background:#38bdf8;color:#0f172a;border:none;padding:10px 18px;border-radius:20px;font-weight:bold;font-size:14px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.4)">Install App</button>
+</div>
+<script>
+var deferredPrompt;
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferredPrompt=e;document.getElementById("pwa-install").style.display="block";});
+function installPWA(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.then(function(r){if(r.outcome==="accepted")document.getElementById("pwa-install").style.display="none";deferredPrompt=null;});}
+window.addEventListener("appinstalled",function(){document.getElementById("pwa-install").style.display="none";deferredPrompt=null;});
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}
+</script>
 </body>
 </html>
