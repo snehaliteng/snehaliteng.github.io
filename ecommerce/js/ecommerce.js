@@ -187,8 +187,8 @@ async function ecLoadProducts(page, filters) {
     query = query.lte('price', parseFloat(filters.max_price));
   }
 
-  let sortField = 'created_at';
-  let sortOrder = { ascending: false };
+  let sortField = 'display_order';
+  let sortOrder = { ascending: true };
   if (filters.sort === 'price_asc') {
     sortField = 'price';
     sortOrder = { ascending: true };
@@ -201,6 +201,9 @@ async function ecLoadProducts(page, filters) {
   } else if (filters.sort === 'newest') {
     sortField = 'created_at';
     sortOrder = { ascending: false };
+  } else if (filters.sort === 'featured') {
+    sortField = 'display_order';
+    sortOrder = { ascending: true };
   }
 
   query = query.order(sortField, sortOrder).range(from, to);

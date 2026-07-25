@@ -193,6 +193,7 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
       <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Products</h2>
         <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="runMigration()" class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-lg font-medium hover:bg-yellow-200 transition" title="Run this once to add display_order column">⚡ Setup Order Column</button>
           <select id="product-vendor-filter" class="filter-select" onchange="loadProducts()">
             <option value="">All Vendors</option>
           </select>
@@ -206,6 +207,7 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
           </select>
         </div>
       </div>
+      <p class="text-xs text-gray-400 mb-3">💡 <strong>Display Order:</strong> Lower numbers appear first on the store. Change the number in the "Order" column to reorder products.</p>
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div id="products-table-content" class="overflow-x-auto"><div class="text-center text-gray-400 py-8">Loading products...</div></div>
       </div>
@@ -539,7 +541,7 @@ async function loadProducts() {
     }
 
     let html = '<table class="data-table"><thead><tr>';
-    html += '<th>Image</th><th>Name</th><th>Vendor</th><th>Category</th><th>Price</th><th>Stock</th><th>Active</th><th>Approval</th><th>Actions</th></tr></thead><tbody>';
+    html += '<th>Image</th><th>Name</th><th>Vendor</th><th>Category</th><th>Price</th><th>Stock</th><th>Order</th><th>Active</th><th>Approval</th><th>Actions</th></tr></thead><tbody>';
     for (const p of data) {
       const img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/40x40?text=N';
       const storeName = p.ec_vendors ? p.ec_vendors.store_name : 'Unknown';
@@ -557,11 +559,13 @@ async function loadProducts() {
         + '<td>' + ecEscape(catName) + '</td>'
         + '<td>' + ecMoney(p.price) + '</td>'
         + '<td>' + p.stock + '</td>'
+        + '<td><input type="number" value="' + (p.display_order || 0) + '" class="w-16 border border-gray-300 rounded px-1 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="updateDisplayOrder(' + p.id + ', this.value)" title="Lower = shows first"></td>'
         + '<td>' + activeBadge + '</td>'
         + '<td>' + approvedBadge + '</td>'
-        + '<td><div class="flex gap-1">';
+        + '<td><div class="flex gap-1 flex-wrap">';
       if (!p.is_approved) html += '<button onclick="approveProduct(' + p.id + ',true)" class="text-xs text-green-600 hover:text-green-800 font-medium px-1">Approve</button>';
       if (p.is_approved) html += '<button onclick="approveProduct(' + p.id + ',false)" class="text-xs text-red-600 hover:text-red-800 font-medium px-1">Reject</button>';
+      if (p.is_approved && p.stock > 0) html += '<button onclick="orderFromAdmin(' + p.id + ')" class="text-xs text-blue-600 hover:text-blue-800 font-medium px-1">🛒 Order</button>';
       html += '</div></td></tr>';
     }
     html += '</tbody></table>';
@@ -604,6 +608,63 @@ async function approveProduct(productId, approved) {
     await loadDashboard();
   } catch (e) {
     ecShowAlert(e.message || 'Failed to update product', 'error');
+  }
+}
+
+async function updateDisplayOrder(productId, value) {
+  const order = parseInt(value) || 0;
+  try {
+    const { error } = await ec.from('ec_products').update({ display_order: order, updated_at: new Date().toISOString() }).eq('id', productId);
+    if (error) throw error;
+    ecShowAlert('Display order updated to ' + order, 'success');
+  } catch (e) {
+    ecShowAlert(e.message || 'Failed to update display order', 'error');
+  }
+}
+
+async function runMigration() {
+  try {
+    const { error } = await ec.from('ec_products').select('display_order').limit(1);
+    if (!error) {
+      ecShowAlert('display_order column already exists! No migration needed.', 'success');
+      return;
+    }
+  } catch (e) {}
+  const sql = "CREATE OR REPLACE FUNCTION exec_sql(sql TEXT) RETURNS VOID AS $$ BEGIN EXECUTE sql; END; $$ LANGUAGE plpgsql SECURITY DEFINER; ALTER TABLE ec_products ADD COLUMN IF NOT EXISTS display_order INTEGER NOT NULL DEFAULT 0; CREATE INDEX IF NOT EXISTS idx_products_display_order ON ec_products(display_order);";
+  const msg = "Copy this SQL and run it in Supabase SQL Editor:\\n\\nhttps://supabase.com/dashboard/project/_/sql\\n\\n" + sql;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(sql).then(function() {
+      ecShowAlert('SQL copied to clipboard! Paste it in Supabase SQL Editor.', 'success');
+    });
+  } else {
+    prompt('Copy this SQL and run it in Supabase SQL Editor:', sql);
+  }
+}
+
+async function orderFromAdmin(productId) {
+  if (!ecCurrentUser) {
+    ecShowAlert('Please log in first', 'error');
+    return;
+  }
+  try {
+    const { data: product, error: prodErr } = await ec.from('ec_products').select('id, name, stock').eq('id', productId).single();
+    if (prodErr) throw prodErr;
+    if (!product || product.stock <= 0) {
+      ecShowAlert('Product is out of stock', 'error');
+      return;
+    }
+    const { error } = await ec.from('ec_cart').upsert(
+      { user_id: ecCurrentUser.id, product_id: productId, quantity: 1 },
+      { onConflict: 'user_id, product_id' }
+    );
+    if (error) throw error;
+    ecShowAlert('Added to cart! Redirecting to store...', 'success');
+    setTimeout(function() {
+      sessionStorage.setItem('ec_open_checkout', '1');
+      window.location.href = '../index.html';
+    }, 1000);
+  } catch (e) {
+    ecShowAlert(e.message || 'Failed to add to cart', 'error');
   }
 }
 

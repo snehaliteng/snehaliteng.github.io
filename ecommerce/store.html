@@ -128,6 +128,7 @@ body { font-family: 'Inter', sans-serif; background: #f3f4f6; }
         <hr class="my-3">
         <h3 class="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">Sort</h3>
         <select id="filter-sort" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+          <option value="featured">Featured</option>
           <option value="newest">Newest</option>
           <option value="price_asc">Price: Low to High</option>
           <option value="price_desc">Price: High to Low</option>
@@ -502,11 +503,13 @@ async function loadAndRenderProducts(page) {
     if (filters.max_price) {
       query = query.lte('price', parseFloat(filters.max_price));
     }
-    var sortField = 'created_at';
-    var sortOrder = { ascending: false };
+    var sortField = 'display_order';
+    var sortOrder = { ascending: true };
     if (filters.sort === 'price_asc') { sortField = 'price'; sortOrder = { ascending: true }; }
     else if (filters.sort === 'price_desc') { sortField = 'price'; sortOrder = { ascending: false }; }
     else if (filters.sort === 'name') { sortField = 'name'; sortOrder = { ascending: true }; }
+    else if (filters.sort === 'newest') { sortField = 'created_at'; sortOrder = { ascending: false }; }
+    else if (filters.sort === 'featured') { sortField = 'display_order'; sortOrder = { ascending: true }; }
     query = query.order(sortField, sortOrder).range(from, to);
     var result = await query;
     var products = result.data || [];
