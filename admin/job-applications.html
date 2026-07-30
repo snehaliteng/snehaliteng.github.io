@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Applications - Admin - Snehal IT Eng</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: .75rem; font-weight: 600; }
+    .badge-pending { background: #fef9c3; color: #854d0e; }
+    .badge-shortlisted { background: #dcfce7; color: #166534; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+  </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9334539225953790" crossorigin="anonymous"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1RVMWL4SDK"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1RVMWL4SDK');</script>
+</head>
+<body>
+  <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+      <a href="../" class="text-blue-600 font-bold text-lg">SnehalITEng</a>
+      <span class="text-gray-400">|</span>
+      <span class="font-semibold">Admin / Job Applications</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="dashboard.html" class="text-sm text-blue-600 hover:underline">Dashboard</a>
+      <button onclick="signOut()" class="text-sm text-red-500 hover:underline">Logout</button>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Job Applications</h1>
+      <div class="flex gap-2">
+        <select id="filter-status" onchange="loadApplications()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <option value="all">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Shortlisted">Shortlisted</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <select id="filter-position" onchange="loadApplications()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <option value="all">All Positions</option>
+          <option value="Senior Full-Stack Developer">Senior Full-Stack Developer</option>
+          <option value="Cloud Solutions Architect">Cloud Solutions Architect</option>
+          <option value="AI/ML Engineer">AI/ML Engineer</option>
+          <option value="DevOps Engineer">DevOps Engineer</option>
+          <option value="General Application">General Application</option>
+        </select>
+      </div>
+    </div>
+    <div id="alert"></div>
+    <div id="loading" class="text-gray-500">Loading applications...</div>
+    <div id="applications-table" class="hidden overflow-x-auto bg-white rounded-xl shadow-sm border"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const user = await requireAdmin();
+      if (!user) return;
+      loadApplications();
+    });
+
+    function parseStatus(service) {
+      if (!service) return 'Pending';
+      if (service.endsWith(' - Shortlisted')) return 'Shortlisted';
+      if (service.endsWith(' - Rejected')) return 'Rejected';
+      return 'Pending';
+    }
+
+    function parsePosition(service) {
+      if (!service) return '-';
+      var s = service.replace('Career Application - ', '');
+      s = s.replace(' - Shortlisted', '').replace(' - Rejected', '');
+      return s;
+    }
+
+    function setStatus(service, newStatus) {
+      var base = parsePosition(service);
+      if (newStatus === 'Pending') return 'Career Application - ' + base;
+      return 'Career Application - ' + base + ' - ' + newStatus;
+    }
+
+    async function loadApplications() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('loading').textContent = 'Loading applications...';
+      document.getElementById('applications-table').classList.add('hidden');
+
+      try {
+        var filterStatus = document.getElementById('filter-status').value;
+        var filterPosition = document.getElementById('filter-position').value;
+
+        var query = _admin
+          .from('contact')
+          .select('*')
+          .ilike('service', 'Career Application -%')
+          .order('created_at', { ascending: false });
+
+        var { data, error } = await query;
+        if (error) throw error;
+
+        document.getElementById('loading').classList.add('hidden');
+
+        if (filterPosition !== 'all') {
+          data = data.filter(function(r) {
+            return parsePosition(r.service) === filterPosition;
+          });
+        }
+        if (filterStatus !== 'all') {
+          data = data.filter(function(r) {
+            return parseStatus(r.service) === filterStatus;
+          });
+        }
+
+        var div = document.getElementById('applications-table');
+        div.classList.remove('hidden');
+
+        if (!data.length) {
+          div.innerHTML = '<div class="p-6 text-gray-500 text-center">No applications found.</div>';
+          return;
+        }
+
+        function statusBadge(s) {
+          if (s === 'Shortlisted') return '<span class="badge badge-shortlisted">Shortlisted</span>';
+          if (s === 'Rejected') return '<span class="badge badge-rejected">Rejected</span>';
+          return '<span class="badge badge-pending">Pending</span>';
+        }
+
+        div.innerHTML = `
+          <table class="w-full text-sm">
+            <thead><tr class="bg-gray-50 border-b text-left">
+              <th class="p-3 font-semibold">Name</th>
+              <th class="p-3 font-semibold">Email</th>
+              <th class="p-3 font-semibold">Phone</th>
+              <th class="p-3 font-semibold">Position</th>
+              <th class="p-3 font-semibold">Message</th>
+              <th class="p-3 font-semibold">Date</th>
+              <th class="p-3 font-semibold">Status</th>
+              <th class="p-3 font-semibold">Actions</th>
+            </tr></thead>
+            <tbody>${data.map(function(r) {
+              var status = parseStatus(r.service);
+              var hasCV = r.message && r.message.indexOf('--- CV ---') !== -1;
+              var msgPreview = r.message ? r.message.replace(/--- CV Data ---[\s\S]*/, '').substring(0, 120) : '';
+              if (r.message && r.message.length > 120 && !r.message.match(/--- CV Data ---/)) msgPreview += '...';
+              return '<tr class="border-b hover:bg-gray-50">'
+                + '<td class="p-3 font-medium">' + escapeHtml(r.name || '-') + '</td>'
+                + '<td class="p-3"><a href="mailto:' + escapeHtml(r.email) + '" class="text-blue-600 hover:underline">' + escapeHtml(r.email) + '</a></td>'
+                + '<td class="p-3">' + escapeHtml(r.phone || '-') + '</td>'
+                + '<td class="p-3"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">' + escapeHtml(parsePosition(r.service)) + '</span></td>'
+                + '<td class="p-3 max-w-xs"><div class="truncate" title="' + escapeHtml(r.message || '') + '">' + escapeHtml(msgPreview) + '</div>'
+                + (hasCV ? '<span class="text-green-600 text-xs font-medium">\u2713 CV attached</span>' : '')
+                + '<button class="text-blue-600 hover:underline text-xs ml-2" onclick="showMessage(' + r.id + ')">View</button></td>'
+                + '<td class="p-3 text-gray-500 text-xs whitespace-nowrap">' + new Date(r.created_at).toLocaleString() + '</td>'
+                + '<td class="p-3" id="status-' + r.id + '">' + statusBadge(status) + '</td>'
+                + '<td class="p-3"><div class="flex gap-1" id="actions-' + r.id + '">'
+                + (status !== 'Shortlisted' ? '<button class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium hover:bg-green-200" onclick="updateStatus(' + r.id + ',\'Shortlisted\')">Shortlist</button>' : '')
+                + (status !== 'Rejected' ? '<button class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium hover:bg-red-200" onclick="updateStatus(' + r.id + ',\'Rejected\')">Reject</button>' : '')
+                + (status !== 'Pending' ? '<button class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-medium hover:bg-yellow-200" onclick="updateStatus(' + r.id + ',\'Pending\')">Reset</button>' : '')
+                + '<button class="text-red-500 hover:underline text-xs ml-1" onclick="deleteApplication(' + r.id + ')">Delete</button>'
+                + '</div></td>'
+                + '</tr>';
+            }).join('')}</tbody>
+          </table>
+          <div class="p-3 text-xs text-gray-400 border-t">Total: ' + data.length + ' application' + (data.length !== 1 ? 's' : '') + '</div>
+        `;
+      } catch (err) {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('alert').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded text-sm">' + err.message + '</div>';
+      }
+    }
+
+    async function updateStatus(id, newStatus) {
+      try {
+        var { data: rows, error: selErr } = await _admin.from('contact').select('service').eq('id', id).single();
+        if (selErr) throw selErr;
+
+        var newService = setStatus(rows.service, newStatus);
+        var { error } = await _admin.from('contact').update({ service: newService }).eq('id', id);
+        if (error) throw error;
+
+        loadApplications();
+      } catch (err) {
+        document.getElementById('alert').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded text-sm">' + err.message + '</div>';
+      }
+    }
+
+    async function deleteApplication(id) {
+      if (!confirm('Delete this application?')) return;
+      try {
+        var { error } = await _admin.from('contact').delete().eq('id', id);
+        if (error) throw error;
+        loadApplications();
+      } catch (err) {
+        document.getElementById('alert').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded text-sm">' + err.message + '</div>';
+      }
+    }
+
+    function showMessage(id) {
+      var find = document.querySelector('#contacts-table');
+      // Simple: find the row and open message in alert
+      // Better: modal
+      var div = document.getElementById('message-modal');
+      if (!div) {
+        div = document.createElement('div');
+        div.id = 'message-modal';
+        div.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        div.onclick = function(e) { if (e.target === div) div.classList.add('hidden'); };
+        div.innerHTML = '<div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto p-6" onclick="event.stopPropagation()">'
+          + '<div class="flex justify-between items-center mb-4"><h2 class="font-bold text-lg">Application Details</h2>'
+          + '<button onclick="document.getElementById(\'message-modal\').classList.add(\'hidden\')" class="text-gray-500 hover:text-black text-xl">&times;</button></div>'
+          + '<div id="message-content" class="text-sm whitespace-pre-wrap"></div></div>';
+        document.body.appendChild(div);
+      }
+
+      document.getElementById('message-content').textContent = 'Loading...';
+      div.classList.remove('hidden');
+
+      _admin.from('contact').select('*').eq('id', id).single().then(function(res) {
+        if (res.error) { document.getElementById('message-content').textContent = 'Error: ' + res.error.message; return; }
+        var r = res.data;
+        var txt = 'Name: ' + (r.name || '') + '\nEmail: ' + r.email + '\nPhone: ' + (r.phone || '') + '\nPosition: ' + parsePosition(r.service) + '\nStatus: ' + parseStatus(r.service) + '\nDate: ' + new Date(r.created_at).toLocaleString() + '\n\n--- Cover Letter ---\n' + (r.message || '').replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
+        var cvMatch = r.message ? r.message.match(/--- CV ---\n(.+)/) : null;
+        if (cvMatch) txt += '\n\n--- CV ---\n' + cvMatch[1];
+        document.getElementById('message-content').textContent = txt;
+      });
+    }
+  </script>
+<script src="../js/analytics-tracker.js" defer></script>
+</body>
+</html>
