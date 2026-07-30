@@ -144,7 +144,7 @@
             </tr></thead>
             <tbody>${data.map(function(r) {
               var status = parseStatus(r.service);
-              var hasCV = r.message && r.message.indexOf('--- CV ---') !== -1;
+                var hasCV = r.message && r.message.indexOf('--- CV Data ---') !== -1;
               var msgPreview = r.message ? r.message.replace(/--- CV Data ---[\s\S]*/, '').substring(0, 120) : '';
               if (r.message && r.message.length > 120 && !r.message.match(/--- CV Data ---/)) msgPreview += '...';
               return '<tr class="border-b hover:bg-gray-50">'
@@ -152,8 +152,8 @@
                 + '<td class="p-3"><a href="mailto:' + escapeHtml(r.email) + '" class="text-blue-600 hover:underline">' + escapeHtml(r.email) + '</a></td>'
                 + '<td class="p-3">' + escapeHtml(r.phone || '-') + '</td>'
                 + '<td class="p-3"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">' + escapeHtml(parsePosition(r.service)) + '</span></td>'
-                + '<td class="p-3 max-w-xs"><div class="truncate" title="' + escapeHtml(r.message || '') + '">' + escapeHtml(msgPreview) + '</div>'
-                + (hasCV ? '<span class="text-green-600 text-xs font-medium">\u2713 CV attached</span>' : '')
+                + '<td class="p-3 max-w-xs"><div class="truncate" title="' + escapeHtml(msgPreview) + '">' + escapeHtml(msgPreview) + '</div>'
+                + (hasCV ? '<span class="text-green-600 text-xs font-medium">\u2713 CV:</span> <button class="text-blue-600 hover:underline text-xs font-medium download-cv" data-id="' + r.id + '">Download</button>' : '')
                 + '<button class="text-blue-600 hover:underline text-xs ml-2" onclick="showMessage(' + r.id + ')">View</button></td>'
                 + '<td class="p-3 text-gray-500 text-xs whitespace-nowrap">' + new Date(r.created_at).toLocaleString() + '</td>'
                 + '<td class="p-3" id="status-' + r.id + '">' + statusBadge(status) + '</td>'
@@ -200,6 +200,36 @@
       }
     }
 
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.download-cv');
+      if (btn) downloadCV(parseInt(btn.dataset.id));
+    });
+
+    async function downloadCV(id) {
+      try {
+        var { data: row, error } = await _admin.from('contact').select('*').eq('id', id).single();
+        if (error) throw error;
+
+        var msg = row.message || '';
+        var cvDataMatch = msg.match(/--- CV Data ---\n(data:[^,]+;base64,.+)/);
+        if (!cvDataMatch) { alert('No CV file data found in this application.'); return; }
+
+        var dataUri = cvDataMatch[1].trim();
+
+        var cvInfoMatch = msg.match(/--- CV ---\n(.+?) \(/);
+        var fileName = cvInfoMatch ? cvInfoMatch[1].trim() : 'CV_' + (row.name || 'applicant').replace(/\s+/g, '_') + '.pdf';
+
+        var link = document.createElement('a');
+        link.href = dataUri;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        document.getElementById('alert').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded text-sm">' + err.message + '</div>';
+      }
+    }
+
     function showMessage(id) {
       var find = document.querySelector('#contacts-table');
       // Simple: find the row and open message in alert
@@ -222,11 +252,27 @@
 
       _admin.from('contact').select('*').eq('id', id).single().then(function(res) {
         if (res.error) { document.getElementById('message-content').textContent = 'Error: ' + res.error.message; return; }
-        var r = res.data;
-        var txt = 'Name: ' + (r.name || '') + '\nEmail: ' + r.email + '\nPhone: ' + (r.phone || '') + '\nPosition: ' + parsePosition(r.service) + '\nStatus: ' + parseStatus(r.service) + '\nDate: ' + new Date(r.created_at).toLocaleString() + '\n\n--- Cover Letter ---\n' + (r.message || '').replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
-        var cvMatch = r.message ? r.message.match(/--- CV ---\n(.+)/) : null;
-        if (cvMatch) txt += '\n\n--- CV ---\n' + cvMatch[1];
+        var r2 = res.data;
+        var msg = r2.message || '';
+        var txt = 'Name: ' + (r2.name || '') + '\nEmail: ' + r2.email + '\nPhone: ' + (r2.phone || '') + '\nPosition: ' + parsePosition(r2.service) + '\nStatus: ' + parseStatus(r2.service) + '\nDate: ' + new Date(r2.created_at).toLocaleString() + '\n\n--- Cover Letter ---\n' + msg.replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
+
+        var hasCvData = msg.indexOf('--- CV Data ---') !== -1;
+        var cvMatch = msg.match(/--- CV ---\n(.+?) \(/);
+        if (cvMatch) txt += '\n\n--- CV ---\n' + cvMatch[1].trim();
+        if (hasCvData) txt += '\n[Click "Download CV" below to download the file]';
+
         document.getElementById('message-content').textContent = txt;
+
+        var existingBtn = document.getElementById('modal-download-btn');
+        if (existingBtn) existingBtn.remove();
+        if (hasCvData) {
+          var btn = document.createElement('button');
+          btn.id = 'modal-download-btn';
+          btn.className = 'mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700';
+          btn.textContent = 'Download CV';
+          btn.onclick = function() { downloadCV(r2.id); };
+          document.getElementById('message-content').parentNode.appendChild(btn);
+        }
       });
     }
   </script>
