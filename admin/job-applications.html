@@ -140,6 +140,9 @@
               <th class="p-3 font-semibold">Email</th>
               <th class="p-3 font-semibold">Phone</th>
               <th class="p-3 font-semibold">Position</th>
+              <th class="p-3 font-semibold">Curr CTC</th>
+              <th class="p-3 font-semibold">Exp CTC</th>
+              <th class="p-3 font-semibold">Location</th>
               <th class="p-3 font-semibold">Message</th>
               <th class="p-3 font-semibold">Date</th>
               <th class="p-3 font-semibold">Status</th>
@@ -147,7 +150,11 @@
             </tr></thead>
             <tbody>${data.map(function(r) {
               var status = parseStatus(r.service);
-                var hasCV = r.message && r.message.indexOf('--- CV Data ---') !== -1;
+              var hasCV = r.message && r.message.indexOf('--- CV Data ---') !== -1;
+              function msgField(f) { var m = r.message || ''; var re = new RegExp(f + ':\\s*(.+?)(?:\\n|$)'); var x = m.match(re); return x ? x[1].trim() : ''; }
+              var currCtc = msgField('Current CTC');
+              var expCtc = msgField('Expected CTC');
+              var loc = msgField('Location');
               var msgPreview = r.message ? r.message.replace(/--- CV Data ---[\s\S]*/, '').substring(0, 120) : '';
               if (r.message && r.message.length > 120 && !r.message.match(/--- CV Data ---/)) msgPreview += '...';
               return '<tr class="border-b hover:bg-gray-50">'
@@ -155,6 +162,9 @@
                 + '<td class="p-3"><a href="mailto:' + escapeHtml(r.email) + '" class="text-blue-600 hover:underline">' + escapeHtml(r.email) + '</a></td>'
                 + '<td class="p-3">' + escapeHtml(r.phone || '-') + '</td>'
                 + '<td class="p-3"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">' + escapeHtml(parsePosition(r.service)) + '</span></td>'
+                + '<td class="p-3 text-xs font-medium">' + escapeHtml(currCtc || '-') + '</td>'
+                + '<td class="p-3 text-xs font-medium">' + escapeHtml(expCtc || '-') + '</td>'
+                + '<td class="p-3 text-xs">' + escapeHtml(loc || '-') + '</td>'
                 + '<td class="p-3 max-w-xs"><div class="truncate" title="' + escapeHtml(msgPreview) + '">' + escapeHtml(msgPreview) + '</div>'
                 + (hasCV ? '<span class="text-green-600 text-xs font-medium">\u2713 CV:</span> <button class="text-blue-600 hover:underline text-xs font-medium download-cv" data-id="' + r.id + '">Download</button>' : '')
                 + '<button class="text-blue-600 hover:underline text-xs ml-2" onclick="showMessage(' + r.id + ')">View</button></td>'
@@ -257,7 +267,8 @@
         if (res.error) { document.getElementById('message-content').textContent = 'Error: ' + res.error.message; return; }
         var r2 = res.data;
         var msg = r2.message || '';
-        var txt = 'Name: ' + (r2.name || '') + '\nEmail: ' + r2.email + '\nPhone: ' + (r2.phone || '') + '\nPosition: ' + parsePosition(r2.service) + '\nStatus: ' + parseStatus(r2.service) + '\nDate: ' + new Date(r2.created_at).toLocaleString() + '\n\n--- Cover Letter ---\n' + msg.replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
+        function gf(f) { var re = new RegExp(f + ':\\s*(.+?)(?:\\n|$)'); var x = msg.match(re); return x ? x[1].trim() : '-'; }
+        var txt = 'Name: ' + (r2.name || '') + '\nEmail: ' + r2.email + '\nPhone: ' + (r2.phone || '') + '\nPosition: ' + parsePosition(r2.service) + '\nStatus: ' + parseStatus(r2.service) + '\nDate: ' + new Date(r2.created_at).toLocaleString() + '\nCurrent CTC: ' + gf('Current CTC') + '\nExpected CTC: ' + gf('Expected CTC') + '\nLocation: ' + gf('Location') + '\n\n--- Cover Letter ---\n' + msg.replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
 
         var hasCvData = msg.indexOf('--- CV Data ---') !== -1;
         var cvMatch = msg.match(/--- CV ---\n(.+?) \(/);
