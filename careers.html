@@ -112,114 +112,359 @@
                 <h2 class="text-3xl font-bold mb-8 text-center">Current Openings</h2>
                 <div class="space-y-6 max-w-4xl mx-auto">
                     <!-- Job 1 -->
-                    <div class="job-card bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between">
-                            <div>
-                                <h3 class="text-xl font-bold mb-2">Senior Full-Stack Developer</h3>
-                                <p class="text-gray-600 mb-3">Experience with .NET Core, Angular/React, and cloud platforms required.</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
-                                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
-                                    <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">5+ years</span>
+                    <div class="job-card bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">Senior Full-Stack Developer</h3>
+                                    <p class="text-gray-600 mb-3">Experience with .NET Core, Angular/React, and cloud platforms required.</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
+                                        <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
+                                        <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">5+ years</span>
+                                    </div>
+                                </div>
+                                <a href="apply.html?position=Senior%20Full-Stack%20Developer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
+                            </div>
+                            <button onclick="this.nextElementSibling.classList.toggle('hidden');this.textContent=this.nextElementSibling.classList.contains('hidden')?'View Job Description':'Hide Job Description'" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none">View Job Description</button>
+                            <div class="hidden mt-4 pt-4 border-t border-gray-100 space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Key Responsibilities</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Design, develop, and maintain full-stack web applications using .NET Core and Angular/React</li>
+                                        <li>Build RESTful APIs and microservices architecture</li>
+                                        <li>Collaborate with cross-functional teams to define and ship new features</li>
+                                        <li>Optimize application performance and scalability</li>
+                                        <li>Mentor junior developers and conduct code reviews</li>
+                                        <li>Participate in architecture discussions and technical decision-making</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Requirements</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>5+ years of professional software development experience</li>
+                                        <li>Strong proficiency in C#, .NET Core, Entity Framework, SQL Server</li>
+                                        <li>Experience with Angular (2+) or React with TypeScript</li>
+                                        <li>Hands-on with cloud platforms (Azure preferred)</li>
+                                        <li>Experience with CI/CD pipelines and version control (Git)</li>
+                                        <li>Strong problem-solving and communication skills</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Nice to Have</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Experience with Docker and Kubernetes</li>
+                                        <li>Knowledge of NoSQL databases (Cosmos DB, MongoDB)</li>
+                                        <li>Experience with Azure DevOps / GitHub Actions</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <a href="apply.html?position=Senior%20Full-Stack%20Developer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
                         </div>
                     </div>
 
                     <!-- Job 2 -->
-                    <div class="job-card bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between">
-                            <div>
-                                <h3 class="text-xl font-bold mb-2">Cloud Solutions Architect</h3>
-                                <p class="text-gray-600 mb-3">Design and implement cloud-native solutions on Azure/AWS/GCP.</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
-                                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Hybrid</span>
-                                    <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">8+ years</span>
+                    <div class="job-card bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">Cloud Solutions Architect</h3>
+                                    <p class="text-gray-600 mb-3">Design and implement cloud-native solutions on Azure/AWS/GCP.</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
+                                        <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Hybrid</span>
+                                        <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">8+ years</span>
+                                    </div>
+                                </div>
+                                <a href="apply.html?position=Cloud%20Solutions%20Architect" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
+                            </div>
+                            <button onclick="this.nextElementSibling.classList.toggle('hidden');this.textContent=this.nextElementSibling.classList.contains('hidden')?'View Job Description':'Hide Job Description'" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none">View Job Description</button>
+                            <div class="hidden mt-4 pt-4 border-t border-gray-100 space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Key Responsibilities</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Design scalable, secure, and cost-effective cloud architectures on Azure/AWS/GCP</li>
+                                        <li>Lead cloud migration and modernization initiatives</li>
+                                        <li>Define cloud governance, security policies, and best practices</li>
+                                        <li>Create architectural blueprints, RFPs, and technical documentation</li>
+                                        <li>Guide development teams on cloud-native design patterns</li>
+                                        <li>Evaluate and recommend cloud services and tools</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Requirements</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>8+ years of IT experience with 3+ years in cloud architecture</li>
+                                        <li>Deep expertise in at least one major cloud (Azure preferred)</li>
+                                        <li>Experience with microservices, containers (Docker, Kubernetes), and serverless</li>
+                                        <li>Knowledge of networking, IAM, and security best practices</li>
+                                        <li>Experience with Infrastructure as Code (Terraform, Bicep, ARM)</li>
+                                        <li>Cloud certification (Azure Solutions Architect or equivalent)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Nice to Have</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Multi-cloud experience (Azure + AWS/GCP)</li>
+                                        <li>Experience with AI/ML infrastructure on cloud</li>
+                                        <li>TOGAF or similar architecture certification</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <a href="apply.html?position=Cloud%20Solutions%20Architect" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
                         </div>
                     </div>
 
                     <!-- Job 3 -->
-                    <div class="job-card bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between">
-                            <div>
-                                <h3 class="text-xl font-bold mb-2">AI/ML Engineer</h3>
-                                <p class="text-gray-600 mb-3">Work with LLMs, LangChain, and develop AI-powered applications.</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
-                                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
-                                    <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">3+ years</span>
+                    <div class="job-card bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">AI/ML Engineer</h3>
+                                    <p class="text-gray-600 mb-3">Work with LLMs, LangChain, and develop AI-powered applications.</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
+                                        <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
+                                        <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">3+ years</span>
+                                    </div>
+                                </div>
+                                <a href="apply.html?position=AI%2FML%20Engineer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
+                            </div>
+                            <button onclick="this.nextElementSibling.classList.toggle('hidden');this.textContent=this.nextElementSibling.classList.contains('hidden')?'View Job Description':'Hide Job Description'" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none">View Job Description</button>
+                            <div class="hidden mt-4 pt-4 border-t border-gray-100 space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Key Responsibilities</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Develop and deploy AI/ML models with focus on LLMs and generative AI</li>
+                                        <li>Build RAG pipelines using LangChain, LLamaIndex, and vector databases</li>
+                                        <li>Fine-tune large language models for domain-specific applications</li>
+                                        <li>Design and implement AI agents and multi-agent systems</li>
+                                        <li>Evaluate model performance and implement monitoring</li>
+                                        <li>Collaborate with product teams to identify AI use cases</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Requirements</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>3+ years of experience in AI/ML or data science</li>
+                                        <li>Proficiency in Python and ML frameworks (PyTorch, TensorFlow)</li>
+                                        <li>Experience with LangChain, vector databases (Pinecone, Weaviate, Cosmos DB)</li>
+                                        <li>Familiarity with Azure OpenAI, AWS Bedrock, or similar</li>
+                                        <li>Understanding of RAG, prompt engineering, and model fine-tuning</li>
+                                        <li>Strong analytical and problem-solving skills</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Nice to Have</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Experience with Azure AI Search, AI Document Intelligence</li>
+                                        <li>Knowledge of MLOps and model deployment pipelines</li>
+                                        <li>Published research or contributions to open-source AI projects</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <a href="apply.html?position=AI%2FML%20Engineer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
                         </div>
                     </div>
 
                     <!-- Job 4 -->
-                    <div class="job-card bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between">
-                            <div>
-                                <h3 class="text-xl font-bold mb-2">DevOps Engineer</h3>
-                                <p class="text-gray-600 mb-3">Kubernetes, Docker, CI/CD pipelines, and infrastructure automation.</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
-                                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">On-site</span>
-                                    <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">4+ years</span>
+                    <div class="job-card bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">DevOps Engineer</h3>
+                                    <p class="text-gray-600 mb-3">Kubernetes, Docker, CI/CD pipelines, and infrastructure automation.</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
+                                        <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">On-site</span>
+                                        <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">4+ years</span>
+                                    </div>
+                                </div>
+                                <a href="apply.html?position=DevOps%20Engineer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
+                            </div>
+                            <button onclick="this.nextElementSibling.classList.toggle('hidden');this.textContent=this.nextElementSibling.classList.contains('hidden')?'View Job Description':'Hide Job Description'" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none">View Job Description</button>
+                            <div class="hidden mt-4 pt-4 border-t border-gray-100 space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Key Responsibilities</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Design and manage CI/CD pipelines using Azure DevOps, GitHub Actions, or Jenkins</li>
+                                        <li>Manage Kubernetes clusters (AKS, EKS, GKE) and containerized workloads</li>
+                                        <li>Automate infrastructure provisioning with Terraform, Bicep, or Ansible</li>
+                                        <li>Implement monitoring, logging, and alerting (Prometheus, Grafana, ELK)</li>
+                                        <li>Ensure system security, compliance, and disaster recovery</li>
+                                        <li>Optimize cloud costs and resource utilization</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Requirements</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>4+ years of DevOps or SRE experience</li>
+                                        <li>Strong knowledge of Docker, Kubernetes, and Helm</li>
+                                        <li>Hands-on with Azure cloud services (AKS, VNet, Azure DevOps)</li>
+                                        <li>Proficiency in scripting (Bash, PowerShell, Python)</li>
+                                        <li>Experience with Git and Git workflows</li>
+                                        <li>Understanding of networking, security, and identity management</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Nice to Have</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Experience with service mesh (Istio, Linkerd)</li>
+                                        <li>Knowledge of ArgoCD or GitOps practices</li>
+                                        <li>Cloud certification (Azure DevOps Engineer or equivalent)</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <a href="apply.html?position=DevOps%20Engineer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
                         </div>
                     </div>
 
                     <!-- Job 5 -->
-                    <div class="job-card bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between">
-                            <div>
-                                <h3 class="text-xl font-bold mb-2">Angular Developer</h3>
-                                <p class="text-gray-600 mb-3">Build dynamic SPAs with Angular, TypeScript, RxJS, and NgRx.</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
-                                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
-                                    <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">3+ years</span>
+                    <div class="job-card bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">Angular Developer</h3>
+                                    <p class="text-gray-600 mb-3">Build dynamic SPAs with Angular, TypeScript, RxJS, and NgRx.</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
+                                        <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
+                                        <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">3+ years</span>
+                                    </div>
+                                </div>
+                                <a href="apply.html?position=Angular%20Developer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
+                            </div>
+                            <button onclick="this.nextElementSibling.classList.toggle('hidden');this.textContent=this.nextElementSibling.classList.contains('hidden')?'View Job Description':'Hide Job Description'" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none">View Job Description</button>
+                            <div class="hidden mt-4 pt-4 border-t border-gray-100 space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Key Responsibilities</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Build responsive, high-performance SPAs using Angular and TypeScript</li>
+                                        <li>Implement state management with NgRx or Akita</li>
+                                        <li>Integrate RESTful APIs and handle reactive data streams with RxJS</li>
+                                        <li>Write unit and integration tests (Jasmine, Karma, Cypress)</li>
+                                        <li>Optimize application performance and bundle size</li>
+                                        <li>Collaborate with UX designers and backend developers</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Requirements</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>3+ years of experience with Angular (2+) and TypeScript</li>
+                                        <li>Strong understanding of RxJS, observables, and reactive programming</li>
+                                        <li>Experience with NgRx or similar state management libraries</li>
+                                        <li>Proficiency in HTML5, CSS3/Sass, and responsive design</li>
+                                        <li>Experience with RESTful API integration and HTTP interceptors</li>
+                                        <li>Familiarity with Git and Agile development practices</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Nice to Have</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Experience with Angular Universal / SSR</li>
+                                        <li>Knowledge of .NET Core or Node.js for full-stack development</li>
+                                        <li>Experience with Azure Static Web Apps or App Service</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <a href="apply.html?position=Angular%20Developer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
                         </div>
                     </div>
 
                     <!-- Job 6 -->
-                    <div class="job-card bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between">
-                            <div>
-                                <h3 class="text-xl font-bold mb-2">React Developer</h3>
-                                <p class="text-gray-600 mb-3">Develop modern UIs with React, Redux, TypeScript, and GraphQL.</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
-                                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
-                                    <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">3+ years</span>
+                    <div class="job-card bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">React Developer</h3>
+                                    <p class="text-gray-600 mb-3">Develop modern UIs with React, Redux, TypeScript, and GraphQL.</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
+                                        <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
+                                        <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">3+ years</span>
+                                    </div>
+                                </div>
+                                <a href="apply.html?position=React%20Developer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
+                            </div>
+                            <button onclick="this.nextElementSibling.classList.toggle('hidden');this.textContent=this.nextElementSibling.classList.contains('hidden')?'View Job Description':'Hide Job Description'" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none">View Job Description</button>
+                            <div class="hidden mt-4 pt-4 border-t border-gray-100 space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Key Responsibilities</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Build modern, responsive UIs using React, Redux, and TypeScript</li>
+                                        <li>Develop reusable component libraries and design systems</li>
+                                        <li>Integrate with REST and GraphQL APIs</li>
+                                        <li>Implement client-side routing, authentication, and data caching</li>
+                                        <li>Write comprehensive tests (Jest, React Testing Library, Cypress)</li>
+                                        <li>Optimize performance with code splitting, lazy loading, and memoization</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Requirements</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>3+ years of experience with React and TypeScript</li>
+                                        <li>Strong understanding of Redux, React Query, or Zustand</li>
+                                        <li>Proficiency in HTML5, CSS3, Tailwind CSS, and responsive design</li>
+                                        <li>Experience with REST and GraphQL API integration</li>
+                                        <li>Knowledge of modern build tools (Vite, Webpack, Babel)</li>
+                                        <li>Familiarity with Git and Agile development practices</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Nice to Have</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Experience with Next.js or Remix</li>
+                                        <li>Knowledge of Node.js or .NET Core for full-stack development</li>
+                                        <li>Experience with Azure Static Web Apps or Vercel</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <a href="apply.html?position=React%20Developer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
                         </div>
                     </div>
 
                     <!-- Job 7 -->
-                    <div class="job-card bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between">
-                            <div>
-                                <h3 class="text-xl font-bold mb-2">.NET Core Developer</h3>
-                                <p class="text-gray-600 mb-3">Build scalable APIs and microservices with .NET Core, C#, and SQL.</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
-                                    <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
-                                    <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">3+ years</span>
+                    <div class="job-card bg-white border border-gray-200 rounded-xl hover:shadow-lg transition-shadow">
+                        <div class="p-6">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold mb-2">.NET Core Developer</h3>
+                                    <p class="text-gray-600 mb-3">Build scalable APIs and microservices with .NET Core, C#, and SQL.</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">Full-time</span>
+                                        <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">Remote</span>
+                                        <span class="bg-purple-100 text-purple-800 text-sm px-3 py-1 rounded-full">3+ years</span>
+                                    </div>
+                                </div>
+                                <a href="apply.html?position=.NET%20Core%20Developer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
+                            </div>
+                            <button onclick="this.nextElementSibling.classList.toggle('hidden');this.textContent=this.nextElementSibling.classList.contains('hidden')?'View Job Description':'Hide Job Description'" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none">View Job Description</button>
+                            <div class="hidden mt-4 pt-4 border-t border-gray-100 space-y-4">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Key Responsibilities</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Design and develop RESTful APIs and microservices using .NET Core / .NET 8+</li>
+                                        <li>Implement data access with Entity Framework Core and Dapper</li>
+                                        <li>Write clean, testable, and maintainable C# code following SOLID principles</li>
+                                        <li>Integrate with SQL Server, Azure SQL, and message brokers (Azure Service Bus, RabbitMQ)</li>
+                                        <li>Implement authentication and authorization (JWT, Identity, Azure AD)</li>
+                                        <li>Write unit and integration tests (xUnit, Moq, FluentAssertions)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Requirements</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>3+ years of experience with .NET Core / .NET and C#</li>
+                                        <li>Strong understanding of ASP.NET Core Web API and middleware pipeline</li>
+                                        <li>Experience with Entity Framework Core and SQL Server</li>
+                                        <li>Knowledge of RESTful API design, versioning, and OpenAPI/Swagger</li>
+                                        <li>Familiarity with dependency injection, logging, and configuration patterns</li>
+                                        <li>Experience with Git and CI/CD pipelines</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-2">Nice to Have</h4>
+                                    <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                        <li>Experience with Azure Functions, App Service, or Container Apps</li>
+                                        <li>Knowledge of Docker and containerization</li>
+                                        <li>Experience with Angular or React for full-stack development</li>
+                                    </ul>
                                 </div>
                             </div>
-                            <a href="apply.html?position=.NET%20Core%20Developer" class="mt-4 md:mt-0 btn-primary px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">Apply Now</a>
                         </div>
                     </div>
                 </div>
