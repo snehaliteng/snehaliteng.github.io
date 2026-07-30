@@ -232,7 +232,7 @@ function ecRenderProductCard(p) {
     : '';
   const reviewText = p.review_count ? `(${p.review_count})` : '';
   const isTutorial = !!p.tutorial_slug;
-  const FREE_SLUGS = ['html-tutorial','css-tutorial','nodejs-tutorial','pwa-tutorial','react-tutorial','android-tutorial','dotnetcore-tutorial','c-tutorial','python-tutorial','ios-tutorial','fastapi-tutorial','playwright-tutorial','angular-tutorial'];
+  const FREE_SLUGS = ['html-tutorial','css-tutorial','nodejs-tutorial','pwa-tutorial','react-tutorial','android-tutorial','dotnetcore-tutorial','c-tutorial','python-tutorial','ios-tutorial','fastapi-tutorial','playwright-tutorial','angular-tutorial','voip-project-delivery'];
   const isFree = FREE_SLUGS.indexOf(p.slug) !== -1;
   const tutorialUrl = isTutorial ? '../tutorials/' + p.tutorial_slug + '/' : '';
   let extraBtn = '';
