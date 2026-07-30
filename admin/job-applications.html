@@ -139,6 +139,7 @@
               <th class="p-3 font-semibold">Name</th>
               <th class="p-3 font-semibold">Email</th>
               <th class="p-3 font-semibold">Phone</th>
+              <th class="p-3 font-semibold">Exp</th>
               <th class="p-3 font-semibold">Position</th>
               <th class="p-3 font-semibold">Curr CTC</th>
               <th class="p-3 font-semibold">Exp CTC</th>
@@ -152,6 +153,7 @@
               var status = parseStatus(r.service);
               var hasCV = r.message && r.message.indexOf('--- CV Data ---') !== -1;
               function msgField(f) { var m = r.message || ''; var re = new RegExp(f + ':\\s*(.+?)(?:\\n|$)'); var x = m.match(re); return x ? x[1].trim() : ''; }
+              var expYrs = msgField('Experience');
               var currCtc = msgField('Current CTC');
               var expCtc = msgField('Expected CTC');
               var loc = msgField('Location');
@@ -161,6 +163,7 @@
                 + '<td class="p-3 font-medium">' + escapeHtml(r.name || '-') + '</td>'
                 + '<td class="p-3"><a href="mailto:' + escapeHtml(r.email) + '" class="text-blue-600 hover:underline">' + escapeHtml(r.email) + '</a></td>'
                 + '<td class="p-3">' + escapeHtml(r.phone || '-') + '</td>'
+                + '<td class="p-3 text-xs font-medium">' + escapeHtml(expYrs || '-') + '</td>'
                 + '<td class="p-3"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">' + escapeHtml(parsePosition(r.service)) + '</span></td>'
                 + '<td class="p-3 text-xs font-medium">' + escapeHtml(currCtc || '-') + '</td>'
                 + '<td class="p-3 text-xs font-medium">' + escapeHtml(expCtc || '-') + '</td>'
@@ -268,7 +271,7 @@
         var r2 = res.data;
         var msg = r2.message || '';
         function gf(f) { var re = new RegExp(f + ':\\s*(.+?)(?:\\n|$)'); var x = msg.match(re); return x ? x[1].trim() : '-'; }
-        var txt = 'Name: ' + (r2.name || '') + '\nEmail: ' + r2.email + '\nPhone: ' + (r2.phone || '') + '\nPosition: ' + parsePosition(r2.service) + '\nStatus: ' + parseStatus(r2.service) + '\nDate: ' + new Date(r2.created_at).toLocaleString() + '\nCurrent CTC: ' + gf('Current CTC') + '\nExpected CTC: ' + gf('Expected CTC') + '\nLocation: ' + gf('Location') + '\n\n--- Cover Letter ---\n' + msg.replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
+        var txt = 'Name: ' + (r2.name || '') + '\nEmail: ' + r2.email + '\nPhone: ' + (r2.phone || '') + '\nPosition: ' + parsePosition(r2.service) + '\nExperience: ' + gf('Experience') + '\nStatus: ' + parseStatus(r2.service) + '\nDate: ' + new Date(r2.created_at).toLocaleString() + '\nCurrent CTC: ' + gf('Current CTC') + '\nExpected CTC: ' + gf('Expected CTC') + '\nLocation: ' + gf('Location') + '\n\n--- Cover Letter ---\n' + msg.replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
 
         var hasCvData = msg.indexOf('--- CV Data ---') !== -1;
         var cvMatch = msg.match(/--- CV ---\n(.+?) \(/);
