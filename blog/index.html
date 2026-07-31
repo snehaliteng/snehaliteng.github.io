@@ -59,6 +59,18 @@
     document.addEventListener('DOMContentLoaded', async function() {
       // Auth state
       const user = await getCurrentUser();
+
+      // App-tag redirect: after a Google OAuth sign-in from one of our apps,
+      // Supabase sends the user back to this blog page with ?app=<tag>.
+      // Establish the session, then hand off to the originating application.
+      const APP_REDIRECT_TAGS = {
+        projectpro: window.location.origin + '/Applications/index.html'
+      };
+      const appTag = new URLSearchParams(window.location.search).get('app');
+      if (appTag && APP_REDIRECT_TAGS[appTag]) {
+        window.location.replace(APP_REDIRECT_TAGS[appTag]);
+        return;
+      }
       const navAuth = document.getElementById('nav-auth');
       const createTopicBtn = document.getElementById('create-topic-btn');
       if (user) {

@@ -20,3 +20,12 @@ ZippyRide/android/rider/.gradle/*
 eduErp/supabase/schema.sql
 eduErp/supabase/seed-demo.sql
 qna/dsa-import.html
+ecommerce/supabase/*
+expense-tracker/supabase/schema.sql
+expense-tracker/supabase/seed-data.sql
+qna/supabase/migration-20260727-interview-qa.sql
+qna/supabase/migration-20260730-oop-solid.sql
+shop/supabase-schema.sql
+supabase/.temp/cli-latest
+supabase/.temp/gotrue-version
+supabase/.temp/storage-version
