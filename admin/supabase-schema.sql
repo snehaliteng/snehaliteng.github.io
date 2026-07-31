@@ -55,3 +55,29 @@ CREATE POLICY "Admin topics delete" ON blog_topics
 DROP POLICY IF EXISTS "Admin replies delete" ON blog_replies;
 CREATE POLICY "Admin replies delete" ON blog_replies
   FOR DELETE USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+
+-- =============================================================
+-- Jobs (careers / apply page) — see supabase/migrations/20260731090000_jobs_table.sql
+-- =============================================================
+ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
+
+-- Public can read job postings
+DROP POLICY IF EXISTS "Jobs public read" ON jobs;
+CREATE POLICY "Jobs public read" ON jobs
+  FOR SELECT USING (true);
+
+-- Admin can add / update / delete jobs
+DROP POLICY IF EXISTS "Admin insert jobs" ON jobs;
+CREATE POLICY "Admin insert jobs" ON jobs
+  FOR INSERT WITH CHECK (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+
+DROP POLICY IF EXISTS "Admin update jobs" ON jobs;
+CREATE POLICY "Admin update jobs" ON jobs
+  FOR UPDATE USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+
+DROP POLICY IF EXISTS "Admin delete jobs" ON jobs;
+CREATE POLICY "Admin delete jobs" ON jobs
+  FOR DELETE USING (auth.jwt() ->> 'email' = 'snehaliteng@gmail.com');
+
+GRANT SELECT ON jobs TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON jobs TO authenticated;

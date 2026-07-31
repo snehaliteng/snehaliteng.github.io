@@ -57,6 +57,9 @@
     <div class="flex flex-wrap items-center gap-2 mb-4">
       <button id="toggle-charts" onclick="toggleCharts()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50">Show Salary Charts</button>
       <button id="toggle-archive" onclick="toggleArchive()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50">Local Archive <span id="archive-count" class="text-gray-400">(0)</span></button>
+      <button id="toggle-jobs" onclick="toggleJobs()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50">Manage Jobs</button>
+      <button id="connect-folder" onclick="connectFolder()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50">Connect Folder</button>
+      <span id="folder-status" class="text-xs text-gray-400"></span>
       <select id="page-size" onchange="changePageSize(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
         <option value="10">10 per page</option>
         <option value="25">25 per page</option>
@@ -93,10 +96,66 @@
     <div id="archive-section" class="hidden mb-6">
       <div class="bg-white rounded-xl shadow-sm border">
         <div class="flex justify-between items-center p-4 border-b">
-          <h2 class="font-bold text-lg">Local Archive <span class="text-sm font-normal text-gray-400">(on-device SQLite)</span></h2>
+          <h2 class="font-bold text-lg">Local Archive <span class="text-sm font-normal text-gray-400">(saved in your chosen folder)</span></h2>
           <button onclick="clearArchive()" class="text-red-500 hover:underline text-sm">Clear All</button>
         </div>
         <div id="archive-table" class="overflow-x-auto"></div>
+      </div>
+    </div>
+
+    <div id="jobs-section" class="hidden mb-6">
+      <div class="bg-white rounded-xl shadow-sm border">
+        <div class="flex justify-between items-center p-4 border-b">
+          <h2 class="font-bold text-lg">Manage Jobs</h2>
+          <button onclick="openJobForm()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700">+ Add Job</button>
+        </div>
+        <div id="jobs-table" class="overflow-x-auto"></div>
+      </div>
+    </div>
+
+    <div id="job-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="job-modal-title" class="font-bold text-lg">Add Job</h2>
+          <button onclick="closeJobModal()" class="text-gray-500 hover:text-black text-xl">&times;</button>
+        </div>
+        <input type="hidden" id="job-id">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Job Title *</label>
+            <input type="text" id="job-title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Type</label>
+              <input type="text" id="job-type" value="Full-time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Location</label>
+              <input type="text" id="job-location" value="Remote" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Experience</label>
+              <input type="text" id="job-experience" placeholder="e.g. 5+ years" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Summary</label>
+            <input type="text" id="job-summary" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+            <textarea id="job-description" rows="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-xs" placeholder="Key Responsibilities:&#10;- Bullet point one&#10;- Bullet point two&#10;&#10;Requirements:&#10;- Requirement one"></textarea>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="job-active" checked class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+            <label for="job-active" class="text-sm text-gray-700">Active (visible on apply page)</label>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button onclick="closeJobModal()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onclick="saveJob()" class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700">Save Job</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -106,9 +165,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
   <script src="js/admin.js"></script>
-  <script src="js/job-sqlite.js"></script>
+  <script src="js/job-folder.js"></script>
   <script>
     var filteredData = [];
     var currentPage = 1;
@@ -118,8 +176,9 @@
     document.addEventListener('DOMContentLoaded', async function() {
       const user = await requireAdmin();
       if (!user) return;
-      initJobSql().then(function() { renderArchive(); }).catch(function(e) { console.error('SQLite init failed', e); });
+      initJobStore().then(function() { updateFolderStatus(); return renderArchive(); }).catch(function(e) { console.error('Folder store init failed', e); });
       loadApplications();
+      syncPositionFilter();
     });
 
     function statusBadge(s) {
@@ -402,19 +461,19 @@
       }
     }
 
-    function toggleArchive() {
+    async function toggleArchive() {
       var sec = document.getElementById('archive-section');
       sec.classList.toggle('hidden');
-      if (!sec.classList.contains('hidden')) renderArchive();
+      if (!sec.classList.contains('hidden')) await renderArchive();
     }
 
-    function renderArchive() {
+    async function renderArchive() {
       var box = document.getElementById('archive-table');
       var countEl = document.getElementById('archive-count');
-      var rows = listLocalArchive();
+      var rows = await listLocalArchive();
       if (countEl) countEl.textContent = '(' + rows.length + ')';
       if (!rows.length) {
-        box.innerHTML = '<div class="p-6 text-gray-500 text-center text-sm">No locally saved applications yet. Click "Save Local" on any row to download the CV + details and store them in the on-device SQLite database.</div>';
+        box.innerHTML = '<div class="p-6 text-gray-500 text-center text-sm">No locally saved applications yet. Click "Save Local" on any row (the first time it will ask you to pick a destination folder, e.g. C:\\snehal\\edu\\snehaliteng\\db).</div>';
         return;
       }
       var html = '<table class="w-full text-sm"><thead><tr class="bg-gray-50 border-b text-left">'
@@ -431,50 +490,98 @@
           + '<td class="p-3 font-medium">' + escapeHtml(r.name || '-') + '</td>'
           + '<td class="p-3"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">' + escapeHtml(r.position || '-') + '</span></td>'
           + '<td class="p-3 text-xs">' + escapeHtml(r.experience || '-') + '</td>'
-          + '<td class="p-3 text-xs font-medium">' + escapeHtml(r.expected_ctc || '-') + '</td>'
+          + '<td class="p-3 text-xs font-medium">' + escapeHtml(r.expectedCtc || '-') + '</td>'
           + '<td class="p-3 text-xs">' + escapeHtml(r.location || '-') + '</td>'
           + '<td class="p-3">' + statusBadge(r.status || 'Pending') + '</td>'
-          + '<td class="p-3 text-gray-500 text-xs whitespace-nowrap">' + new Date(r.saved_at).toLocaleString() + '</td>'
-          + '<td class="p-3"><div class="flex gap-2">'
-          + '<button class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium hover:bg-blue-200" onclick="downloadLocalCV(' + r.id + ')">CV</button>'
-          + '<button class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium hover:bg-red-200" onclick="deleteLocal(' + r.id + ')">Delete</button>'
+          + '<td class="p-3 text-gray-500 text-xs whitespace-nowrap">' + new Date(r.savedAt).toLocaleString() + '</td>'
+          + '<td class="p-3"><div class="flex gap-2 flex-wrap">'
+          + (r.cvFile ? '<button class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium hover:bg-blue-200" onclick="downloadLocalCV(' + r.contactId + ')">CV</button>' : '<span class="text-gray-400 text-xs">no CV</span>')
+          + '<button class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium hover:bg-red-200" onclick="deleteLocal(' + r.contactId + ')">Delete</button>'
           + '</div></td></tr>';
       });
       html += '</tbody></table>';
       box.innerHTML = html;
     }
 
+    async function connectFolder() {
+      var btn = document.getElementById('connect-folder');
+      if (btn) { btn.disabled = true; btn.textContent = 'Opening folder picker...'; }
+      try {
+        await connectJobFolder();
+        updateFolderStatus();
+        await renderArchive();
+        showAlert('Folder connected. Use "Save Local" to store CVs + details there.', 'success');
+      } catch (err) {
+        if (err && err.name === 'AbortError') { /* user cancelled the picker */ }
+        else showAlert(err.message, 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = isFolderConnected() ? 'Change Folder' : 'Connect Folder'; }
+        updateFolderStatus();
+      }
+    }
+
+    async function updateFolderStatus() {
+      var el = document.getElementById('folder-status');
+      var btn = document.getElementById('connect-folder');
+      if (!el) return;
+      try {
+        var dir = await initJobStore();
+        if (dir) {
+          el.textContent = 'Folder connected';
+          el.className = 'text-xs text-green-600 font-medium';
+          if (btn) btn.textContent = 'Change Folder';
+        } else {
+          el.textContent = 'No folder connected';
+          el.className = 'text-xs text-gray-400';
+          if (btn) btn.textContent = 'Connect Folder';
+        }
+      } catch (e) {
+        el.textContent = e.message;
+        el.className = 'text-xs text-red-600';
+      }
+    }
+
     async function saveLocal(id) {
       try {
-        var fileName = await saveApplicationLocal(id);
-        renderArchive();
-        showAlert('Saved locally: ' + fileName, 'success');
+        if (!isFolderConnected()) {
+          try { await connectFolder(); } catch (e) { if (e.name === 'AbortError') return; throw e; }
+        }
+        var saved = await saveApplicationLocal(id);
+        updateFolderStatus();
+        await renderArchive();
+        showAlert('Saved to folder: ' + saved, 'success');
       } catch (err) {
+        if (err && err.name === 'AbortError') return;
         showAlert(err.message, 'error');
       }
     }
 
-    async function deleteLocal(id) {
-      if (!confirm('Delete this record from the local archive?')) return;
+    async function downloadLocalCV(contactId) {
       try {
-        await deleteLocalRecord(id);
-        renderArchive();
-        showAlert('Deleted from local archive.', 'success');
-      } catch (err) {
-        showAlert(err.message, 'error');
-      }
+        var rec = await getLocalRecord(contactId);
+        if (!rec) { showAlert('Record not found in local folder.', 'error'); return; }
+        await downloadLocalCv(rec);
+      } catch (err) { showAlert(err.message, 'error'); }
+    }
+
+    async function deleteLocal(contactId) {
+      if (!confirm('Delete this record from the local folder?')) return;
+      try {
+        await deleteLocalRecord(contactId);
+        await renderArchive();
+        showAlert('Deleted from local folder.', 'success');
+      } catch (err) { showAlert(err.message, 'error'); }
     }
 
     async function clearArchive() {
-      if (!listLocalArchive().length) return;
-      if (!confirm('Delete ALL locally saved applications?')) return;
+      var rows = await listLocalArchive();
+      if (!rows.length) return;
+      if (!confirm('Delete ALL locally saved applications from the folder?')) return;
       try {
         await clearLocalArchive();
-        renderArchive();
-        showAlert('Local archive cleared.', 'success');
-      } catch (err) {
-        showAlert(err.message, 'error');
-      }
+        await renderArchive();
+        showAlert('Local folder cleared.', 'success');
+      } catch (err) { showAlert(err.message, 'error'); }
     }
 
     async function updateStatus(id, newStatus) {
@@ -588,6 +695,139 @@
           document.getElementById('message-content').parentNode.appendChild(btn);
         }
       });
+    }
+
+    var jobsData = [];
+
+    async function toggleJobs() {
+      var sec = document.getElementById('jobs-section');
+      sec.classList.toggle('hidden');
+      var btn = document.getElementById('toggle-jobs');
+      btn.textContent = sec.classList.contains('hidden') ? 'Manage Jobs' : 'Hide Jobs Manager';
+      if (!sec.classList.contains('hidden')) await loadJobsAdmin();
+    }
+
+    async function loadJobsAdmin() {
+      var box = document.getElementById('jobs-table');
+      box.innerHTML = '<div class="p-6 text-gray-500 text-center text-sm">Loading jobs...</div>';
+      try {
+        var { data, error } = await _admin.from('jobs').select('*').order('title');
+        if (error) throw error;
+        jobsData = data || [];
+        renderJobs();
+      } catch (err) {
+        box.innerHTML = '<div class="p-6 text-red-500 text-center text-sm">' + escapeHtml(err.message) + '</div>';
+      }
+    }
+
+    function renderJobs() {
+      var box = document.getElementById('jobs-table');
+      if (!jobsData.length) {
+        box.innerHTML = '<div class="p-6 text-gray-500 text-center text-sm">No jobs yet. Click "+ Add Job" to create the first opening.</div>';
+        return;
+      }
+      var html = '<table class="w-full text-sm"><thead><tr class="bg-gray-50 border-b text-left">'
+        + '<th class="p-3 font-semibold">Title</th>'
+        + '<th class="p-3 font-semibold">Type</th>'
+        + '<th class="p-3 font-semibold">Location</th>'
+        + '<th class="p-3 font-semibold">Experience</th>'
+        + '<th class="p-3 font-semibold">Active</th>'
+        + '<th class="p-3 font-semibold">Actions</th></tr></thead><tbody>';
+      jobsData.forEach(function(j) {
+        html += '<tr class="border-b hover:bg-gray-50">'
+          + '<td class="p-3 font-medium">' + escapeHtml(j.title) + '</td>'
+          + '<td class="p-3 text-xs">' + escapeHtml(j.type || '-') + '</td>'
+          + '<td class="p-3 text-xs">' + escapeHtml(j.location || '-') + '</td>'
+          + '<td class="p-3 text-xs">' + escapeHtml(j.experience || '-') + '</td>'
+          + '<td class="p-3">' + (j.is_active ? '<span class="badge badge-shortlisted">Active</span>' : '<span class="badge badge-pending">Inactive</span>') + '</td>'
+          + '<td class="p-3"><div class="flex gap-1 flex-wrap">'
+          + '<button class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium hover:bg-blue-200" onclick="openJobForm(' + j.id + ')">Edit</button>'
+          + '<button class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium hover:bg-red-200" onclick="deleteJob(' + j.id + ')">Delete</button>'
+          + '</div></td></tr>';
+      });
+      html += '</tbody></table>';
+      box.innerHTML = html;
+    }
+
+    function openJobForm(id) {
+      var j = id ? jobsData.find(function(x) { return x.id === id; }) : null;
+      document.getElementById('job-modal-title').textContent = j ? 'Edit Job' : 'Add Job';
+      document.getElementById('job-id').value = j ? j.id : '';
+      document.getElementById('job-title').value = j ? (j.title || '') : '';
+      document.getElementById('job-summary').value = j ? (j.summary || '') : '';
+      document.getElementById('job-type').value = j ? (j.type || 'Full-time') : 'Full-time';
+      document.getElementById('job-location').value = j ? (j.location || 'Remote') : 'Remote';
+      document.getElementById('job-experience').value = j ? (j.experience || '') : '';
+      document.getElementById('job-description').value = j ? (j.description || '') : '';
+      document.getElementById('job-active').checked = j ? (j.is_active !== false) : true;
+      document.getElementById('job-modal').classList.remove('hidden');
+    }
+
+    function closeJobModal() {
+      document.getElementById('job-modal').classList.add('hidden');
+    }
+
+    async function saveJob() {
+      var id = document.getElementById('job-id').value;
+      var payload = {
+        title: document.getElementById('job-title').value.trim(),
+        summary: document.getElementById('job-summary').value.trim(),
+        type: document.getElementById('job-type').value.trim(),
+        location: document.getElementById('job-location').value.trim(),
+        experience: document.getElementById('job-experience').value.trim(),
+        description: document.getElementById('job-description').value,
+        is_active: document.getElementById('job-active').checked,
+        updated_at: new Date().toISOString()
+      };
+      if (!payload.title) { showAlert('Job title is required.', 'error'); return; }
+      try {
+        if (id) {
+          var { error } = await _admin.from('jobs').update(payload).eq('id', id);
+          if (error) throw error;
+        } else {
+          var { error } = await _admin.from('jobs').insert(payload);
+          if (error) throw error;
+        }
+        closeJobModal();
+        await loadJobsAdmin();
+        syncPositionFilter();
+        showAlert('Job saved.', 'success');
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
+
+    async function deleteJob(id) {
+      var j = jobsData.find(function(x) { return x.id === id; });
+      if (!confirm('Delete job "' + (j ? j.title : '') + '"?')) return;
+      try {
+        var { error } = await _admin.from('jobs').delete().eq('id', id);
+        if (error) throw error;
+        await loadJobsAdmin();
+        syncPositionFilter();
+        showAlert('Job deleted.', 'success');
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
+
+    async function syncPositionFilter() {
+      try {
+        var { data, error } = await _admin.from('jobs').select('title').eq('is_active', true).order('title');
+        if (error) throw error;
+        var sel = document.getElementById('filter-position');
+        if (!sel || !data || !data.length) return;
+        var existing = {};
+        for (var i = 0; i < sel.options.length; i++) existing[sel.options[i].value] = true;
+        data.forEach(function(j) {
+          if (!existing[j.title]) {
+            var o = document.createElement('option');
+            o.value = j.title;
+            o.textContent = j.title;
+            sel.appendChild(o);
+          }
+        });
+      } catch (e) { /* ignore */ }
     }
   </script>
 <script src="../js/analytics-tracker.js" defer></script>

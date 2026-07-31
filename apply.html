@@ -101,6 +101,15 @@
                             </select>
                         </div>
 
+                        <div id="job-desc-card" class="hidden">
+                            <div class="rounded-lg border border-blue-200 bg-blue-50 p-5">
+                                <h3 id="job-desc-title" class="font-bold text-blue-900 mb-1"></h3>
+                                <p id="job-desc-summary" class="text-sm text-blue-800 mb-3"></p>
+                                <div id="job-desc-meta" class="flex flex-wrap gap-2 mb-4"></div>
+                                <div id="job-desc-body" class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
@@ -224,17 +233,73 @@
         // Pre-fill position from URL param
         var params = new URLSearchParams(window.location.search);
         var posParam = params.get('position');
-        if (posParam) {
-            var sel = document.getElementById('position');
-            for (var i = 0; i < sel.options.length; i++) {
-                if (sel.options[i].value.toLowerCase() === posParam.toLowerCase()) {
-                    sel.value = sel.options[i].value;
+        var posSel = document.getElementById('position');
+        var subtitle = document.getElementById('page-subtitle');
+        var jobs = [];
+
+        function showJobDescription() {
+            var card = document.getElementById('job-desc-card');
+            if (!card) return;
+            var title = posSel.value;
+            var job = jobs.find(function(j) { return j.title === title; });
+            if (!job) { card.classList.add('hidden'); return; }
+            document.getElementById('job-desc-title').textContent = job.title;
+            document.getElementById('job-desc-summary').textContent = job.summary || '';
+            var meta = document.getElementById('job-desc-meta');
+            meta.innerHTML = '';
+            [job.type, job.location, job.experience].forEach(function(m) {
+                if (!m) return;
+                var s = document.createElement('span');
+                s.className = 'bg-white text-blue-700 text-xs px-2 py-0.5 rounded-full border border-blue-200';
+                s.textContent = m;
+                meta.appendChild(s);
+            });
+            document.getElementById('job-desc-body').textContent = job.description || '';
+            card.classList.remove('hidden');
+        }
+
+        function applyPositionParam() {
+            if (!posParam) { showJobDescription(); return; }
+            var matched = false;
+            for (var i = 0; i < posSel.options.length; i++) {
+                if (posSel.options[i].value.toLowerCase() === posParam.toLowerCase()) {
+                    posSel.value = posSel.options[i].value;
+                    matched = true;
                     break;
                 }
             }
-            var subtitle = document.getElementById('page-subtitle');
-            if (subtitle) subtitle.textContent = 'Applying for: ' + sel.value;
+            if (subtitle) subtitle.textContent = matched ? 'Applying for: ' + posSel.value : 'Take the next step in your career with Snehal IT Eng';
+            showJobDescription();
         }
+
+        async function loadJobs() {
+            try {
+                var resp = await fetch(SUPABASE_URL + '/rest/v1/jobs?select=*&is_active=eq.true&order=title.asc', {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY
+                    }
+                });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                var data = await resp.json();
+                if (!data || !data.length) return;
+                jobs = data;
+                posSel.innerHTML = '<option value="">Select a position</option>';
+                jobs.forEach(function(j) {
+                    var o = document.createElement('option');
+                    o.value = j.title;
+                    o.textContent = j.title;
+                    posSel.appendChild(o);
+                });
+            } catch (e) {
+                console.log('Could not load jobs, using built-in list.', e);
+            } finally {
+                applyPositionParam();
+            }
+        }
+
+        posSel.addEventListener('change', showJobDescription);
+        loadJobs();
 
         document.getElementById('applicationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
