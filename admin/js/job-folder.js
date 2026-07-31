@@ -108,10 +108,11 @@ async function jobPersistHandle() {
 
 // Load the saved folder handle from IndexedDB (no permission prompt on load).
 function initJobStore() {
+  // A handle picked this session always wins over the cached (possibly null) load.
+  if (jobDirHandle) return Promise.resolve(jobDirHandle);
   if (jobStoreReady) return jobStoreReady;
   jobStoreReady = (async function () {
     if (!jobIsFSA()) throw new Error('This browser does not support the File System Access API. Use Chrome or Edge.');
-    jobDirHandle = null;
     jobSavedHandle = null;
     var idb = await jobIDBOpen();
     var saved = await jobIDBGet(idb, JOB_DIR_KEY);
@@ -130,6 +131,8 @@ async function connectJobFolder() {
   var handle = await window.showDirectoryPicker({ id: 'job-dir', mode: 'readwrite' });
   jobDirHandle = handle;
   jobSavedHandle = handle;
+  jobStoreReady = null;
+  jobArchiveCache = null;
   await jobPersistHandle();
   return handle;
 }
@@ -200,7 +203,7 @@ async function saveApplicationLocal(contactId) {
 async function listLocalArchive() {
   if (jobArchiveCache) return jobArchiveCache;
   var dir = await initJobStore();
-  if (!dir) { jobArchiveCache = []; return jobArchiveCache; }
+  if (!dir) return [];
   var records = [];
   for await (var entry of dir.values()) {
     if (entry.kind === 'file' && /^contact_\d+\.json$/.test(entry.name)) {
