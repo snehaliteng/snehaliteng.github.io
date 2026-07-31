@@ -13,7 +13,7 @@
   var FREE_SLUGS = {
     'html':1,'css':1,'nodejs':1,'pwa':1,'react':1,
     'angular':1,'android':1,'dotnetcore':1,'python':1,'ios':1,
-    'fastapi-tutorial':1,'playwright-tutorial':1,'voip-project-delivery':1,'supabase':1,'c#':1,'c%23':1
+    'fastapi-tutorial':1,'playwright-tutorial':1,'voip-project-delivery':1,'senior-product-owner':1,'supabase':1,'c#':1,'c%23':1
   };
 
   if (FREE_SLUGS[slug]) return;
