@@ -65,7 +65,7 @@ async function ecLogout() {
 async function ecSocialLogin(provider) {
   const { data, error } = await ec.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
   });
   if (error) throw error;
   return data;

@@ -76,7 +76,7 @@ document.getElementById('login-password').addEventListener('keydown', (e) => {
 document.getElementById('google-login-btn').addEventListener('click', async () => {
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'https://snehaliteng.github.io/todo/index.html' }
+    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
   });
   if (error) document.getElementById('login-error').textContent = error.message;
 });

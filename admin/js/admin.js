@@ -18,12 +18,10 @@ function escapeHtml(t) {
   return d.innerHTML;
 }
 
-const SITE_URL = 'https://snehaliteng.github.io';
-
 async function socialLogin(provider) {
   const { data, error } = await _admin.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: `${SITE_URL}/admin/` }
+    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
   });
   if (error) throw error;
 }

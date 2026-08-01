@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 }
 
@@ -30,6 +30,13 @@ serve(async (req) => {
     const profileMap = {}
     if (!prErr && profiles) profiles.forEach(p => { profileMap[p.id] = p })
 
+    const { data: userApps, error: uaErr } = await supabase.from('user_apps').select('user_id, app')
+    const appMap = {}
+    if (!uaErr && userApps) userApps.forEach(r => {
+      if (!appMap[r.user_id]) appMap[r.user_id] = []
+      appMap[r.user_id].push(r.app)
+    })
+
     const users = (authUsers.users || []).map(u => ({
       id: u.id,
       email: u.email,
@@ -37,7 +44,9 @@ serve(async (req) => {
       last_sign_in_at: u.last_sign_in_at,
       banned_until: u.banned_until,
       username: profileMap[u.id]?.username || '',
-      full_name: profileMap[u.id]?.full_name || ''
+      full_name: profileMap[u.id]?.full_name || '',
+      provider: u.app_metadata?.provider || u.identities?.[0]?.provider || 'email',
+      apps: appMap[u.id] || []
     }))
 
     return new Response(JSON.stringify({ users }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })

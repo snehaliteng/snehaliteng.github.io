@@ -244,6 +244,32 @@ async function downloadLocalCv(record) {
   URL.revokeObjectURL(url);
 }
 
+async function jobWriteRecord(dir, record) {
+  var jf = await dir.getFileHandle('contact_' + record.contactId + '.json', { create: true });
+  var jw = await jf.createWritable();
+  await jw.write(JSON.stringify(record, null, 2));
+  await jw.close();
+  jobArchiveCache = null;
+}
+
+async function updateLocalStatus(contactId, status) {
+  var rec = await getLocalRecord(contactId);
+  if (!rec) throw new Error('Record not found in local folder.');
+  rec.status = status;
+  var dir = await ensureJobFolder();
+  await jobWriteRecord(dir, rec);
+  return rec;
+}
+
+async function updateLocalInterview(contactId, interviewAt) {
+  var rec = await getLocalRecord(contactId);
+  if (!rec) throw new Error('Record not found in local folder.');
+  rec.interviewAt = interviewAt;
+  var dir = await ensureJobFolder();
+  await jobWriteRecord(dir, rec);
+  return rec;
+}
+
 async function deleteLocalRecord(contactId) {
   var dir = await ensureJobFolder();
   var rec = await getLocalRecord(contactId);

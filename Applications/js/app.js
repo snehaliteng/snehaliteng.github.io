@@ -95,7 +95,7 @@ async function handleGoogleLogin() {
   errEl.textContent = '';
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + '/blog/index.html?app=projectpro' }
+    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
   });
   if (error) { errEl.textContent = error.message; }
 }

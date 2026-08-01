@@ -208,7 +208,7 @@ document.getElementById('logout-link').addEventListener('click', async () => {
 async function socialLogin(provider) {
   await sb.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: 'https://snehaliteng.github.io/qna/index.html' }
+    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
   });
 }
 

@@ -157,85 +157,16 @@
 
   var EXCLUDED_PAGES = ['/admin/analytics.html'];
 
-  var LOGIN_PAGES = [
-    '/blog/login.html', '/blog/signup.html',
-    '/shop/login.html', '/shop/signup.html',
-    '/admin/index.html',
-    '/allinone/app/index.html'
-  ];
-
-  var NO_AUTH_PAGES = [
-    '/', '/index.html', '/about.html', '/contact.html', '/careers.html',
-    '/portfolio.html', '/apps.html', '/services.html',
-    '/pomodoro/'
-  ];
-
-  var LOGIN_MAP = {
-    '/qna/': '/qna/index.html',
-    '/todo/': '/todo/index.html',
-    '/blog/': '/blog/login.html',
-    '/shop/': '/shop/login.html',
-    '/ecommerce/': '/ecommerce/index.html',
-    '/eduErp/': '/eduErp/index.html',
-    '/allinone/app/': '/allinone/app/index.html',
-    '/society management/': '/society management/index.html',
-    '/ZippyRide/web/': '/ZippyRide/web/index.html'
-  };
-
-  function shouldShowLoginPrompt() {
-    var p = location.pathname;
-    if (LOGIN_PAGES.indexOf(p) !== -1) return false;
-    for (var i = 0; i < NO_AUTH_PAGES.length; i++) {
-      if (p === NO_AUTH_PAGES[i]) return false;
-    }
-    return true;
-  }
-
-  var BASE_PATH = (function () {
-    var scripts = document.getElementsByTagName('script');
-    for (var i = 0; i < scripts.length; i++) {
-      var src = scripts[i].getAttribute('src') || '';
-      if (src.indexOf('analytics-tracker.js') !== -1) {
-        return src.replace(/js\/analytics-tracker\.js.*/, '');
-      }
-    }
-    return '/';
-  })();
-
-  function getLoginUrl() {
-    var p = location.pathname;
-    var keys = Object.keys(LOGIN_MAP);
-    for (var i = 0; i < keys.length; i++) {
-      if (p.indexOf(keys[i]) === 0) return BASE_PATH + LOGIN_MAP[keys[i]].replace(/^\//, '');
-    }
-    return BASE_PATH + 'blog/login.html';
-  }
-
-  function showLoginBanner() {
-    if (document.getElementById('siteng-login-banner')) return;
-    if (!document.body) { setTimeout(showLoginBanner, 50); return; }
-    var banner = document.createElement('div');
-    banner.id = 'siteng-login-banner';
-    banner.style.cssText = 'position:fixed !important;top:0 !important;left:0 !important;right:0 !important;z-index:2147483647 !important;background:#1e293b !important;color:#fff !important;padding:12px 20px !important;display:flex !important;align-items:center !important;justify-content:center !important;gap:12px !important;font-family:Inter,system-ui,sans-serif !important;font-size:14px !important;box-shadow:0 2px 8px rgba(0,0,0,.2) !important;margin:0 !important;border:none !important;';
-    banner.innerHTML = '<span>Log in to access all features</span>' +
-      '<a href="' + getLoginUrl() + '" style="background:#3b82f6;color:#fff;padding:6px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;">Login</a>';
-    document.body.appendChild(banner);
-    document.body.style.paddingTop = '50px';
-  }
-
-  function tryShowBanner() {
+  function tryTrack() {
     if (EXCLUDED_PAGES.indexOf(location.pathname) !== -1) return;
     var user = getLoggedUser();
     doTrack(user, 'pageview');
-    if (!user && shouldShowLoginPrompt()) {
-      showLoginBanner();
-    }
   }
 
   if (document.body) {
-    tryShowBanner();
+    tryTrack();
   } else {
-    document.addEventListener('DOMContentLoaded', tryShowBanner);
+    document.addEventListener('DOMContentLoaded', tryTrack);
   }
 
   window.addEventListener('beforeunload', function () {

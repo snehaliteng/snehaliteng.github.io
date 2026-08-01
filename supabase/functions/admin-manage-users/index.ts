@@ -22,7 +22,7 @@ serve(async (req) => {
     }
 
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-    const { action, user_id } = await req.json()
+    const { action, user_id, apps } = await req.json()
 
     if (!action || !user_id) {
       return new Response(JSON.stringify({ error: 'action and user_id required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -45,6 +45,28 @@ serve(async (req) => {
         const { error: delErr } = await supabase.auth.admin.deleteUser(user_id)
         if (delErr) return new Response(JSON.stringify({ error: delErr.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
         return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      case 'set_apps': {
+        if (!Array.isArray(apps)) {
+          return new Response(JSON.stringify({ error: 'apps must be an array' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        }
+        const cleanApps = [...new Set(apps.map(a => String(a).trim()).filter(a => a !== ''))]
+        const { data: existing } = await supabase.from('user_apps').select('app').eq('user_id', user_id)
+        const existingSet = new Set((existing || []).map(r => r.app))
+        const toAdd = cleanApps.filter(a => !existingSet.has(a))
+        const toRemove = (existing || []).filter(r => !cleanApps.includes(r.app)).map(r => r.app)
+
+        let err = null
+        if (toAdd.length) {
+          const ins = await supabase.from('user_apps').upsert(toAdd.map(a => ({ user_id, app: a })), { onConflict: 'user_id,app' })
+          if (ins.error) err = ins.error
+        }
+        if (!err && toRemove.length) {
+          const del = await supabase.from('user_apps').delete().eq('user_id', user_id).in('app', toRemove)
+          if (del.error) err = del.error
+        }
+        if (err) return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        return new Response(JSON.stringify({ success: true, apps: cleanApps }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
       }
       case 'toggle_status': {
         const { data: u } = await supabase.auth.admin.getUserById(user_id)

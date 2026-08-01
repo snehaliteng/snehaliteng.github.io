@@ -13,6 +13,7 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1RVMWL4SDK"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1RVMWL4SDK');</script>
+    <script>if(location.hash==='#')history.replaceState(null,'',location.pathname+location.search)</script>
 </head>
 <body class="min-h-screen flex items-center justify-center">
   <div class="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full text-center">
@@ -42,6 +43,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/admin.js"></script>
   <script>
+    document.addEventListener('DOMContentLoaded', async function() {
+      const { data: { user } } = await _admin.auth.getUser();
+      if (user && user.email === ADMIN_EMAIL) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+    });
+
     document.getElementById('login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const email = document.getElementById('email').value.trim();

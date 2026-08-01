@@ -127,12 +127,10 @@ async function verifyRazorpayPayment(payload) {
   return res.json();
 }
 
-const SITE_URL = 'https://snehaliteng.github.io';
-
 async function socialLogin(provider) {
   const { data, error } = await _shop.auth.signInWithOAuth({
     provider,
-    options: { redirectTo: `${SITE_URL}/shop/index.html` }
+    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
   });
   if (error) throw error;
 }
