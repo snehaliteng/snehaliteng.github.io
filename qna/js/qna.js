@@ -274,7 +274,81 @@ async function loadCatFilter() {
   sel.innerHTML = catOptionsHtml(data, null, true);
   // Also rebuild cat tree
   buildCatTree();
+  renderCatSearchDropdown();
 }
+
+// Searchable category dropdown
+function catSearchItems() {
+  const items = [];
+  items.push({ id: '', name: 'All Categories', depth: 0 });
+  const cats = catCache.slice();
+  const children = {};
+  cats.forEach(c => { const p = c.parent_id || 0; if (!children[p]) children[p] = []; children[p].push(c); });
+  function walk(parentId, depth) {
+    (children[parentId] || []).sort((a, b) => a.order_index - b.order_index).forEach(c => {
+      items.push({ id: c.id, name: c.name, depth });
+      walk(c.id, depth + 1);
+    });
+  }
+  walk(0, 0);
+  return items;
+}
+
+function renderCatSearchDropdown() {
+  const dd = document.getElementById('q-cat-dropdown');
+  if (!dd) return;
+  const q = (document.getElementById('q-cat-search').value || '').trim().toLowerCase();
+  const items = catSearchItems();
+  const sel = document.getElementById('q-cat-filter');
+  const selectedVal = sel.value;
+  const matches = q ? items.filter(i => i.name.toLowerCase().includes(q)) : items;
+  if (!matches.length) {
+    dd.innerHTML = '<div class="cat-search-empty">No matching categories</div>';
+    return;
+  }
+  dd.innerHTML = matches.map(i =>
+    `<div class="cat-search-item${String(i.id) === String(selectedVal) ? ' selected' : ''}" data-cid="${i.id}" onclick="selectCatSearch(${i.id || 'null'}, event)">${'&nbsp;'.repeat(i.depth * 4)}${escHtml(i.name)}</div>`
+  ).join('');
+}
+
+function showCatSearch() {
+  document.getElementById('q-cat-dropdown').classList.remove('hidden');
+  renderCatSearchDropdown();
+}
+
+function hideCatSearch() {
+  const dd = document.getElementById('q-cat-dropdown');
+  if (dd) dd.classList.add('hidden');
+}
+
+function selectCatSearch(id, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  const sel = document.getElementById('q-cat-filter');
+  sel.value = id || '';
+  const input = document.getElementById('q-cat-search');
+  if (id) {
+    const item = catSearchItems().find(i => String(i.id) === String(id));
+    if (item) input.value = item.name;
+  } else {
+    input.value = '';
+  }
+  hideCatSearch();
+  loadQuestions();
+}
+
+function onCatSearchKey(e) {
+  if (e.key === 'Escape') { hideCatSearch(); e.target.blur(); return; }
+  if (e.key === 'Enter') {
+    const sel = document.getElementById('q-cat-dropdown').querySelector('.cat-search-item');
+    if (sel) sel.click();
+    return;
+  }
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.cat-search-wrap');
+  if (wrap && !wrap.contains(e.target)) hideCatSearch();
+});
 
 async function loadQuestions() {
   window._qChecked = {};
@@ -610,6 +684,9 @@ function renderCatChildren(children, parentId, depth) {
 
 async function showCatQuestions(catId) {
   document.getElementById('q-cat-filter').value = catId;
+  const item = catSearchItems().find(i => String(i.id) === String(catId));
+  const input = document.getElementById('q-cat-search');
+  if (input) input.value = item ? item.name : '';
   document.querySelector('[data-view="questions"]').click();
 }
 
