@@ -55,6 +55,8 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-50
 .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
 .sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: rgba(255,255,255,.7); text-decoration: none; font-size: .85rem; transition: .2s; border-left: 3px solid transparent; }
 .sidebar-nav a:hover, .sidebar-nav a.active { background: rgba(255,255,255,.08); color: #fff; }
+.sidebar-home-link { display: flex; align-items: center; gap: 10px; padding: 10px 20px; color: rgba(255,255,255,.7); text-decoration: none; font-size: .85rem; transition: .2s; border-left: 3px solid transparent; border-bottom: 1px solid rgba(255,255,255,.08); }
+.sidebar-home-link:hover { background: rgba(255,255,255,.08); color: #fff; }
 .sidebar-nav a.active { border-left-color: var(--primary); }
 .sidebar-nav .nav-section { padding: 8px 20px 4px; font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.35); }
 .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.1); }

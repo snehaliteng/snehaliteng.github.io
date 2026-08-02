@@ -36,6 +36,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .nav-item { padding: 12px 20px; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
 .nav-item:hover { background: rgba(255,255,255,0.1); }
 .nav-item.active { background: rgba(255,255,255,0.15); border-left-color: #fff; font-weight: 600; }
+.nav-home { padding: 12px 20px; font-size: 14px; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; text-decoration: none; color: rgba(255,255,255,0.9); }
+.nav-home:hover { background: rgba(255,255,255,0.1); color: #fff; }
 #sidebar .user-info { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
 #sidebar .user-info a { color: rgba(255,255,255,0.7); text-decoration: underline; cursor: pointer; }
 
@@ -226,6 +228,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <div id="sidebar">
     <div class="brand"><span>SnehalIT</span><small>Todo Planner</small></div>
     <nav>
+      <a href="../index.html" class="nav-home" title="Back to site home"><span>&#127968;</span> <span>Home</span></a>
       <div class="nav-item active" data-view="permanent"><span>&#128204;</span> <span>Todo</span></div>
       <div class="nav-item" data-view="templates"><span>&#128203;</span> <span>Templates</span></div>
       <div class="nav-item" data-view="daily"><span>&#128197;</span> <span>Daily Schedule</span></div>

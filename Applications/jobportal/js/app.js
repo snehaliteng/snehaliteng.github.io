@@ -179,7 +179,7 @@ function renderSidebar() {
     ['profile', '👤', 'My Profile'],
     ['plans', '💳', 'Plans']
   ];
-  let html = '';
+  let html = `<a class="nav-item home-link" href="../../index.html"><span>🏠</span><span>Home</span></a>`;
   for (const [id, icon, label] of items) {
     html += `<div class="nav-item" data-view="${id}" onclick="showView('${id}')"><span>${icon}</span><span>${label}</span></div>`;
   }

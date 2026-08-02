@@ -190,6 +190,7 @@ const AuthModule = (() => {
       <div class="app-layout">
         <aside class="sidebar">
           <div class="logo">🏘️ <span>Society Manager</span></div>
+          <a href="../index.html" class="sidebar-home"><span class="icon">🏠</span><span>Home</span></a>
           <nav id="sideNav">${items.map(i => `<a href="#" class="${i.id === 'dashboard' ? 'active' : ''}" data-page="${i.id}"><span class="icon">${i.icon}</span><span>${i.label}</span></a>`).join('')}</nav>
         </aside>
         <main class="main-content">

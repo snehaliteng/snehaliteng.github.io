@@ -32,24 +32,7 @@
                         <a href="index.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Home</a>
                         <a href="services.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Services</a>
                         <a href="portfolio.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Portfolio</a>
-                        <div class="dropdown">
-                            <a href="#" class="nav-link dropdown-toggle px-3 py-2 rounded-md text-sm font-medium">Applications</a>
-                            <div class="dropdown-menu">
-                                <a href="apps.html">All Apps</a>
-                                <a href="tutorials/">Tutorials</a>
-                                <a href="blog/">Blog</a>
-                                <a href="todo/index.html">Todo</a>
-                                <a href="ecommerce/index.html">Marketplace</a>
-                                <a href="qna/index.html">QNA</a>
-                                <a href="eduErp/landing.html">EduERP</a>
-                                <a href="games/index.html">Games</a>
-                                <a href="password-generator/index.html">Password Generator</a>
-                                <a href="https://110.226.124.47/AiImageGenerator">Ai Image Generator</a>
-                                <a href="expense-tracker/">Daily Expense Tracker</a>
-                                <a href="Applications/">ProjectPro</a>
-                                <a href="Applications/jobportal/index.html">JobPortal</a>
-                            </div>
-                        </div>
+                        <a href="apps.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Applications</a>
                         <a href="about.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">About</a>
                         <a href="careers.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Careers</a>
                         <a href="contact.html" class="nav-link px-3 py-2 rounded-md text-sm font-medium">Contact</a>
@@ -69,24 +52,7 @@
                 <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Home</a>
                 <a href="services.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Services</a>
                 <a href="portfolio.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Portfolio</a>
-                <div>
-                    <a href="#" id="mobile-apps-toggle" class="block px-3 py-2 rounded-md text-base font-medium nav-link" onclick="toggleMobileApps(event)">Applications ▸</a>
-                    <div id="mobile-apps-submenu" class="mobile-submenu">
-                        <a href="apps.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">All Apps</a>
-                        <a href="tutorials/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Tutorials</a>
-                        <a href="blog/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Blog</a>
-                        <a href="todo/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Todo</a>
-                        <a href="ecommerce/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Marketplace</a>
-                        <a href="qna/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">QNA</a>
-                        <a href="eduErp/landing.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">EduERP</a>
-                        <a href="games/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Games</a>
-                        <a href="password-generator/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Password Generator</a>
-                        <a href="https://110.226.124.47/AiImageGenerator" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Ai Image Generator</a>
-                        <a href="expense-tracker/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Daily Expense Tracker</a>
-                        <a href="Applications/" class="block px-3 py-2 rounded-md text-base font-medium nav-link">ProjectPro</a>
-                        <a href="Applications/jobportal/index.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">JobPortal</a>
-                    </div>
-                </div>
+                <a href="apps.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Applications</a>
                 <a href="about.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">About</a>
                 <a href="careers.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Careers</a>
                 <a href="contact.html" class="block px-3 py-2 rounded-md text-base font-medium nav-link">Contact</a>
@@ -519,15 +485,6 @@
         </div>
     </footer>
 
-    <script>
-    function toggleMobileApps(e) {
-        e.preventDefault();
-        var sub = document.getElementById('mobile-apps-submenu');
-        var toggle = document.getElementById('mobile-apps-toggle');
-        sub.classList.toggle('open');
-        toggle.textContent = sub.classList.contains('open') ? 'Applications ▾' : 'Applications ▸';
-    }
-    </script>
     <script src="js/main.js"></script>
 <script src="js/analytics-tracker.js" defer></script>
 </body>
