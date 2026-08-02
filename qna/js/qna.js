@@ -1118,13 +1118,46 @@ async function readAloudQuestion(questionId) {
   speakText(text);
 }
 
+var _speechGen = 0;
+
 function speakText(text) {
   window.speechSynthesis.cancel();
+  _speechGen++;
   if (!text) return;
-  var utter = new SpeechSynthesisUtterance(text);
+  var gen = _speechGen;
+  var chunks = splitSpeechChunks(text);
+  speakChunks(chunks, 0, gen);
+}
+
+function splitSpeechChunks(text, maxLen) {
+  maxLen = maxLen || 190;
+  var cleaned = String(text).replace(/\s+/g, ' ').trim();
+  if (!cleaned) return [];
+  var chunks = [];
+  var remaining = cleaned;
+  while (remaining.length > maxLen) {
+    var slice = remaining.substring(0, maxLen);
+    var cut = Math.max(slice.lastIndexOf('. '), slice.lastIndexOf('? '), slice.lastIndexOf('! '), slice.lastIndexOf(', '));
+    if (cut < 80) {
+      cut = slice.lastIndexOf(' ');
+      if (cut < 80) cut = maxLen;
+    }
+    chunks.push(slice.substring(0, cut + 1).trim());
+    remaining = remaining.substring(cut + 1).trim();
+  }
+  if (remaining) chunks.push(remaining);
+  return chunks;
+}
+
+function speakChunks(chunks, idx, gen) {
+  if (idx >= chunks.length || _speechGen !== gen) return;
+  var utter = new SpeechSynthesisUtterance(chunks[idx]);
   utter.rate = 0.9;
   utter.pitch = 1;
+  utter.onend = function() { speakChunks(chunks, idx + 1, gen); };
+  utter.onerror = function() { speakChunks(chunks, idx + 1, gen); };
   window.speechSynthesis.speak(utter);
+  window.speechSynthesis.resume();
 }
 
 function showModal(html) {
