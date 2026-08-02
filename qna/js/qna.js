@@ -1088,9 +1088,9 @@ async function readAloudAllQuestions() {
     ansMap[a.question_id].push(a);
   });
 
-  var text = '';
+  var parts = [];
   questions.forEach(function(q, i) {
-    text += 'Question ' + (i + 1) + ': ' + q.title + '. ';
+    var text = 'Question ' + (i + 1) + ': ' + q.title + '. ';
     if (q.description) text += q.description.replace(/<[^>]*>/g, '') + '. ';
     var qa = ansMap[q.id] || [];
     if (qa.length) {
@@ -1099,9 +1099,9 @@ async function readAloudAllQuestions() {
         text += 'Answer ' + (ai + 1) + ': ' + a.content_html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ') + '. ';
       });
     }
-    text += '. ';
+    parts.push(text);
   });
-  speakText(text);
+  speakQueue(parts);
 }
 
 async function readAloudQuestion(questionId) {
@@ -1121,12 +1121,44 @@ async function readAloudQuestion(questionId) {
 var _speechGen = 0;
 
 function speakText(text) {
+  speakQueue([text]);
+}
+
+function speakQueue(parts) {
   window.speechSynthesis.cancel();
   _speechGen++;
-  if (!text) return;
+  if (!parts || !parts.length) return;
   var gen = _speechGen;
-  var chunks = splitSpeechChunks(text);
-  speakChunks(chunks, 0, gen);
+  speakParts(parts, 0, gen);
+}
+
+function speakParts(parts, pi, gen) {
+  if (_speechGen !== gen) return;
+  if (pi >= parts.length) return;
+  var chunks = splitSpeechChunks(parts[pi]);
+  speakPartChunks(parts, pi, chunks, 0, gen);
+}
+
+function speakPartChunks(parts, pi, chunks, ci, gen) {
+  if (_speechGen !== gen) return;
+  if (ci >= chunks.length) {
+    setTimeout(function() { speakParts(parts, pi + 1, gen); }, 250);
+    return;
+  }
+  var utter = new SpeechSynthesisUtterance(chunks[ci]);
+  utter.rate = 0.9;
+  utter.pitch = 1;
+  utter.onend = function() {
+    if (_speechGen !== gen) return;
+    window.speechSynthesis.cancel();
+    speakPartChunks(parts, pi, chunks, ci + 1, gen);
+  };
+  utter.onerror = function() {
+    if (_speechGen !== gen) return;
+    speakPartChunks(parts, pi, chunks, ci + 1, gen);
+  };
+  window.speechSynthesis.speak(utter);
+  window.speechSynthesis.resume();
 }
 
 function splitSpeechChunks(text, maxLen) {
@@ -1147,17 +1179,6 @@ function splitSpeechChunks(text, maxLen) {
   }
   if (remaining) chunks.push(remaining);
   return chunks;
-}
-
-function speakChunks(chunks, idx, gen) {
-  if (idx >= chunks.length || _speechGen !== gen) return;
-  var utter = new SpeechSynthesisUtterance(chunks[idx]);
-  utter.rate = 0.9;
-  utter.pitch = 1;
-  utter.onend = function() { speakChunks(chunks, idx + 1, gen); };
-  utter.onerror = function() { speakChunks(chunks, idx + 1, gen); };
-  window.speechSynthesis.speak(utter);
-  window.speechSynthesis.resume();
 }
 
 function showModal(html) {
