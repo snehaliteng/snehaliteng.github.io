@@ -28,6 +28,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .btn-secondary:hover { background: #d2d5d9; }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .btn-xs { padding: 3px 8px; font-size: 11px; }
+.btn-mini { padding: 2px 7px; font-size: 10px; width: auto; }
 .btn-danger { background: #d93025; color: #fff; }
 .btn-danger:hover { background: #b3261e; }
 .social-btn { display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:9px;border:1px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer;font-weight:500;font-size:13px; }
@@ -320,8 +321,8 @@ th { background: #f8f9fa; font-weight: 600; color: #555; }
           <option value="hidden">Hidden</option>
           <option value="unread">Unread</option>
         </select>
-        <button class="btn btn-primary btn-xs" onclick="loadQuestions()">Load</button>
-        <button class="btn btn-primary btn-xs" onclick="showQModal()">+ New</button>
+        <button class="btn btn-primary btn-mini" onclick="loadQuestions()">Load</button>
+        <button class="btn btn-primary btn-mini" onclick="showQModal()">+ New</button>
         <button class="btn btn-sm btn-secondary" onclick="exportQuestions()">&#x2913; Export</button>
         <button class="btn btn-sm btn-secondary" onclick="readAloudAllQuestions()">&#128264; Read All</button>
         <button class="btn btn-sm btn-danger" onclick="speakText('')">&#9632; Stop</button>
