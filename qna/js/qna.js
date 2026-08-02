@@ -1030,10 +1030,7 @@ async function exportQuestions() {
   lines.push('');
 
   questions.forEach(function(q, i) {
-    var cat = catCache.find(function(c) { return c.id === q.category_id; });
     lines.push((i + 1) + '. ' + q.title);
-    if (cat) lines.push('   Category: ' + cat.name);
-    if (q.description) lines.push('   Description: ' + q.description.replace(/<[^>]*>/g, ''));
     lines.push('');
 
     var qa = ansMap[q.id] || [];
