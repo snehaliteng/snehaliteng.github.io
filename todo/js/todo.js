@@ -1659,13 +1659,11 @@ function formatElapsed(sec) {
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   const s = sec % 60;
-  if (h > 0) return h + 'h ' + m + 'm ' + s + 's';
-  if (m > 0) return m + 'm ' + s + 's';
-  return s + 's';
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 }
 
 function elapsedText(startTime) {
-  return formatElapsed((Date.now() - new Date(startTime.replace(' ', 'T')).getTime()) / 1000);
+  return formatElapsed((Date.now() - new Date(startTime.replace(' ', 'T') + 'Z').getTime()) / 1000);
 }
 
 function durationSeconds(entry) {
