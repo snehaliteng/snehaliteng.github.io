@@ -27,7 +27,7 @@
     'ml':'ml-tutorial','dsa':'dsa-tutorial','dsa-leetcode-roadmap':'dsa-leetcode-roadmap-tutorial',
     'system-design-fundamentals':'system-design-fundamentals-tutorial',
     'ai-system-design':'ai-system-design-tutorial','ml-system-design':'ml-system-design-tutorial',
-    'mindset-mastery':'mindset-mastery-tutorial'
+    'mindset-mastery':'mindset-mastery-tutorial','cost-takeout-sourcing':'cost-takeout-sourcing-tutorial'
   };
 
   var productSlug = PRODUCT_SLUGS[slug];

@@ -79,6 +79,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .modal h3 { margin-bottom: 16px; }
 .modal label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; margin-top: 12px; }
 .modal input[type="text"], .modal input[type="time"], .modal select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.modal textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; min-height: 120px; resize: vertical; font-family: inherit; line-height: 1.5; }
 .modal input:focus, .modal select:focus { outline: none; border-color: #1a73e8; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 
@@ -234,6 +235,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       <div class="nav-item" data-view="daily"><span>&#128197;</span> <span>Daily Schedule</span></div>
       <div class="nav-item" data-view="monthly"><span>&#128200;</span> <span>Monthly</span></div>
       <div class="nav-item" data-view="yearly"><span>&#128202;</span> <span>Yearly</span></div>
+      <div class="nav-item" data-view="time"><span>&#9203;</span> <span>Time Tracking</span></div>
       <div class="nav-item" data-view="contacts"><span>&#128231;</span> <span>Contacts</span></div>
     </nav>
     <div class="user-info"><span id="user-email"></span> <span id="plan-badge" style="background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:10px;font-size:11px;display:inline-block;"></span> <a id="logout-link">Logout</a></div>
@@ -327,6 +329,31 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           <input type="number" id="yearly-year" class="search-input" style="max-width:200px;">
         </div>
         <div id="yearly-content" class="summary-wrap"></div>
+      </div>
+    </div>
+
+    <!-- Time Tracking Panel -->
+    <div class="panel" id="panel-time">
+      <h1>Time Tracking</h1>
+      <p class="subtitle">Start/Stop a timer on any task, then view how much time you spent</p>
+      <div class="card">
+        <div class="top-bar">
+          <select id="tt-task" class="filter-select" style="min-width:220px;" onchange="loadTimeTracking()">
+            <option value="">All Tasks</option>
+          </select>
+          <span id="tt-period-tabs" style="display:inline-flex;gap:4px;">
+            <button class="contact-filter-btn active" data-period="day" onclick="setTimePeriod('day')">Daily</button>
+            <button class="contact-filter-btn" data-period="month" onclick="setTimePeriod('month')">Monthly</button>
+            <button class="contact-filter-btn" data-period="year" onclick="setTimePeriod('year')">Yearly</button>
+          </span>
+          <input type="month" id="tt-month" class="search-input" style="max-width:180px;" onchange="loadTimeTracking()">
+          <input type="number" id="tt-year" class="search-input" style="max-width:140px;" onchange="loadTimeTracking()">
+        </div>
+        <div id="tt-chart" style="margin-top:8px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">Time Tracking Entries</div>
+        <div id="tt-table" class="summary-wrap"></div>
       </div>
     </div>
   </div>

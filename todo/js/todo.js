@@ -13,6 +13,8 @@ let planLimits = { max_templates: 3, max_schedules_per_month: 30 };
 let selectedTaskIds = new Set();
 let selectedPermTaskIds = new Set();
 let expandedPermTaskIds = new Set();
+let runningTrackers = {};
+let ttPeriod = 'day';
 
 // Auth
 async function checkAuth() {
@@ -29,6 +31,7 @@ async function checkAuth() {
     loadTemplates();
     loadDailySchedule();
     loadSummaryTabs();
+    loadRunningTrackers();
   } else {
     document.getElementById('login-overlay').classList.remove('hidden');
     document.getElementById('app').classList.add('hidden');
@@ -42,6 +45,10 @@ function setDefaultDate() {
   document.getElementById('summary-month').value = month;
   const yearEl = document.getElementById('yearly-year');
   if (yearEl && !yearEl.value) yearEl.value = today.substring(0, 4);
+  const ttMonth = document.getElementById('tt-month');
+  if (ttMonth && !ttMonth.value) ttMonth.value = today.substring(0, 7);
+  const ttYear = document.getElementById('tt-year');
+  if (ttYear && !ttYear.value) ttYear.value = today.substring(0, 4);
 }
 
 document.getElementById('login-btn').addEventListener('click', async () => {
@@ -107,6 +114,7 @@ document.querySelectorAll('.nav-item').forEach(el => {
     if (view === 'contacts') loadContacts();
     if (view === 'monthly') { setDefaultDate(); loadSummaryTabs(); }
     if (view === 'yearly') { setDefaultDate(); loadYearlySummary(); }
+    if (view === 'time') { setDefaultDate(); loadTimeTracking(); }
   });
 });
 
@@ -452,8 +460,9 @@ async function loadDailySchedule() {
         '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
         '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
         '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
-        '<span class="task-title' + (t.is_completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
+        '<span class="task-title' + (t.is_completed ? ' done' : '') + '">' + (t.title || '') + '</span>' +
         '<span class="task-status-dot ' + (t.is_completed ? 'done' : 'pending') + '"></span>' +
+        '<button class="btn btn-sm tt-btn btn-success" data-tt-type="daily" data-tt-id="' + t.id + '" data-tt-title="' + escHtml(t.title) + '" style="font-size:11px;padding:2px 10px;min-width:54px;">Start</button>' +
         '<button class="btn btn-sm btn-danger" onclick="deleteTaskInstance(' + t.id + ')" title="Remove task" style="font-size:11px;padding:2px 6px;">X</button></div>';
     }).join('');
   } else {
@@ -483,7 +492,7 @@ async function createEmptySchedule() {
 
 function showAddTaskModal(scheduleId) {
   const html = '<h3>Add Custom Task</h3>' +
-    '<label>Task</label><input id="ct-title" placeholder="Task description">' +
+    '<label>Task</label><textarea id="ct-title" placeholder="Task description" style="min-height:80px;"></textarea>' +
     '<label>Start Time</label><input id="ct-start" type="time" value="09:00">' +
     '<label>End Time</label><input id="ct-end" type="time" value="10:00">' +
     '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
@@ -686,7 +695,7 @@ async function loadMonthlySummary(templateId) {
   html += '</tr></thead><tbody>';
   for (const key of taskKeys) {
     const t = taskMap[key];
-    html += '<tr><td class="task-row"><span style="font-size:12px;color:#666;">' + t.start_time + ' - ' + t.end_time + '</span><br><strong>' + escHtml(t.title) + '</strong></td>';
+    html += '<tr><td class="task-row"><span style="font-size:12px;color:#666;">' + t.start_time + ' - ' + t.end_time + '</span><br><strong>' + (t.title || '') + '</strong></td>';
     for (const d of days) {
       if (t.days[d] === 1) html += '<td class="cell-done">&#10003;</td>';
       else if (t.days[d] === 0) html += '<td class="cell-miss">&#10007;</td>';
@@ -1232,9 +1241,10 @@ async function loadPermanentTasks() {
       (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-select" onchange="togglePermSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
       '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadPermanentTasks)">' +
-      '<span class="task-title' + (completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
+      '<span class="task-title' + (completed ? ' done' : '') + '">' + (t.title || '') + '</span>' +
       '<span class="task-status-dot ' + (completed ? 'done' : 'pending') + '"></span>' +
       (depth === 0 ? '<button class="btn btn-sm btn-ghost" onclick="showPermanentTaskModal(null,' + t.id + ')" title="Add subtask">+ Sub</button>' : '') +
+      '<button class="btn btn-sm tt-btn btn-success" data-tt-type="permanent" data-tt-id="' + t.id + '" data-tt-title="' + escHtml(t.title) + '" style="font-size:11px;padding:2px 10px;min-width:54px;">Start</button>' +
       '<button class="btn btn-sm btn-secondary" onclick="showPermanentTaskModal(' + t.id + ')">Edit</button>' +
       '<button class="btn btn-sm btn-danger" onclick="deletePermanentTask(' + t.id + ')">Del</button></div></div>';
   }
@@ -1257,6 +1267,7 @@ async function loadPermanentTasks() {
     html += renderSubtree(p.id, 1);
   }
   container.innerHTML = html;
+  updateTimerButtons();
 }
 
 function togglePermChildren(taskId) {
@@ -1417,7 +1428,7 @@ function showPermanentTaskModal(id, parentId) {
 
     const html = '<h3>' + title + '</h3>' +
       parentOptions +
-      '<label>Task Description</label><input id="pt-title" value="' + (task ? escHtml(task.title) : '') + '" placeholder="e.g. Morning exercise">' +
+      '<label>Task Description</label><textarea id="pt-title" placeholder="e.g. Morning exercise (supports HTML: <b>bold</b>, <ul>...</ul>)">' + (task ? escHtml(task.title) : '') + '</textarea>' +
       '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
       '<button class="btn btn-primary" onclick="' + action + '">Save</button></div>';
     showModal(html);
@@ -1497,8 +1508,9 @@ async function loadDailyPermanentTasks() {
     return '<div class="task-item" style="padding-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
       (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadDailyPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadDailyPermanentTasks)">' +
-      '<span class="task-title' + (completed ? ' done' : '') + '">' + escHtml(t.title) + '</span>' +
-      '<span class="task-status-dot ' + (completed ? 'done' : 'pending') + '"></span></div>';
+      '<span class="task-title' + (completed ? ' done' : '') + '">' + (t.title || '') + '</span>' +
+      '<span class="task-status-dot ' + (completed ? 'done' : 'pending') + '"></span>' +
+      '<button class="btn btn-sm tt-btn btn-success" data-tt-type="permanent" data-tt-id="' + t.id + '" data-tt-title="' + escHtml(t.title) + '" style="font-size:11px;padding:2px 10px;min-width:54px;">Start</button></div>';
   }
 
   function renderSubtree(parentId, depth) {
@@ -1519,6 +1531,7 @@ async function loadDailyPermanentTasks() {
     html += renderSubtree(p.id, 1);
   }
   container.innerHTML = html;
+  updateTimerButtons();
 }
 
 async function togglePermanentTask(taskId, completed, cb) {
@@ -1599,7 +1612,7 @@ async function loadYearlySummary() {
   html += '</tr></thead><tbody>';
   for (const key of taskKeys) {
     const t = taskMap[key];
-    html += '<tr><td class="task-row"><span style="font-size:12px;color:#666;">' + t.start_time + ' - ' + t.end_time + '</span><br><strong>' + escHtml(t.title) + '</strong></td>';
+    html += '<tr><td class="task-row"><span style="font-size:12px;color:#666;">' + t.start_time + ' - ' + t.end_time + '</span><br><strong>' + (t.title || '') + '</strong></td>';
     for (let m = 0; m < 12; m++) {
       if (t.months[m]) {
         const pct = t.months[m].total > 0 ? Math.round(t.months[m].done / t.months[m].total * 100) : 0;
@@ -1613,6 +1626,239 @@ async function loadYearlySummary() {
   }
   html += '</tbody></table>';
   document.getElementById('yearly-content').innerHTML = html;
+}
+
+// ======= Time Tracking =======
+function ttKey(type, id) {
+  return type + ':' + id;
+}
+
+function formatDuration(sec) {
+  if (!sec || sec < 0) return '0m';
+  sec = Math.floor(sec);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return h + 'h ' + m + 'm';
+  if (m > 0) return m + 'm ' + s + 's';
+  return s + 's';
+}
+
+function durationSeconds(entry) {
+  if (entry.end_time) {
+    const ms = new Date(entry.end_time.replace(' ', 'T')).getTime() - new Date(entry.start_time.replace(' ', 'T')).getTime();
+    return entry.duration_seconds != null ? entry.duration_seconds : Math.max(0, Math.round(ms / 1000));
+  }
+  return Math.max(0, Math.round((Date.now() - new Date(entry.start_time.replace(' ', 'T')).getTime()) / 1000));
+}
+
+async function loadRunningTrackers() {
+  runningTrackers = {};
+  if (!currentUser) return;
+  const { data } = await sb.from('todo_time_tracking').select('*').eq('user_id', currentUser.id).is('end_time', null);
+  if (data) data.forEach(t => { runningTrackers[ttKey(t.task_type, t.task_id)] = t; });
+  updateTimerButtons();
+}
+
+function updateTimerButtons() {
+  document.querySelectorAll('.tt-btn').forEach(function(btn) {
+    const key = ttKey(btn.dataset.ttType, btn.dataset.ttId);
+    const running = runningTrackers[key];
+    btn.classList.toggle('btn-danger', !!running);
+    btn.classList.toggle('btn-success', !running);
+    btn.textContent = running ? 'Stop' : 'Start';
+  });
+}
+
+async function stopTrackingRow(tr) {
+  if (!tr || tr.end_time) return;
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const ms = new Date(now.replace(' ', 'T')).getTime() - new Date(tr.start_time.replace(' ', 'T')).getTime();
+  const duration = Math.max(0, Math.round(ms / 1000));
+  await sb.from('todo_time_tracking').update({ end_time: now, duration_seconds: duration }).eq('id', tr.id);
+}
+
+async function startTracking(type, id, title) {
+  if (!currentUser) return;
+  for (const k of Object.keys(runningTrackers)) {
+    await stopTrackingRow(runningTrackers[k]);
+  }
+  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const { data: idExist } = await sb.from('todo_time_tracking').select('id').order('id', { ascending: false }).limit(1);
+  const newId = (idExist && idExist.length) ? idExist[0].id + 1 : 1;
+  const { error } = await sb.from('todo_time_tracking').insert({
+    id: newId, task_id: id, task_type: type, task_title: title,
+    user_id: currentUser.id, start_time: now, end_time: null, duration_seconds: null, created_at: now
+  });
+  if (error) return alert('Error: ' + error.message);
+  await loadRunningTrackers();
+}
+
+async function toggleTracking(type, id, title) {
+  const key = ttKey(type, id);
+  if (runningTrackers[key]) {
+    await stopTrackingRow(runningTrackers[key]);
+    delete runningTrackers[key];
+  } else {
+    await startTracking(type, id, title);
+  }
+  updateTimerButtons();
+  if (currentView === 'time') loadTimeTracking();
+}
+
+async function stopTracker(id) {
+  const { data } = await sb.from('todo_time_tracking').select('*').eq('id', id).single();
+  if (data) await stopTrackingRow(data);
+  await loadRunningTrackers();
+  loadTimeTracking();
+}
+
+async function deleteTimeEntry(id) {
+  if (!confirm('Delete this time entry?')) return;
+  await sb.from('todo_time_tracking').delete().eq('id', id);
+  await loadRunningTrackers();
+  loadTimeTracking();
+}
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.tt-btn');
+  if (btn) toggleTracking(btn.dataset.ttType, parseInt(btn.dataset.ttId), btn.dataset.ttTitle);
+});
+
+function setTimePeriod(p) {
+  ttPeriod = p;
+  document.querySelectorAll('#tt-period-tabs .contact-filter-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.period === p);
+  });
+  loadTimeTracking();
+}
+
+async function populateTimeTaskDropdown() {
+  const sel = document.getElementById('tt-task');
+  if (!sel) return;
+  const { data: entries } = await sb.from('todo_time_tracking').select('task_id,task_type,task_title').eq('user_id', currentUser.id);
+  const seen = {};
+  const opts = [];
+  if (entries) {
+    entries.forEach(function(e) {
+      const key = ttKey(e.task_type, e.task_id);
+      if (!seen[key]) { seen[key] = true; opts.push({ key: key, label: e.task_title }); }
+    });
+  }
+  opts.sort(function(a, b) { return a.label.localeCompare(b.label); });
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">All Tasks</option>';
+  opts.forEach(function(o) { sel.innerHTML += '<option value="' + escHtml(o.key) + '">' + escHtml(o.label) + '</option>'; });
+  sel.value = prev;
+}
+
+async function loadTimeTracking() {
+  if (!currentUser) return;
+  await populateTimeTaskDropdown();
+  const sel = document.getElementById('tt-task');
+  const taskKey = sel ? sel.value : '';
+  const { data: entries } = await sb.from('todo_time_tracking').select('*').eq('user_id', currentUser.id).order('start_time', { ascending: false });
+  const chartEl = document.getElementById('tt-chart');
+  const tableEl = document.getElementById('tt-table');
+  if (!entries || !entries.length) {
+    chartEl.innerHTML = '<p style="color:#666;text-align:center;padding:24px;">No time tracked yet. Go to the Todo list, press <strong>Start</strong> on a task, then <strong>Stop</strong> when done.</p>';
+    tableEl.innerHTML = '';
+    return;
+  }
+  let filtered = entries;
+  if (taskKey) filtered = entries.filter(function(e) { return ttKey(e.task_type, e.task_id) === taskKey; });
+  if (!filtered.length) {
+    chartEl.innerHTML = '<p style="color:#666;text-align:center;padding:24px;">No entries for this task.</p>';
+  } else {
+    chartEl.innerHTML = renderTimeChart(filtered);
+  }
+  renderTimeTable(filtered);
+}
+
+function renderTimeChart(entries) {
+  let data = [];
+  if (ttPeriod === 'month') {
+    const year = parseInt(document.getElementById('tt-year').value) || new Date().getFullYear();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const buckets = {};
+    entries.forEach(function(e) {
+      const d = e.start_time.substring(0, 10);
+      if (parseInt(d.substring(0, 4)) !== year) return;
+      const m = parseInt(d.substring(5, 7)) - 1;
+      buckets[m] = (buckets[m] || 0) + durationSeconds(e);
+    });
+    for (let m = 0; m < 12; m++) data.push({ label: months[m], value: buckets[m] || 0 });
+  } else if (ttPeriod === 'year') {
+    const buckets = {};
+    entries.forEach(function(e) {
+      const y = e.start_time.substring(0, 4);
+      buckets[y] = (buckets[y] || 0) + durationSeconds(e);
+    });
+    Object.keys(buckets).sort().forEach(function(y) { data.push({ label: y, value: buckets[y] }); });
+  } else {
+    let month = document.getElementById('tt-month').value;
+    if (!month) {
+      const today = new Date();
+      month = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+    }
+    const year = parseInt(month.substring(0, 4));
+    const mon = parseInt(month.substring(5, 7));
+    const daysInMonth = new Date(year, mon, 0).getDate();
+    const buckets = {};
+    entries.forEach(function(e) {
+      const d = e.start_time.substring(0, 10);
+      if (d.substring(0, 7) !== month) return;
+      const day = parseInt(d.substring(8, 10));
+      buckets[day] = (buckets[day] || 0) + durationSeconds(e);
+    });
+    for (let d = 1; d <= daysInMonth; d++) {
+      data.push({ label: String(d), value: buckets[d] || 0, sub: new Date(year, mon - 1, d).toLocaleDateString('en', { weekday: 'short' }) });
+    }
+  }
+  return renderBarChart(data);
+}
+
+function renderBarChart(data) {
+  if (!data.length) return '<p style="color:#999;text-align:center;padding:20px;">No data.</p>';
+  const max = Math.max.apply(null, data.map(function(d) { return d.value; }));
+  const total = data.reduce(function(a, d) { return a + d.value; }, 0);
+  let html = '<div style="font-size:13px;color:#666;margin-bottom:10px;">Total: <strong>' + formatDuration(total) + '</strong></div>';
+  html += '<div style="display:flex;align-items:flex-end;gap:4px;height:220px;border-bottom:1px solid #ddd;">';
+  data.forEach(function(d) {
+    const pct = max > 0 ? Math.round(d.value / max * 100) : 0;
+    const barH = Math.max(pct, d.value > 0 ? 3 : 1);
+    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;">';
+    if (d.value > 0) html += '<div style="font-size:10px;color:#666;margin-bottom:2px;white-space:nowrap;">' + formatDuration(d.value) + '</div>';
+    html += '<div title="' + escHtml(d.label) + ': ' + formatDuration(d.value) + '" style="width:70%;max-width:44px;height:' + barH + '%;background:' + (d.value > 0 ? '#1a73e8' : '#eee') + ';border-radius:3px 3px 0 0;"></div>';
+    html += '<div style="font-size:10px;color:#888;margin-top:4px;white-space:nowrap;">' + escHtml(d.label) + (d.sub ? ' <span style="color:#bbb;">' + escHtml(d.sub) + '</span>' : '') + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderTimeTable(entries) {
+  const el = document.getElementById('tt-table');
+  if (!entries || !entries.length) { el.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No entries.</p>'; return; }
+  let total = 0;
+  let html = '<table class="summary-table"><thead><tr><th class="task-row">Task</th><th>Type</th><th>Date</th><th>Start</th><th>End</th><th>Duration</th><th></th></tr></thead><tbody>';
+  entries.forEach(function(e) {
+    const running = !e.end_time;
+    const dur = durationSeconds(e);
+    if (!running) total += dur;
+    html += '<tr>' +
+      '<td class="task-row">' + (e.task_title || '') + '</td>' +
+      '<td>' + (e.task_type === 'daily' ? 'Daily' : 'Todo') + '</td>' +
+      '<td>' + escHtml((e.start_time || '').substring(0, 10)) + '</td>' +
+      '<td>' + escHtml((e.start_time || '').substring(11, 16)) + '</td>' +
+      '<td>' + (e.end_time ? escHtml(e.end_time.substring(11, 16)) : '<span style="color:#188038;font-weight:600;">Running</span>') + '</td>' +
+      '<td><strong>' + formatDuration(dur) + '</strong></td>' +
+      '<td>' + (running ? '<button class="btn btn-sm btn-success" onclick="stopTracker(' + e.id + ')">Stop</button>' : '<button class="btn btn-sm btn-danger" onclick="deleteTimeEntry(' + e.id + ')">Del</button>') + '</td>' +
+      '</tr>';
+  });
+  html += '<tr><td colspan="5" style="text-align:right;font-weight:600;">Total (completed)</td><td style="font-weight:700;color:#1a73e8;">' + formatDuration(total) + '</td><td></td></tr>';
+  html += '</tbody></table>';
+  el.innerHTML = html;
 }
 
 // Mobile sidebar
@@ -1633,6 +1879,8 @@ setInterval(function() {
   if (!currentUser) return;
   if (currentView === 'daily') loadDailySchedule();
   if (currentView === 'contacts') loadContacts();
+  if (currentView === 'time') loadTimeTracking();
+  loadRunningTrackers();
 }, 60000);
 
 // Init

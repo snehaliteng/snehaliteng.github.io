@@ -57,9 +57,10 @@ async function handleAdminLogin() {
 async function handleGoogleLogin() {
   const errEl = document.getElementById('auth-error');
   errEl.style.display = 'none';
+  const callback = window.location.origin + window.location.pathname.replace(/\/Applications\/jobportal\/admin\.html.*$/, '/blog/index.html') + '?app=jobportal-admin';
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
+    options: { redirectTo: callback }
   });
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
 }

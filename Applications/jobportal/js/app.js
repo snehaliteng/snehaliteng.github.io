@@ -7,6 +7,8 @@ let currentUser = null;
 let myProfile = null;
 let myCompany = null;
 let role = 'seeker';
+let loginRole = 'seeker';
+let loginRoleTouched = false;
 let plans = [];
 let userPlan = null;
 let companiesMap = {};
@@ -58,19 +60,35 @@ async function checkAuth() {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return;
   currentUser = user;
+  const storedRole = sessionStorage.getItem('jp_login_role') || null;
+  sessionStorage.removeItem('jp_login_role');
   myProfile = await loadProfileRow(user.id);
   if (!myProfile) {
-    myProfile = { user_id: user.id, role: 'seeker', email: user.email || '', full_name: user.email?.split('@')[0] || 'User' };
+    const newRole = storedRole || 'seeker';
+    myProfile = { user_id: user.id, role: newRole, email: user.email || '', full_name: user.email?.split('@')[0] || 'User' };
     try {
-      await sb.from('jp_profiles').insert({ user_id: user.id, role: myProfile.role, email: myProfile.email, full_name: myProfile.full_name });
+      await sb.from('jp_profiles').insert({ user_id: user.id, role: newRole, email: myProfile.email, full_name: myProfile.full_name });
     } catch (_) {}
+    if (newRole === 'company') {
+      const companyName = user.email?.split('@')[0] || 'My Company';
+      await sb.from('jp_companies').insert({ user_id: user.id, name: companyName, status: 'pending', plan: 'free' }).catch(() => {});
+    }
   } else if (!myProfile.email && user.email) {
     await sb.from('jp_profiles').update({ email: user.email }).eq('user_id', user.id).catch(() => {});
     myProfile.email = user.email;
   }
+  if (storedRole && (storedRole === 'company' || storedRole === 'seeker') && myProfile.role !== storedRole) {
+    await sb.from('jp_profiles').update({ role: storedRole }).eq('user_id', user.id).catch(() => {});
+    myProfile.role = storedRole;
+  }
   role = myProfile.role || 'seeker';
   if (role === 'company') {
     myCompany = await loadCompanyRow(user.id);
+    if (!myCompany) {
+      const companyName = myProfile.full_name || user.email?.split('@')[0] || 'My Company';
+      await sb.from('jp_companies').insert({ user_id: user.id, name: companyName, status: 'pending', plan: 'free' }).catch(() => {});
+      myCompany = await loadCompanyRow(user.id);
+    }
   }
   document.getElementById('auth-overlay').classList.add('hidden');
   document.getElementById('topbar').classList.remove('hidden');
@@ -99,7 +117,24 @@ async function handleLogin() {
   if (!email || !password) { errEl.textContent = 'Enter email and password'; errEl.style.display = 'block'; return; }
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+  const { data: prof } = await sb.from('jp_profiles').select('role').eq('user_id', data.user.id).maybeSingle();
+  const acctRole = prof?.role || 'seeker';
+  if (acctRole !== loginRole) {
+    await sb.auth.signOut();
+    const labels = { company: 'Company', seeker: 'Job Seeker', admin: 'Admin' };
+    const label = labels[acctRole] || 'Job Seeker';
+    errEl.textContent = 'This account is registered as a ' + label + '. Please select "' + label + '" above and sign in again.';
+    errEl.style.display = 'block';
+    return;
+  }
   await checkAuth();
+}
+
+function selectLoginRole(r) {
+  loginRole = r;
+  loginRoleTouched = true;
+  document.getElementById('login-role-seeker').classList.toggle('selected', r === 'seeker');
+  document.getElementById('login-role-company').classList.toggle('selected', r === 'company');
 }
 
 function selectRole(r) {
@@ -150,9 +185,11 @@ async function handleSignup() {
 async function handleGoogleLogin() {
   const errEl = document.getElementById('auth-error');
   errEl.style.display = 'none';
+  if (loginRoleTouched) sessionStorage.setItem('jp_login_role', loginRole);
+  const callback = window.location.origin + window.location.pathname.replace(/\/Applications\/jobportal\/index\.html.*$/, '/blog/index.html') + '?app=jobportal';
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname + window.location.search }
+    options: { redirectTo: callback }
   });
   if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
 }

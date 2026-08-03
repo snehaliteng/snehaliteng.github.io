@@ -63,9 +63,11 @@
       // App-tag redirect: after a Google OAuth sign-in from one of our apps,
       // Supabase sends the user back to this blog page with ?app=<tag>.
       // Establish the session, then hand off to the originating application.
+      const APP_BASE = window.location.pathname.replace(/\/blog\/index\.html.*$/, '');
       const APP_REDIRECT_TAGS = {
-        projectpro: window.location.origin + '/Applications/index.html',
-        jobportal: window.location.origin + '/Applications/jobportal/index.html'
+        projectpro: window.location.origin + APP_BASE + '/Applications/index.html',
+        jobportal: window.location.origin + APP_BASE + '/Applications/jobportal/index.html',
+        'jobportal-admin': window.location.origin + APP_BASE + '/Applications/jobportal/admin.html'
       };
       const appTag = new URLSearchParams(window.location.search).get('app');
       if (appTag && APP_REDIRECT_TAGS[appTag]) {

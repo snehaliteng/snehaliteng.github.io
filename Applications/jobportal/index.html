@@ -8,7 +8,7 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9334539225953790" crossorigin="anonymous"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-1RVMWL4SDK"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-1RVMWL4SDK');</script>
-<script>if(location.hash==='#')history.replaceState(null,'',location.pathname+location.search)</script>
+<script>if(window.location.href.endsWith('#'))history.replaceState(null,'',location.pathname+location.search)</script>
 </head>
 <body>
 
@@ -27,6 +27,16 @@
 
     <!-- Login -->
     <div id="auth-login">
+      <div class="field"><label>I am a…</label>
+        <div class="role-select">
+          <div class="role-card selected" id="login-role-seeker" onclick="selectLoginRole('seeker')">
+            <div class="icon">🧑‍💻</div><div class="name">Job Seeker</div><div class="desc">Find jobs</div>
+          </div>
+          <div class="role-card" id="login-role-company" onclick="selectLoginRole('company')">
+            <div class="icon">🏢</div><div class="name">Company</div><div class="desc">Post jobs</div>
+          </div>
+        </div>
+      </div>
       <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" autocomplete="email"></div>
       <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="btn btn-primary btn-block" onclick="handleLogin()">Sign In</button>
