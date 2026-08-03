@@ -1633,6 +1633,16 @@ function ttKey(type, id) {
   return type + ':' + id;
 }
 
+function to12hr(hhmm) {
+  if (!hhmm || !hhmm.includes(':')) return hhmm || '';
+  const parts = hhmm.split(':');
+  let h = parseInt(parts[0], 10);
+  if (isNaN(h)) return hhmm;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return h + ':' + parts[1] + ' ' + ampm;
+}
+
 function formatDuration(sec) {
   if (!sec || sec < 0) return '0m';
   sec = Math.floor(sec);
@@ -1642,6 +1652,20 @@ function formatDuration(sec) {
   if (h > 0) return h + 'h ' + m + 'm';
   if (m > 0) return m + 'm ' + s + 's';
   return s + 's';
+}
+
+function formatElapsed(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return h + 'h ' + m + 'm ' + s + 's';
+  if (m > 0) return m + 'm ' + s + 's';
+  return s + 's';
+}
+
+function elapsedText(startTime) {
+  return formatElapsed((Date.now() - new Date(startTime.replace(' ', 'T')).getTime()) / 1000);
 }
 
 function durationSeconds(entry) {
@@ -1850,8 +1874,8 @@ function renderTimeTable(entries) {
       '<td class="task-row">' + (e.task_title || '') + '</td>' +
       '<td>' + (e.task_type === 'daily' ? 'Daily' : 'Todo') + '</td>' +
       '<td>' + escHtml((e.start_time || '').substring(0, 10)) + '</td>' +
-      '<td>' + escHtml((e.start_time || '').substring(11, 16)) + '</td>' +
-      '<td>' + (e.end_time ? escHtml(e.end_time.substring(11, 16)) : '<span style="color:#188038;font-weight:600;">Running</span>') + '</td>' +
+      '<td>' + escHtml(to12hr((e.start_time || '').substring(11, 16))) + '</td>' +
+      '<td>' + (e.end_time ? escHtml(to12hr(e.end_time.substring(11, 16))) : '<span class="tt-running" data-start="' + escHtml(e.start_time) + '" style="color:#188038;font-weight:600;">' + elapsedText(e.start_time) + '</span>') + '</td>' +
       '<td><strong>' + formatDuration(dur) + '</strong></td>' +
       '<td>' + (running ? '<button class="btn btn-sm btn-success" onclick="stopTracker(' + e.id + ')">Stop</button>' : '<button class="btn btn-sm btn-danger" onclick="deleteTimeEntry(' + e.id + ')">Del</button>') + '</td>' +
       '</tr>';
@@ -1873,6 +1897,13 @@ document.addEventListener('click', function(e) {
     document.getElementById('sidebar-overlay').classList.remove('open');
   }
 });
+
+// Live elapsed timers for running time-tracking entries
+setInterval(function() {
+  document.querySelectorAll('.tt-running').forEach(function(span) {
+    span.textContent = elapsedText(span.getAttribute('data-start'));
+  });
+}, 1000);
 
 // Auto-refresh daily schedule every 60s to keep current-task highlight updated
 setInterval(function() {
