@@ -161,33 +161,19 @@ async function saveApplicationLocal(contactId) {
   if (error) throw error;
 
   var detail = jobParseDetail(row);
-  var base = 'contact_' + row.id;
-  var cvFileName = '';
+  if (!detail.hasCv) throw new Error('This application has no CV file to archive.');
 
-  if (detail.hasCv) {
-    cvFileName = base + '__' + (jobSanitize(detail.cvFile) || 'CV_' + jobSanitize(row.name || 'applicant') + '.pdf');
-    var fh = await dir.getFileHandle(cvFileName, { create: true });
-    var w = await fh.createWritable();
-    await w.write(base64ToBytes(detail.cvBase64));
-    await w.close();
-  }
+  var base = 'contact_' + row.id;
+  var cvFileName = base + '__' + (jobSanitize(detail.cvFile) || 'CV_' + jobSanitize(row.name || 'applicant') + '.pdf');
+  var fh = await dir.getFileHandle(cvFileName, { create: true });
+  var w = await fh.createWritable();
+  await w.write(base64ToBytes(detail.cvBase64));
+  await w.close();
 
   var record = {
     contactId: row.id,
-    name: row.name,
-    email: row.email,
-    phone: row.phone,
-    linkedin: detail.fields['LinkedIn'],
-    position: jobPositionFromService(row.service),
-    experience: detail.fields['Experience'],
-    currentCtc: detail.fields['Current CTC'],
-    expectedCtc: detail.fields['Expected CTC'],
-    location: detail.fields['Location'],
-    coverLetter: detail.coverLetter,
     cvFile: cvFileName,
     cvMime: detail.cvMime,
-    status: jobStatusFromService(row.service),
-    appliedAt: row.created_at,
     savedAt: new Date().toISOString()
   };
 
@@ -197,7 +183,7 @@ async function saveApplicationLocal(contactId) {
   await jw.close();
 
   jobArchiveCache = null;
-  return cvFileName || (base + '.json');
+  return cvFileName;
 }
 
 async function listLocalArchive() {
