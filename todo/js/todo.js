@@ -7,10 +7,9 @@ const EDGE_FUNCTION_URL = 'https://vgipghqejzbcoighktij.supabase.co/functions/v1
 const RAZORPAY_KEY_ID = 'rzp_live_T69SbFfk53qNmY';
 
 let currentUser = null;
-let currentView = 'templates';
+let currentView = 'permanent';
 let userPlan = null;
 let planLimits = { max_templates: 3, max_schedules_per_month: 30 };
-let selectedTaskIds = new Set();
 let selectedPermTaskIds = new Set();
 let expandedPermTaskIds = new Set();
 let runningTrackers = {};
@@ -28,9 +27,7 @@ async function checkAuth() {
     const badge = document.getElementById('plan-badge');
     if (badge && userPlan) badge.textContent = userPlan.name;
     setDefaultDate();
-    loadTemplates();
-    loadDailySchedule();
-    loadSummaryTabs();
+    loadPermanentTasks();
     loadRunningTrackers();
   } else {
     document.getElementById('login-overlay').classList.remove('hidden');
@@ -39,16 +36,15 @@ async function checkAuth() {
 }
 
 function setDefaultDate() {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('daily-date').value = today;
-  const month = today.substring(0, 7);
-  document.getElementById('summary-month').value = month;
-  const yearEl = document.getElementById('yearly-year');
-  if (yearEl && !yearEl.value) yearEl.value = today.substring(0, 4);
+  const istToday = istDateStr();
   const ttMonth = document.getElementById('tt-month');
-  if (ttMonth && !ttMonth.value) ttMonth.value = today.substring(0, 7);
+  if (ttMonth && !ttMonth.value) ttMonth.value = istToday.substring(0, 7);
   const ttYear = document.getElementById('tt-year');
-  if (ttYear && !ttYear.value) ttYear.value = today.substring(0, 4);
+  if (ttYear && !ttYear.value) ttYear.value = istToday.substring(0, 4);
+  const ttFrom = document.getElementById('tt-from');
+  if (ttFrom && !ttFrom.value) ttFrom.value = istToday;
+  const ttTo = document.getElementById('tt-to');
+  if (ttTo && !ttTo.value) ttTo.value = istToday;
 }
 
 document.getElementById('login-btn').addEventListener('click', async () => {
@@ -95,9 +91,6 @@ document.getElementById('logout-link').addEventListener('click', async () => {
   checkAuth();
 });
 
-document.getElementById('daily-date').addEventListener('change', loadDailySchedule);
-document.getElementById('summary-month').addEventListener('change', loadSummaryTabs);
-document.getElementById('yearly-year')?.addEventListener('change', loadYearlySummary);
 
 // Navigation
 document.querySelectorAll('.nav-item').forEach(el => {
@@ -108,12 +101,8 @@ document.querySelectorAll('.nav-item').forEach(el => {
     const view = el.dataset.view;
     currentView = view;
     document.getElementById('panel-' + view).classList.add('active');
-    if (view === 'templates') loadTemplates();
-    if (view === 'daily') { setDefaultDate(); loadDailySchedule(); }
     if (view === 'permanent') loadPermanentTasks();
     if (view === 'contacts') loadContacts();
-    if (view === 'monthly') { setDefaultDate(); loadSummaryTabs(); }
-    if (view === 'yearly') { setDefaultDate(); loadYearlySummary(); }
     if (view === 'time') { setDefaultDate(); loadTimeTracking(); }
   });
 });
@@ -226,486 +215,7 @@ async function purchasePlan(planId) {
   } catch (e) { alert('Payment failed: ' + e.message); }
 }
 
-// ======= Templates =======
-async function loadTemplates() {
-  const { data } = await sb.from('todo_templates').select('*').eq('user_id', currentUser.id).order('id', { ascending: false });
-  const container = document.getElementById('template-list');
-  if (!data || !data.length) { container.innerHTML = '<div class="card"><p style="color:#666;text-align:center;padding:20px;">No templates yet. Create one to get started!</p></div>'; return; }
-  let html = '';
-  for (const t of data) {
-    const { count } = await sb.from('todo_template_tasks').select('*', { count: 'exact', head: true }).eq('template_id', t.id);
-    html += '<div class="card"><div class="template-item"><span class="template-name" onclick="useTemplate(' + t.id + ')">' + escHtml(t.name) + '</span><span class="template-count">' + (count || 0) + ' tasks</span>' +
-      '<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();useTemplate(' + t.id + ')">Use Today</button>' +
-      '<button class="btn btn-sm btn-secondary" onclick="event.stopPropagation();showTemplateModal(' + t.id + ')">Edit</button>' +
-      '<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteTemplate(' + t.id + ')">Del</button></div></div>';
-  }
-  container.innerHTML = html;
-}
 
-function showTemplateModal(id) {
-  (async () => {
-    let template = null;
-    let tasks = [];
-    if (id) {
-      const { data: t } = await sb.from('todo_templates').select('*').eq('id', id).single();
-      if (t) template = t;
-      const { data: ts } = await sb.from('todo_template_tasks').select('*').eq('template_id', id).order('order_index');
-      if (ts) tasks = ts;
-    }
-    const title = id ? 'Edit Template' : 'New Template';
-    let taskHtml = '';
-    if (tasks.length) {
-      tasks.forEach((task, i) => {
-        taskHtml += '<div class="ttask-row" data-idx="' + i + '">' +
-          '<input type="time" class="tt-start" value="' + task.start_time + '">' +
-          '<input type="time" class="tt-end" value="' + task.end_time + '">' +
-          '<input type="text" class="tt-title" value="' + escHtml(task.title) + '" placeholder="Task description">' +
-          '<button class="btn btn-sm btn-danger" onclick="removeTaskRow(this)">X</button></div>';
-      });
-    } else {
-      taskHtml = getEmptyTaskRow();
-    }
-    const html = '<h3>' + title + '</h3>' +
-      '<label>Template Name</label><input id="mt-name" value="' + (template ? escHtml(template.name) : '') + '" placeholder="e.g. Work Day">' +
-      (id ? '' : '<button class="btn btn-sm btn-secondary" style="margin-top:8px;font-size:12px;" onclick="loadJobSearchSchedule()">Load Job Search Routine</button>') +
-      '<label style="margin-top:16px;">Tasks (24-hour schedule)</label>' +
-      '<div id="task-rows">' + taskHtml + '</div>' +
-      '<button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="addTaskRow()">+ Add Task</button>' +
-      '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
-      '<button class="btn btn-primary" onclick="saveTemplate(' + (id || 'null') + ')">Save</button></div>';
-    showModal(html);
-  })();
-}
-
-function getEmptyTaskRow() {
-  return '<div class="ttask-row" data-idx="0"><input type="time" class="tt-start" value="09:00"><input type="time" class="tt-end" value="10:00"><input type="text" class="tt-title" placeholder="Task description"><button class="btn btn-sm btn-danger" onclick="removeTaskRow(this)">X</button></div>';
-}
-
-function addTaskRow() {
-  const container = document.getElementById('task-rows');
-  const idx = container.children.length;
-  const div = document.createElement('div');
-  div.className = 'ttask-row';
-  div.dataset.idx = idx;
-  div.innerHTML = '<input type="time" class="tt-start" value="09:00"><input type="time" class="tt-end" value="10:00"><input type="text" class="tt-title" placeholder="Task description"><button class="btn btn-sm btn-danger" onclick="removeTaskRow(this)">X</button>';
-  container.appendChild(div);
-}
-
-function removeTaskRow(btn) {
-  const row = btn.closest('.ttask-row');
-  row.parentNode.removeChild(row);
-}
-
-function loadJobSearchSchedule() {
-  const nameInput = document.getElementById('mt-name');
-  if (nameInput && !nameInput.value) nameInput.value = 'Job Search Daily Routine';
-  const schedule = [
-    { start: '08:00', end: '08:30', title: 'Quick exercise or walk' },
-    { start: '08:30', end: '09:00', title: 'Review job boards (LinkedIn, Indeed, Glassdoor)' },
-    { start: '09:00', end: '10:30', title: 'Apply to 2-3 targeted jobs (customize resume + cover letter)' },
-    { start: '10:30', end: '11:00', title: 'Track applications in spreadsheet (role, company, date, status)' },
-    { start: '11:00', end: '12:00', title: 'Networking outreach (connect with recruiters, LinkedIn messages)' },
-    { start: '12:00', end: '13:00', title: 'Lunch + short break' },
-    { start: '13:00', end: '14:00', title: 'Study system design concepts (draw diagrams, review handbook)' },
-    { start: '14:00', end: '15:00', title: 'Practice DSA/LeetCode (FAANG-style questions)' },
-    { start: '15:00', end: '16:00', title: 'Work on portfolio (personal website, projects)' },
-    { start: '16:00', end: '17:00', title: 'Mock interview practice (system design or behavioral)' },
-    { start: '17:00', end: '18:00', title: 'Skill refresh (ML/NLP, cloud architecture, or LLM serving)' },
-    { start: '18:00', end: '19:00', title: 'Review industry news & trends (AI, cloud, DevOps)' },
-    { start: '19:00', end: '20:00', title: 'Write LinkedIn post or blog (share insights, boost visibility)' },
-    { start: '20:00', end: '21:00', title: 'Relaxation or family time' },
-    { start: '21:00', end: '21:30', title: 'Quick recap: What did you achieve today?' },
-    { start: '21:30', end: '22:30', title: 'Light reading (tech blogs, interview experiences, architecture books)' },
-  ];
-  const container = document.getElementById('task-rows');
-  container.innerHTML = '';
-  schedule.forEach((s, i) => {
-    const div = document.createElement('div');
-    div.className = 'ttask-row';
-    div.dataset.idx = i;
-    div.innerHTML = '<input type="time" class="tt-start" value="' + s.start + '">' +
-      '<input type="time" class="tt-end" value="' + s.end + '">' +
-      '<input type="text" class="tt-title" value="' + escHtml(s.title) + '" placeholder="Task description">' +
-      '<button class="btn btn-sm btn-danger" onclick="removeTaskRow(this)">X</button>';
-    container.appendChild(div);
-  });
-}
-
-async function saveTemplate(id) {
-  const name = document.getElementById('mt-name').value.trim();
-  if (!name) return alert('Template name is required');
-  const rows = document.querySelectorAll('#task-rows .ttask-row');
-  const tasks = [];
-  let valid = true;
-  rows.forEach((row, i) => {
-    const title = row.querySelector('.tt-title').value.trim();
-    const start = row.querySelector('.tt-start').value;
-    const end = row.querySelector('.tt-end').value;
-    if (!title) { valid = false; return; }
-    tasks.push({ title, start_time: start, end_time: end, order_index: i });
-  });
-  if (!valid) return alert('All tasks must have a description');
-  if (!tasks.length) return alert('Add at least one task');
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-  if (!id && !(await checkLimit('templates'))) return;
-
-  if (id) {
-    const { error: e1 } = await sb.from('todo_templates').update({ name }).eq('id', id);
-    if (e1) return alert('Error: ' + e1.message);
-    await sb.from('todo_template_tasks').delete().eq('template_id', id);
-    for (const t of tasks) {
-      const { data: existing } = await sb.from('todo_template_tasks').select('id').order('id', { ascending: false }).limit(1);
-      const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-      await sb.from('todo_template_tasks').insert({ ...t, id: newId, template_id: id, user_id: currentUser.id });
-    }
-  } else {
-    const { data: existing } = await sb.from('todo_templates').select('id').order('id', { ascending: false }).limit(1);
-    const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-    const { error: e1 } = await sb.from('todo_templates').insert({ id: newId, name, user_id: currentUser.id, created_at: now });
-    if (e1) return alert('Error: ' + e1.message);
-    for (const t of tasks) {
-      const { data: existing } = await sb.from('todo_template_tasks').select('id').order('id', { ascending: false }).limit(1);
-      const taskId = (existing && existing.length) ? existing[0].id + 1 : 1;
-      await sb.from('todo_template_tasks').insert({ ...t, id: taskId, template_id: newId, user_id: currentUser.id });
-    }
-  }
-  closeModal();
-  loadTemplates();
-  loadTemplateDropdown();
-}
-
-async function deleteTemplate(id) {
-  if (!confirm('Delete this template and all its tasks?')) return;
-  await sb.from('todo_template_tasks').delete().eq('template_id', id);
-  await sb.from('todo_daily_schedules').delete().eq('template_id', id);
-  await sb.from('todo_templates').delete().eq('id', id);
-  loadTemplates();
-  loadTemplateDropdown();
-}
-
-function useTemplate(id) {
-  document.getElementById('daily-date').value = new Date().toISOString().split('T')[0];
-  document.querySelector('[data-view="daily"]').click();
-  setTimeout(() => {
-    document.getElementById('daily-template').value = id;
-    applyTemplate();
-  }, 100);
-}
-
-// ======= Daily Schedule =======
-async function loadTemplateDropdown() {
-  const { data } = await sb.from('todo_templates').select('id,name').eq('user_id', currentUser.id).order('name');
-  const sel = document.getElementById('daily-template');
-  sel.innerHTML = '<option value="">Select template...</option>';
-  if (data) data.forEach(t => { sel.innerHTML += '<option value="' + t.id + '">' + escHtml(t.name) + '</option>'; });
-}
-
-async function loadDailySchedule() {
-  loadTemplateDropdown();
-  const date = document.getElementById('daily-date').value;
-  const container = document.getElementById('daily-tasks');
-  if (!date) { container.innerHTML = '<p style="color:#666;padding:20px;text-align:center;">Select a date to view schedule.</p>'; return; }
-
-  const { data: schedules } = await sb.from('todo_daily_schedules').select('*').eq('user_id', currentUser.id).eq('schedule_date', date);
-  if (!schedules || !schedules.length) {
-    container.innerHTML = '<p style="color:#666;padding:20px;text-align:center;">No schedule for this date. Select a template and click "Apply Template", or add custom tasks below.</p>' +
-      '<button class="btn btn-sm btn-secondary" onclick="createEmptySchedule()" style="margin-top:8px;">+ Create Empty Schedule & Add Tasks</button>';
-    loadDailyPermanentTasks();
-    return;
-  }
-
-  // Merge tasks from all schedules for this date, deduplicate by title+time
-  var allTasks = [];
-  var seen = {};
-  for (var si = 0; si < schedules.length; si++) {
-    var { data: stasks } = await sb.from('todo_task_instances').select('*').eq('schedule_id', schedules[si].id);
-    if (stasks) {
-      for (var ti = 0; ti < stasks.length; ti++) {
-        var key = stasks[ti].start_time + '|' + stasks[ti].end_time + '|' + stasks[ti].title;
-        if (!seen[key]) {
-          seen[key] = true;
-          allTasks.push(stasks[ti]);
-        }
-      }
-    }
-  }
-  allTasks.sort(function(a,b) { return (a.order_index || 0) - (b.order_index || 0) || a.start_time.localeCompare(b.start_time); });
-
-  // Clean up duplicate schedules (keep first, delete rest)
-  if (schedules.length > 1) {
-    for (var si = 1; si < schedules.length; si++) {
-      sb.from('todo_task_instances').delete().eq('schedule_id', schedules[si].id).then(function(){});
-      sb.from('todo_daily_schedules').delete().eq('id', schedules[si].id).then(function(){});
-    }
-  }
-
-  const schedule = schedules[0];
-  let templateName = '';
-  if (schedule.template_id) {
-    const { data: template } = await sb.from('todo_templates').select('name').eq('id', schedule.template_id).single();
-    if (template) templateName = template.name;
-  }
-  let html = '<div style="font-size:13px;color:#666;margin-bottom:12px;">' +
-    (templateName ? 'Template: <strong>' + escHtml(templateName) + '</strong>' : '<em>Custom schedule</em>') + '</div>';
-  if (allTasks.length) {
-    selectedTaskIds.clear();
-    document.getElementById('delete-selected-btn').style.display = 'none';
-    var nowTime = new Date().toTimeString().substring(0, 5);
-    html += allTasks.map(function(t) {
-      var isCurrent = !t.is_completed && nowTime >= t.start_time && nowTime < t.end_time;
-      return '<div class="task-item' + (isCurrent ? ' current-task' : '') + '" ' +
-        'data-id="' + t.id + '" data-schedule="' + t.schedule_id + '" draggable="true">' +
-        '<span class="drag-handle">&#x2630;</span>' +
-        '<input type="checkbox" class="task-select" onchange="toggleSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
-        '<input type="checkbox" class="task-check" ' + (t.is_completed ? 'checked' : '') + ' onchange="toggleTask(' + t.id + ', this.checked)">' +
-        '<span class="task-time">' + t.start_time + ' - ' + t.end_time + '</span>' +
-        '<span class="task-title' + (t.is_completed ? ' done' : '') + '">' + (t.title || '') + '</span>' +
-        '<span class="task-status-dot ' + (t.is_completed ? 'done' : 'pending') + '"></span>' +
-        '<button class="btn btn-sm tt-btn btn-success" data-tt-type="daily" data-tt-id="' + t.id + '" data-tt-title="' + escHtml(t.title) + '" style="font-size:11px;padding:2px 10px;min-width:54px;">Start</button>' +
-        '<button class="btn btn-sm btn-danger" onclick="deleteTaskInstance(' + t.id + ')" title="Remove task" style="font-size:11px;padding:2px 6px;">X</button></div>';
-    }).join('');
-  } else {
-    html += '<p style="color:#999;font-size:13px;">No tasks yet.</p>';
-  }
-  html += '<button class="btn btn-sm btn-secondary" onclick="showAddTaskModal(' + schedule.id + ')" style="margin-top:8px;">+ Add Custom Task</button>';
-  container.innerHTML = html;
-  loadDailyPermanentTasks();
-}
-
-async function createEmptySchedule() {
-  const date = document.getElementById('daily-date').value;
-  if (!date) return;
-  if (!(await checkLimit('schedules'))) return;
-  const { data: existing } = await sb.from('todo_daily_schedules').select('id').eq('user_id', currentUser.id).eq('schedule_date', date);
-  if (existing && existing.length) return;
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  const { data: sExist } = await sb.from('todo_daily_schedules').select('id').order('id', { ascending: false }).limit(1);
-  const sId = (sExist && sExist.length) ? sExist[0].id + 1 : 1;
-  const { error } = await sb.from('todo_daily_schedules').insert({
-    id: sId, template_id: null, schedule_date: date, user_id: currentUser.id, created_at: now
-  });
-  if (error) return alert('Error: ' + error.message);
-  loadDailySchedule();
-  loadSummaryTabs();
-}
-
-function showAddTaskModal(scheduleId) {
-  const html = '<h3>Add Custom Task</h3>' +
-    '<label>Task</label><textarea id="ct-title" placeholder="Task description" style="min-height:80px;"></textarea>' +
-    '<label>Start Time</label><input id="ct-start" type="time" value="09:00">' +
-    '<label>End Time</label><input id="ct-end" type="time" value="10:00">' +
-    '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
-    '<button class="btn btn-primary" onclick="saveCustomTask(' + scheduleId + ')">Add</button></div>';
-  showModal(html);
-}
-
-async function saveCustomTask(scheduleId) {
-  const title = document.getElementById('ct-title').value.trim();
-  const start = document.getElementById('ct-start').value;
-  const end = document.getElementById('ct-end').value;
-  if (!title) return alert('Task description is required');
-  const { data: existing } = await sb.from('todo_task_instances').select('id').order('id', { ascending: false }).limit(1);
-  const newId = (existing && existing.length) ? existing[0].id + 1 : 1;
-  const { data: maxOrder } = await sb.from('todo_task_instances').select('order_index').eq('schedule_id', scheduleId).order('order_index', { ascending: false }).limit(1);
-  var nextOrder = (maxOrder && maxOrder.length) ? maxOrder[0].order_index + 1 : 0;
-  const { error } = await sb.from('todo_task_instances').insert({
-    id: newId, schedule_id: scheduleId, template_task_id: null,
-    title, start_time: start, end_time: end,
-    is_completed: 0, order_index: nextOrder, user_id: currentUser.id
-  });
-  if (error) return alert('Error: ' + error.message);
-  closeModal();
-  loadDailySchedule();
-  loadSummaryTabs();
-}
-
-function toggleSelect(taskId, checked) {
-  if (checked) selectedTaskIds.add(taskId);
-  else selectedTaskIds.delete(taskId);
-  document.getElementById('delete-selected-btn').style.display = selectedTaskIds.size ? 'inline-block' : 'none';
-}
-
-async function deleteSelectedTasks() {
-  if (!selectedTaskIds.size) return;
-  const count = selectedTaskIds.size;
-  if (!confirm('Delete ' + count + ' selected task' + (count > 1 ? 's' : '') + '?')) return;
-  const ids = Array.from(selectedTaskIds);
-  selectedTaskIds.clear();
-  document.getElementById('delete-selected-btn').style.display = 'none';
-  await sb.from('todo_task_instances').delete().in('id', ids);
-  loadDailySchedule();
-  loadSummaryTabs();
-}
-
-async function deleteTaskInstance(taskId) {
-  if (!confirm('Remove this task?')) return;
-  await sb.from('todo_task_instances').delete().eq('id', taskId);
-  loadDailySchedule();
-  loadSummaryTabs();
-}
-
-async function applyTemplate() {
-  const date = document.getElementById('daily-date').value;
-  const templateId = parseInt(document.getElementById('daily-template').value);
-  if (!date || !templateId) return alert('Select a date and template');
-
-  if (!(await checkLimit('schedules'))) return;
-
-  let { data: existing } = await sb.from('todo_daily_schedules').select('*').eq('user_id', currentUser.id).eq('schedule_date', date);
-  if (existing && existing.length) {
-    const { count } = await sb.from('todo_task_instances').select('*', { count: 'exact', head: true }).eq('schedule_id', existing[0].id);
-    if (count === 0) {
-      await sb.from('todo_daily_schedules').delete().eq('id', existing[0].id);
-      existing = null;
-    } else {
-      return alert('Schedule already exists for this date. Clear it first.');
-    }
-  }
-
-  const { data: tasks } = await sb.from('todo_template_tasks').select('*').eq('template_id', templateId).order('order_index');
-  if (!tasks || !tasks.length) return alert('Template has no tasks');
-
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  const { data: sExist } = await sb.from('todo_daily_schedules').select('id').order('id', { ascending: false }).limit(1);
-  const sId = (sExist && sExist.length) ? sExist[0].id + 1 : 1;
-  const { error: e1 } = await sb.from('todo_daily_schedules').insert({
-    id: sId, template_id: templateId, schedule_date: date, user_id: currentUser.id, created_at: now
-  });
-  if (e1) return alert('Error: ' + e1.message);
-
-  for (let ti = 0; ti < tasks.length; ti++) {
-    const t = tasks[ti];
-    const { data: iExist } = await sb.from('todo_task_instances').select('id').order('id', { ascending: false }).limit(1);
-    const iId = (iExist && iExist.length) ? iExist[0].id + 1 : 1;
-    await sb.from('todo_task_instances').insert({
-      id: iId, schedule_id: sId, template_task_id: t.id,
-      title: t.title, start_time: t.start_time, end_time: t.end_time,
-      is_completed: 0, order_index: t.order_index || ti, user_id: currentUser.id
-    });
-  }
-  loadDailySchedule();
-  loadSummaryTabs();
-}
-
-async function clearDailySchedule() {
-  const date = document.getElementById('daily-date').value;
-  if (!date) return;
-  if (!confirm('Clear schedule for ' + date + '?')) return;
-  const { data: schedules } = await sb.from('todo_daily_schedules').select('id').eq('user_id', currentUser.id).eq('schedule_date', date);
-  if (schedules && schedules.length) {
-    await sb.from('todo_task_instances').delete().eq('schedule_id', schedules[0].id);
-    await sb.from('todo_daily_schedules').delete().eq('id', schedules[0].id);
-  }
-  loadDailySchedule();
-  loadSummaryTabs();
-}
-
-async function toggleTask(taskId, completed) {
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  await sb.from('todo_task_instances').update({
-    is_completed: completed ? 1 : 0,
-    completed_at: completed ? now : null
-  }).eq('id', taskId);
-  loadDailySchedule();
-  loadSummaryTabs();
-}
-
-// ======= Monthly Summary =======
-async function loadSummaryTabs() {
-  const { data: templates } = await sb.from('todo_templates').select('id,name').eq('user_id', currentUser.id).order('name');
-  const container = document.getElementById('summary-tabs');
-  container.innerHTML = '<div class="summary-tab active" data-tid="all" onclick="switchSummaryTab(this)">All Tasks</div>' +
-    (templates || []).map(t => '<div class="summary-tab" data-tid="' + t.id + '" onclick="switchSummaryTab(this)">' + escHtml(t.name) + '</div>').join('') +
-    '<div class="summary-tab" data-tid="custom" onclick="switchSummaryTab(this)">Custom</div>';
-  loadMonthlySummary('all');
-}
-
-function switchSummaryTab(el) {
-  document.querySelectorAll('.summary-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  loadMonthlySummary(el.dataset.tid);
-}
-
-async function loadMonthlySummary(templateId) {
-  const month = document.getElementById('summary-month').value;
-  if (!month) { document.getElementById('summary-content').innerHTML = '<p style="color:#666;text-align:center;padding:20px;">Select a month.</p>'; return; }
-  const year = parseInt(month.substring(0, 4));
-  const mon = parseInt(month.substring(5, 7));
-  const daysInMonth = new Date(year, mon, 0).getDate();
-  const monthStr = month + '-';
-  const days = [];
-  for (let d = 1; d <= daysInMonth; d++) {
-    const ds = String(d).padStart(2, '0');
-    days.push(monthStr + ds);
-  }
-
-  let scheduleQuery = sb.from('todo_daily_schedules').select('id,template_id,schedule_date').eq('user_id', currentUser.id).gte('schedule_date', days[0]).lte('schedule_date', days[days.length - 1]).order('schedule_date');
-  const { data: schedules } = await scheduleQuery;
-  if (!schedules || !schedules.length) {
-    document.getElementById('summary-content').innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No schedules found for this month.</p>';
-    return;
-  }
-
-  const scheduleIds = schedules.map(s => s.id);
-  let taskQuery = sb.from('todo_task_instances').select('id,title,start_time,end_time,is_completed,schedule_id').in('schedule_id', scheduleIds).order('start_time');
-  const { data: allTasks } = await taskQuery;
-  if (!allTasks || !allTasks.length) {
-    document.getElementById('summary-content').innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No tasks found.</p>';
-    return;
-  }
-
-  let filteredTasks = allTasks;
-  if (templateId === 'custom') {
-    const cScheduleIds = schedules.filter(s => !s.template_id).map(s => s.id);
-    filteredTasks = allTasks.filter(t => cScheduleIds.includes(t.schedule_id));
-    if (!filteredTasks.length) {
-      document.getElementById('summary-content').innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No custom tasks for this month.</p>';
-      return;
-    }
-  } else if (templateId !== 'all') {
-    const tId = parseInt(templateId);
-    const tScheduleIds = schedules.filter(s => s.template_id === tId).map(s => s.id);
-    filteredTasks = allTasks.filter(t => tScheduleIds.includes(t.schedule_id));
-    if (!filteredTasks.length) {
-      document.getElementById('summary-content').innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No tasks for this template in the selected month.</p>';
-      return;
-    }
-  }
-
-  const scheduleDateMap = {};
-  schedules.forEach(s => { scheduleDateMap[s.id] = s.schedule_date; });
-
-  const taskMap = {};
-  filteredTasks.forEach(t => {
-    const key = t.title + '|' + t.start_time + '|' + t.end_time;
-    if (!taskMap[key]) taskMap[key] = { title: t.title, start_time: t.start_time, end_time: t.end_time, days: {} };
-    const date = scheduleDateMap[t.schedule_id];
-    if (date) taskMap[key].days[date] = t.is_completed;
-  });
-
-  const taskKeys = Object.keys(taskMap);
-  let html = '<table class="summary-table"><thead><tr><th class="task-row">Task</th>';
-  for (const d of days) {
-    const dt = new Date(d + 'T00:00:00');
-    const dayName = dt.toLocaleDateString('en', { weekday: 'short' });
-    const dayNum = dt.getDate();
-    html += '<th style="font-size:11px;">' + dayNum + '<br><span style="font-weight:400;">' + dayName + '</span></th>';
-  }
-  html += '</tr></thead><tbody>';
-  for (const key of taskKeys) {
-    const t = taskMap[key];
-    html += '<tr><td class="task-row"><span style="font-size:12px;color:#666;">' + t.start_time + ' - ' + t.end_time + '</span><br><strong>' + (t.title || '') + '</strong></td>';
-    for (const d of days) {
-      if (t.days[d] === 1) html += '<td class="cell-done">&#10003;</td>';
-      else if (t.days[d] === 0) html += '<td class="cell-miss">&#10007;</td>';
-      else html += '<td class="cell-none">-</td>';
-    }
-    html += '</tr>';
-  }
-  html += '</tbody></table>';
-  document.getElementById('summary-content').innerHTML = html;
-}
 
 // ======= Contact Management =======
 var contactsSortState = 'name';
@@ -1283,55 +793,6 @@ document.addEventListener('mousedown', function(e) {
   dragFromHandle = !!e.target.closest('.drag-handle');
 });
 
-// Daily tasks — event delegation on #daily-tasks
-(function() {
-  var c = document.getElementById('daily-tasks');
-  if (!c) return;
-  c.addEventListener('dragstart', function(e) {
-    if (!dragFromHandle) { e.preventDefault(); return; }
-    dragFromHandle = false;
-    var item = e.target.closest('.task-item');
-    if (!item) { e.preventDefault(); return; }
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', JSON.stringify({ id: parseInt(item.dataset.id), schedule: parseInt(item.dataset.schedule) }));
-    item.classList.add('dragging');
-  });
-  c.addEventListener('dragenter', function(e) {
-    var item = e.target.closest('.task-item');
-    if (!item) return;
-    e.preventDefault();
-    item.classList.add('drag-over');
-  });
-  c.addEventListener('dragover', function(e) {
-    var item = e.target.closest('.task-item');
-    if (!item) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    item.classList.add('drag-over');
-  });
-  c.addEventListener('drop', async function(e) {
-    var targetEl = e.target.closest('.task-item');
-    if (!targetEl) return;
-    e.preventDefault();
-    targetEl.classList.remove('drag-over');
-    var data = JSON.parse(e.dataTransfer.getData('text/plain'));
-    var draggedId = data.id;
-    var items = Array.from(c.querySelectorAll('.task-item'));
-    var draggedIdx = items.findIndex(function(el) { return parseInt(el.dataset.id) === draggedId; });
-    var targetIdx = items.indexOf(targetEl);
-    if (draggedIdx === -1 || draggedIdx === targetIdx) return;
-    if (draggedIdx < targetIdx) targetEl.parentNode.insertBefore(items[draggedIdx], targetEl.nextSibling);
-    else targetEl.parentNode.insertBefore(items[draggedIdx], targetEl);
-    items = Array.from(c.querySelectorAll('.task-item'));
-    var updates = items.map(function(el, idx) {
-      return sb.from('todo_task_instances').update({ order_index: idx }).eq('id', parseInt(el.dataset.id));
-    });
-    await Promise.all(updates);
-  });
-  c.addEventListener('dragend', function(e) {
-    c.querySelectorAll('.task-item').forEach(function(el) { el.classList.remove('dragging', 'drag-over'); });
-  });
-})();
 
 (function() {
   var c = document.getElementById('permanent-task-list');
@@ -1477,65 +938,9 @@ async function deletePermanentTask(id) {
   loadPermanentTasks();
 }
 
-async function loadDailyPermanentTasks() {
-  const date = document.getElementById('daily-date').value;
-  const container = document.getElementById('daily-permanent');
-  if (!date) { container.innerHTML = ''; return; }
-
-  const { data: tasks } = await sb.from('todo_permanent_tasks').select('*').eq('user_id', currentUser.id).order('order_index');
-  if (!tasks || !tasks.length) { container.innerHTML = ''; return; }
-
-  const taskIds = tasks.map(t => t.id);
-  const { data: logs } = await sb.from('todo_permanent_task_logs').select('*')
-    .eq('user_id', currentUser.id).eq('log_date', date).in('task_id', taskIds);
-
-  const logMap = {};
-  if (logs) logs.forEach(l => { logMap[l.task_id] = l; });
-
-  const parents = tasks.filter(t => !t.parent_id);
-  const children = {};
-  tasks.filter(t => t.parent_id).forEach(t => {
-    if (!children[t.parent_id]) children[t.parent_id] = [];
-    children[t.parent_id].push(t);
-  });
-
-  function renderTask(t, depth) {
-    const log = logMap[t.id];
-    const completed = log ? log.is_completed : 0;
-    const hasChildren = children[t.id] && children[t.id].length;
-    const indent = depth * 20;
-    const isExpanded = expandedPermTaskIds.has(t.id);
-    return '<div class="task-item" style="padding-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
-      (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadDailyPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
-      '<input type="checkbox" class="task-check" ' + (completed ? 'checked' : '') + ' onchange="togglePermanentTask(' + t.id + ', this.checked, loadDailyPermanentTasks)">' +
-      '<span class="task-title' + (completed ? ' done' : '') + '">' + (t.title || '') + '</span>' +
-      '<span class="task-status-dot ' + (completed ? 'done' : 'pending') + '"></span>' +
-      '<button class="btn btn-sm tt-btn btn-success" data-tt-type="permanent" data-tt-id="' + t.id + '" data-tt-title="' + escHtml(t.title) + '" style="font-size:11px;padding:2px 10px;min-width:54px;">Start</button></div>';
-  }
-
-  function renderSubtree(parentId, depth) {
-    const subs = children[parentId] || [];
-    if (!subs.length) return '';
-    let html = '<div class="perm-children" id="dperm-children-' + parentId + '" style="display:' + (expandedPermTaskIds.has(parentId) ? 'block' : 'none') + '">';
-    for (const t of subs) {
-      html += renderTask(t, depth);
-      html += renderSubtree(t.id, depth + 1);
-    }
-    html += '</div>';
-    return html;
-  }
-
-  let html = '<div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px;">&#128204; Todo</div>';
-  for (const p of parents) {
-    html += renderTask(p, 0);
-    html += renderSubtree(p.id, 1);
-  }
-  container.innerHTML = html;
-  updateTimerButtons();
-}
 
 async function togglePermanentTask(taskId, completed, cb) {
-  const date = document.getElementById('daily-date').value;
+  const date = istDateStr();
   if (!date) return;
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
@@ -1563,72 +968,37 @@ async function togglePermanentTask(taskId, completed, cb) {
       });
     }
   }
-  loadDailyPermanentTasks();
   if (cb) cb();
 }
 
-// ======= Yearly Summary =======
-async function loadYearlySummary() {
-  const year = document.getElementById('yearly-year').value;
-  if (!year) { document.getElementById('yearly-content').innerHTML = '<p style="color:#666;text-align:center;padding:20px;">Select a year.</p>'; return; }
-  const startDate = year + '-01-01';
-  const endDate = year + '-12-31';
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  const { data: schedules } = await sb.from('todo_daily_schedules').select('id,template_id,schedule_date').eq('user_id', currentUser.id).gte('schedule_date', startDate).lte('schedule_date', endDate).order('schedule_date');
-  if (!schedules || !schedules.length) {
-    document.getElementById('yearly-content').innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No schedules found for ' + year + '.</p>';
-    return;
-  }
-
-  const scheduleIds = schedules.map(s => s.id);
-  const { data: allTasks } = await sb.from('todo_task_instances').select('id,title,start_time,end_time,is_completed,schedule_id').in('schedule_id', scheduleIds).order('start_time');
-  if (!allTasks || !allTasks.length) {
-    document.getElementById('yearly-content').innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No tasks found.</p>';
-    return;
-  }
-
-  const scheduleDateMap = {};
-  schedules.forEach(s => { scheduleDateMap[s.id] = s.schedule_date; });
-
-  const taskMap = {};
-  const monthCounts = {};
-  allTasks.forEach(t => {
-    const key = t.title + '|' + t.start_time + '|' + t.end_time;
-    if (!taskMap[key]) taskMap[key] = { title: t.title, start_time: t.start_time, end_time: t.end_time, months: {} };
-    const date = scheduleDateMap[t.schedule_id];
-    if (!date) return;
-    const m = parseInt(date.substring(5, 7)) - 1;
-    if (!taskMap[key].months[m]) taskMap[key].months[m] = { total: 0, done: 0 };
-    taskMap[key].months[m].total++;
-    if (t.is_completed) taskMap[key].months[m].done++;
-  });
-
-  const taskKeys = Object.keys(taskMap);
-  let html = '<table class="summary-table"><thead><tr><th class="task-row">Task</th>';
-  for (let m = 0; m < 12; m++) {
-    html += '<th style="font-size:12px;">' + months[m] + '</th>';
-  }
-  html += '</tr></thead><tbody>';
-  for (const key of taskKeys) {
-    const t = taskMap[key];
-    html += '<tr><td class="task-row"><span style="font-size:12px;color:#666;">' + t.start_time + ' - ' + t.end_time + '</span><br><strong>' + (t.title || '') + '</strong></td>';
-    for (let m = 0; m < 12; m++) {
-      if (t.months[m]) {
-        const pct = t.months[m].total > 0 ? Math.round(t.months[m].done / t.months[m].total * 100) : 0;
-        const color = pct >= 80 ? '#188038' : pct >= 50 ? '#f9ab00' : '#d93025';
-        html += '<td class="yearly-cell" style="color:' + color + ';">' + t.months[m].done + '/' + t.months[m].total + '</td>';
-      } else {
-        html += '<td class="cell-none">-</td>';
-      }
-    }
-    html += '</tr>';
-  }
-  html += '</tbody></table>';
-  document.getElementById('yearly-content').innerHTML = html;
-}
 
 // ======= Time Tracking =======
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+
+function msToIstStr(ms) {
+  const d = new Date(ms + IST_OFFSET_MS);
+  return d.getUTCFullYear() + '-' +
+    String(d.getUTCMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getUTCDate()).padStart(2, '0') + ' ' +
+    String(d.getUTCHours()).padStart(2, '0') + ':' +
+    String(d.getUTCMinutes()).padStart(2, '0') + ':' +
+    String(d.getUTCSeconds()).padStart(2, '0');
+}
+
+function istToMs(str) {
+  if (!str) return 0;
+  const t = str.includes('T') ? str : str.replace(' ', 'T');
+  return Date.parse(t + '+05:30') || 0;
+}
+
+function istNowStr() {
+  return msToIstStr(Date.now());
+}
+
+function istDateStr() {
+  return istNowStr().substring(0, 10);
+}
+
 function ttKey(type, id) {
   return type + ':' + id;
 }
@@ -1663,15 +1033,15 @@ function formatElapsed(sec) {
 }
 
 function elapsedText(startTime) {
-  return formatElapsed((Date.now() - new Date(startTime.replace(' ', 'T') + 'Z').getTime()) / 1000);
+  return formatElapsed((Date.now() - istToMs(startTime)) / 1000);
 }
 
 function durationSeconds(entry) {
   if (entry.end_time) {
-    const ms = new Date(entry.end_time.replace(' ', 'T')).getTime() - new Date(entry.start_time.replace(' ', 'T')).getTime();
-    return entry.duration_seconds != null ? entry.duration_seconds : Math.max(0, Math.round(ms / 1000));
+    if (entry.duration_seconds != null) return entry.duration_seconds;
+    return Math.max(0, Math.round((istToMs(entry.end_time) - istToMs(entry.start_time)) / 1000));
   }
-  return Math.max(0, Math.round((Date.now() - new Date(entry.start_time.replace(' ', 'T')).getTime()) / 1000));
+  return Math.max(0, Math.round((Date.now() - istToMs(entry.start_time)) / 1000));
 }
 
 async function loadRunningTrackers() {
@@ -1694,9 +1064,8 @@ function updateTimerButtons() {
 
 async function stopTrackingRow(tr) {
   if (!tr || tr.end_time) return;
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  const ms = new Date(now.replace(' ', 'T')).getTime() - new Date(tr.start_time.replace(' ', 'T')).getTime();
-  const duration = Math.max(0, Math.round(ms / 1000));
+  const now = istNowStr();
+  const duration = Math.max(0, Math.round((istToMs(now) - istToMs(tr.start_time)) / 1000));
   await sb.from('todo_time_tracking').update({ end_time: now, duration_seconds: duration }).eq('id', tr.id);
 }
 
@@ -1705,7 +1074,7 @@ async function startTracking(type, id, title) {
   for (const k of Object.keys(runningTrackers)) {
     await stopTrackingRow(runningTrackers[k]);
   }
-  const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+  const now = istNowStr();
   const { data: idExist } = await sb.from('todo_time_tracking').select('id').order('id', { ascending: false }).limit(1);
   const newId = (idExist && idExist.length) ? idExist[0].id + 1 : 1;
   const { error } = await sb.from('todo_time_tracking').insert({
@@ -1755,6 +1124,15 @@ function setTimePeriod(p) {
   loadTimeTracking();
 }
 
+function resetTimeRangeToday() {
+  const today = istDateStr();
+  const f = document.getElementById('tt-from');
+  const t = document.getElementById('tt-to');
+  if (f) f.value = today;
+  if (t) t.value = today;
+  loadTimeTracking();
+}
+
 async function populateTimeTaskDropdown() {
   const sel = document.getElementById('tt-task');
   if (!sel) return;
@@ -1779,12 +1157,18 @@ async function loadTimeTracking() {
   await populateTimeTaskDropdown();
   const sel = document.getElementById('tt-task');
   const taskKey = sel ? sel.value : '';
+  const fromEl = document.getElementById('tt-from');
+  const toEl = document.getElementById('tt-to');
+  const fromDate = fromEl ? fromEl.value : '';
+  const toDate = toEl ? toEl.value : '';
   const { data: entries } = await sb.from('todo_time_tracking').select('*').eq('user_id', currentUser.id).order('start_time', { ascending: false });
   const chartEl = document.getElementById('tt-chart');
   const tableEl = document.getElementById('tt-table');
   if (!entries || !entries.length) {
     chartEl.innerHTML = '<p style="color:#666;text-align:center;padding:24px;">No time tracked yet. Go to the Todo list, press <strong>Start</strong> on a task, then <strong>Stop</strong> when done.</p>';
     tableEl.innerHTML = '';
+    document.getElementById('tt-month-pivot').innerHTML = '<p style="color:#666;text-align:center;padding:16px;">No time tracked yet.</p>';
+    document.getElementById('tt-year-pivot').innerHTML = '<p style="color:#666;text-align:center;padding:16px;">No time tracked yet.</p>';
     return;
   }
   let filtered = entries;
@@ -1794,7 +1178,12 @@ async function loadTimeTracking() {
   } else {
     chartEl.innerHTML = renderTimeChart(filtered);
   }
-  renderTimeTable(filtered);
+  let tableEntries = filtered;
+  if (fromDate) tableEntries = tableEntries.filter(function(e) { return (e.start_time || '').substring(0, 10) >= fromDate; });
+  if (toDate) tableEntries = tableEntries.filter(function(e) { return (e.start_time || '').substring(0, 10) <= toDate; });
+  renderTimeTable(tableEntries);
+  renderMonthPivot(entries);
+  renderYearPivot(entries);
 }
 
 function renderTimeChart(entries) {
@@ -1859,11 +1248,146 @@ function renderBarChart(data) {
   return html;
 }
 
+function dtLocalValue(str) {
+  if (!str) return '';
+  return (str.length >= 16 ? str.substring(0, 16) : str).replace(' ', 'T');
+}
+
+async function updateTimeEntryTime(id, field, value) {
+  const { data: entry } = await sb.from('todo_time_tracking').select('start_time,end_time').eq('id', id).single();
+  if (!entry) return;
+  const norm = function(v) {
+    if (!v) return '';
+    const s = v.replace('T', ' ');
+    return s.length === 16 ? s + ':00' : s;
+  };
+  let start = entry.start_time;
+  let end = entry.end_time;
+  if (field === 'start') {
+    const v = norm(value);
+    if (v) start = v;
+  } else {
+    end = norm(value) || null;
+  }
+  if (start && end && istToMs(end) < istToMs(start)) {
+    alert('End time cannot be before start time.');
+    loadTimeTracking();
+    return;
+  }
+  const update = { start_time: start };
+  if (field === 'end') update.end_time = end;
+  if (start && end) {
+    update.duration_seconds = Math.max(0, Math.round((istToMs(end) - istToMs(start)) / 1000));
+  } else {
+    update.duration_seconds = null;
+  }
+  await sb.from('todo_time_tracking').update(update).eq('id', id);
+  await loadRunningTrackers();
+  loadTimeTracking();
+}
+
+function titleHash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+async function showAddTimeEntryModal() {
+  const { data: tasks } = await sb.from('todo_permanent_tasks').select('id,title').eq('user_id', currentUser.id).order('order_index');
+  let opts = '<option value="">Custom (type a title)...</option>';
+  if (tasks) tasks.forEach(function(t) { opts += '<option value="' + t.id + '">' + escHtml(t.title) + '</option>'; });
+  const now = istNowStr().substring(0, 16);
+  const html = '<h3>Add Time Entry</h3>' +
+    '<label>Task</label><select id="tt-add-task" onchange="toggleCustomTaskInput()">' + opts + '</select>' +
+    '<label>Custom Task Title</label><input type="text" id="tt-add-custom" placeholder="e.g. Deep work">' +
+    '<label>Start (IST)</label><input type="datetime-local" id="tt-add-start" value="' + now + '">' +
+    '<label>End (IST)</label><input type="datetime-local" id="tt-add-end">' +
+    '<p style="font-size:12px;color:#888;margin:4px 0 0;">Leave End empty to start a running timer.</p>' +
+    '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="saveTimeEntry()">Save</button></div>';
+  showModal(html);
+  toggleCustomTaskInput();
+}
+
+function toggleCustomTaskInput() {
+  const sel = document.getElementById('tt-add-task');
+  const cust = document.getElementById('tt-add-custom');
+  if (!sel || !cust) return;
+  cust.style.display = sel.value === '' ? '' : 'none';
+}
+
+function normDatetime(v) {
+  if (!v) return '';
+  const s = v.replace('T', ' ');
+  return s.length === 16 ? s + ':00' : s;
+}
+
+async function saveTimeEntry(id) {
+  const sel = document.getElementById('tt-add-task');
+  const title = sel.value === '' ? (document.getElementById('tt-add-custom').value || '').trim() : sel.options[sel.selectedIndex].text.trim();
+  const start = normDatetime(document.getElementById('tt-add-start').value);
+  const end = normDatetime(document.getElementById('tt-add-end').value) || null;
+  if (!title) return alert('Task title is required');
+  if (!start) return alert('Start time is required');
+  if (end && istToMs(end) < istToMs(start)) return alert('End time cannot be before start time.');
+  const taskType = sel.value === '' ? 'manual' : 'permanent';
+  const taskId = sel.value === '' ? titleHash(title) : parseInt(sel.value, 10);
+  const duration = end ? Math.max(0, Math.round((istToMs(end) - istToMs(start)) / 1000)) : null;
+  const payload = {
+    task_id: taskId, task_type: taskType, task_title: title,
+    start_time: start, end_time: end, duration_seconds: duration
+  };
+  if (id) {
+    const { error } = await sb.from('todo_time_tracking').update(payload).eq('id', id);
+    if (error) return alert('Error: ' + error.message);
+  } else {
+    const now = istNowStr();
+    const { data: last } = await sb.from('todo_time_tracking').select('id').order('id', { ascending: false }).limit(1);
+    const newId = (last && last.length) ? last[0].id + 1 : 1;
+    const { error } = await sb.from('todo_time_tracking').insert({
+      id: newId, user_id: currentUser.id, created_at: now, ...payload
+    });
+    if (error) return alert('Error: ' + error.message);
+  }
+  closeModal();
+  await loadRunningTrackers();
+  loadTimeTracking();
+}
+
+async function showEditTimeEntryModal(id) {
+  const { data: entry } = await sb.from('todo_time_tracking').select('*').eq('id', id).single();
+  if (!entry) return;
+  const { data: tasks } = await sb.from('todo_permanent_tasks').select('id,title').eq('user_id', currentUser.id).order('order_index');
+  const matched = entry.task_type === 'permanent' && tasks && tasks.some(function(t) { return t.id === entry.task_id; });
+  let opts = '<option value="">Custom (type a title)...</option>';
+  if (tasks) tasks.forEach(function(t) {
+    const selected = (matched && t.id === entry.task_id) ? 'selected' : '';
+    opts += '<option value="' + t.id + '" ' + selected + '>' + escHtml(t.title) + '</option>';
+  });
+  const html = '<h3>Edit Time Entry</h3>' +
+    '<label>Task</label><select id="tt-add-task" onchange="toggleCustomTaskInput()">' + opts + '</select>' +
+    '<label>Custom Task Title</label><input type="text" id="tt-add-custom" value="' + escHtml(entry.task_title || '') + '">' +
+    '<label>Start (IST)</label><input type="datetime-local" id="tt-add-start" value="' + dtLocalValue(entry.start_time) + '">' +
+    '<label>End (IST)</label><input type="datetime-local" id="tt-add-end" value="' + (entry.end_time ? dtLocalValue(entry.end_time) : '') + '">' +
+    '<p style="font-size:12px;color:#888;margin:4px 0 0;">Leave End empty to mark as running.</p>' +
+    '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="saveTimeEntry(' + id + ')">Save</button></div>';
+  showModal(html);
+  toggleCustomTaskInput();
+}
+
+document.addEventListener('change', function(e) {
+  const startInp = e.target.closest('.tt-start-input');
+  const endInp = e.target.closest('.tt-end-input');
+  if (startInp) updateTimeEntryTime(parseInt(startInp.dataset.id), 'start', startInp.value);
+  else if (endInp) updateTimeEntryTime(parseInt(endInp.dataset.id), 'end', endInp.value);
+});
+
 function renderTimeTable(entries) {
   const el = document.getElementById('tt-table');
-  if (!entries || !entries.length) { el.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No entries.</p>'; return; }
+  if (!entries || !entries.length) { el.innerHTML = '<p style="color:#666;text-align:center;padding:20px;">No entries in the selected date range.</p>'; return; }
   let total = 0;
-  let html = '<table class="summary-table"><thead><tr><th class="task-row">Task</th><th>Type</th><th>Date</th><th>Start</th><th>End</th><th>Duration</th><th></th></tr></thead><tbody>';
+  let html = '<table class="summary-table"><thead><tr><th class="task-row">Task</th><th>Type</th><th>Start (IST)</th><th>End (IST)</th><th>Duration</th><th></th></tr></thead><tbody>';
   entries.forEach(function(e) {
     const running = !e.end_time;
     const dur = durationSeconds(e);
@@ -1871,14 +1395,125 @@ function renderTimeTable(entries) {
     html += '<tr>' +
       '<td class="task-row">' + (e.task_title || '') + '</td>' +
       '<td>' + (e.task_type === 'daily' ? 'Daily' : 'Todo') + '</td>' +
-      '<td>' + escHtml((e.start_time || '').substring(0, 10)) + '</td>' +
-      '<td>' + escHtml(to12hr((e.start_time || '').substring(11, 16))) + '</td>' +
-      '<td>' + (e.end_time ? escHtml(to12hr(e.end_time.substring(11, 16))) : '<span class="tt-running" data-start="' + escHtml(e.start_time) + '" style="color:#188038;font-weight:600;">' + elapsedText(e.start_time) + '</span>') + '</td>' +
+      '<td><input type="datetime-local" step="1" class="tt-start-input" data-id="' + e.id + '" value="' + dtLocalValue(e.start_time) + '"></td>' +
+      '<td>' +
+        (running
+          ? '<input type="datetime-local" step="1" class="tt-end-input" data-id="' + e.id + '" value="">' +
+            '<div class="tt-running" data-start="' + escHtml(e.start_time) + '" style="color:#188038;font-weight:600;font-size:12px;">' + elapsedText(e.start_time) + '</div>'
+          : '<input type="datetime-local" step="1" class="tt-end-input" data-id="' + e.id + '" value="' + dtLocalValue(e.end_time) + '">') +
+      '</td>' +
       '<td><strong>' + formatDuration(dur) + '</strong></td>' +
-      '<td>' + (running ? '<button class="btn btn-sm btn-success" onclick="stopTracker(' + e.id + ')">Stop</button>' : '<button class="btn btn-sm btn-danger" onclick="deleteTimeEntry(' + e.id + ')">Del</button>') + '</td>' +
+      '<td style="white-space:nowrap;">' +
+        '<button class="btn btn-sm btn-secondary" onclick="showEditTimeEntryModal(' + e.id + ')">Edit</button> ' +
+        (running ? '<button class="btn btn-sm btn-success" onclick="stopTracker(' + e.id + ')">Stop</button>' : '<button class="btn btn-sm btn-danger" onclick="deleteTimeEntry(' + e.id + ')">Del</button>') +
+      '</td>' +
       '</tr>';
   });
-  html += '<tr><td colspan="5" style="text-align:right;font-weight:600;">Total (completed)</td><td style="font-weight:700;color:#1a73e8;">' + formatDuration(total) + '</td><td></td></tr>';
+  html += '<tr><td colspan="4" style="text-align:right;font-weight:600;">Total (completed)</td><td style="font-weight:700;color:#1a73e8;">' + formatDuration(total) + '</td><td></td></tr>';
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function shortDur(sec) {
+  if (!sec) return '';
+  sec = Math.floor(sec);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (h > 0) return h + 'h' + (m ? m + 'm' : '');
+  if (m > 0) return m + 'm';
+  return sec + 's';
+}
+
+function renderMonthPivot(entries) {
+  const el = document.getElementById('tt-month-pivot');
+  if (!el) return;
+  const month = document.getElementById('tt-month').value;
+  if (!month) { el.innerHTML = '<p style="color:#666;text-align:center;padding:16px;">Select a month.</p>'; return; }
+  const year = parseInt(month.substring(0, 4));
+  const mon = parseInt(month.substring(5, 7));
+  const daysInMonth = new Date(year, mon, 0).getDate();
+  const taskMap = {};
+  entries.forEach(function(e) {
+    const d = (e.start_time || '').substring(0, 10);
+    if (d.substring(0, 7) !== month) return;
+    const key = ttKey(e.task_type, e.task_id);
+    if (!taskMap[key]) taskMap[key] = { title: e.task_title || '', days: {} };
+    const day = parseInt(d.substring(8, 10));
+    taskMap[key].days[day] = (taskMap[key].days[day] || 0) + durationSeconds(e);
+  });
+  const keys = Object.keys(taskMap).sort(function(a, b) {
+    return taskMap[a].title.localeCompare(taskMap[b].title);
+  });
+  if (!keys.length) { el.innerHTML = '<p style="color:#666;text-align:center;padding:16px;">No time tracked in this month.</p>'; return; }
+  let html = '<table class="summary-table"><thead><tr><th class="task-row">Task</th>';
+  for (let d = 1; d <= daysInMonth; d++) html += '<th style="font-size:10px;">' + d + '</th>';
+  html += '<th style="min-width:60px;">Total</th></tr></thead><tbody>';
+  keys.forEach(function(k) {
+    const t = taskMap[k];
+    let rowTotal = 0;
+    for (let d = 1; d <= daysInMonth; d++) rowTotal += t.days[d] || 0;
+    html += '<tr><td class="task-row">' + escHtml(t.title) + '</td>';
+    for (let d = 1; d <= daysInMonth; d++) {
+      const v = t.days[d] || 0;
+      html += v ? '<td title="' + escHtml(t.title) + ' day ' + d + ': ' + formatDuration(v) + '" style="color:#1a73e8;">' + shortDur(v) + '</td>' : '<td class="cell-none">-</td>';
+    }
+    html += '<td><strong>' + formatDuration(rowTotal) + '</strong></td></tr>';
+  });
+  let grandTotal = 0;
+  html += '<tr style="background:#f8f9fa;"><td class="task-row" style="font-weight:700;">Total</td>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    let colTotal = 0;
+    keys.forEach(function(k) { colTotal += taskMap[k].days[d] || 0; });
+    grandTotal += colTotal;
+    html += colTotal ? '<td style="font-weight:700;color:#1a73e8;">' + shortDur(colTotal) + '</td>' : '<td class="cell-none">-</td>';
+  }
+  html += '<td style="font-weight:800;color:#1a73e8;">' + formatDuration(grandTotal) + '</td></tr>';
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderYearPivot(entries) {
+  const el = document.getElementById('tt-year-pivot');
+  if (!el) return;
+  const year = document.getElementById('tt-year').value;
+  if (!year) { el.innerHTML = '<p style="color:#666;text-align:center;padding:16px;">Select a year.</p>'; return; }
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const taskMap = {};
+  entries.forEach(function(e) {
+    const d = (e.start_time || '').substring(0, 10);
+    if (d.substring(0, 4) !== year) return;
+    const key = ttKey(e.task_type, e.task_id);
+    if (!taskMap[key]) taskMap[key] = { title: e.task_title || '', months: {} };
+    const m = parseInt(d.substring(5, 7)) - 1;
+    taskMap[key].months[m] = (taskMap[key].months[m] || 0) + durationSeconds(e);
+  });
+  const keys = Object.keys(taskMap).sort(function(a, b) {
+    return taskMap[a].title.localeCompare(taskMap[b].title);
+  });
+  if (!keys.length) { el.innerHTML = '<p style="color:#666;text-align:center;padding:16px;">No time tracked in this year.</p>'; return; }
+  let html = '<table class="summary-table"><thead><tr><th class="task-row">Task</th>';
+  for (let m = 0; m < 12; m++) html += '<th style="font-size:11px;">' + months[m] + '</th>';
+  html += '<th style="min-width:60px;">Total</th></tr></thead><tbody>';
+  keys.forEach(function(k) {
+    const t = taskMap[k];
+    let rowTotal = 0;
+    for (let m = 0; m < 12; m++) rowTotal += t.months[m] || 0;
+    html += '<tr><td class="task-row">' + escHtml(t.title) + '</td>';
+    for (let m = 0; m < 12; m++) {
+      const v = t.months[m] || 0;
+      html += v ? '<td title="' + escHtml(t.title) + ' ' + months[m] + ': ' + formatDuration(v) + '" style="color:#1a73e8;">' + shortDur(v) + '</td>' : '<td class="cell-none">-</td>';
+    }
+    html += '<td><strong>' + formatDuration(rowTotal) + '</strong></td></tr>';
+  });
+  let grandTotal = 0;
+  html += '<tr style="background:#f8f9fa;"><td class="task-row" style="font-weight:700;">Total</td>';
+  for (let m = 0; m < 12; m++) {
+    let colTotal = 0;
+    keys.forEach(function(k) { colTotal += taskMap[k].months[m] || 0; });
+    grandTotal += colTotal;
+    html += colTotal ? '<td style="font-weight:700;color:#1a73e8;">' + shortDur(colTotal) + '</td>' : '<td class="cell-none">-</td>';
+  }
+  html += '<td style="font-weight:800;color:#1a73e8;">' + formatDuration(grandTotal) + '</td></tr>';
   html += '</tbody></table>';
   el.innerHTML = html;
 }
@@ -1906,7 +1541,6 @@ setInterval(function() {
 // Auto-refresh daily schedule every 60s to keep current-task highlight updated
 setInterval(function() {
   if (!currentUser) return;
-  if (currentView === 'daily') loadDailySchedule();
   if (currentView === 'contacts') loadContacts();
   if (currentView === 'time') loadTimeTracking();
   loadRunningTrackers();
