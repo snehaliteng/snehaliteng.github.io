@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=380">
+  <title>Job Tracker & Autofill</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 380px;
+      min-height: 480px;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    .header {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      padding: 16px 20px;
+    }
+    .header h1 { font-size: 16px; font-weight: 700; }
+    .header p { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+    .tabs {
+      display: flex;
+      background: white;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #64748b;
+      transition: all 0.2s;
+      border: none;
+      background: none;
+    }
+    .tab.active {
+      color: #2563eb;
+      border-bottom: 2px solid #2563eb;
+      margin-bottom: -2px;
+    }
+    .tab:hover { color: #2563eb; }
+    .panel { display: none; padding: 16px 20px; }
+    .panel.active { display: block; }
+    .info-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 13px;
+    }
+    .info-label { color: #64748b; font-weight: 500; }
+    .info-value { font-weight: 600; text-align: right; max-width: 200px; word-break: break-all; }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-visited { background: #fef9c3; color: #854d0e; }
+    .badge-applied { background: #dcfce7; color: #166534; }
+    .badge-error { background: #fee2e2; color: #991b1b; }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-success {
+      background: #16a34a;
+      color: white;
+    }
+    .btn-success:hover { background: #15803d; }
+    .btn-outline {
+      background: white;
+      color: #2563eb;
+      border: 2px solid #2563eb;
+    }
+    .btn-outline:hover { background: #eff6ff; }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      margin: 14px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 30px 20px;
+      color: #94a3b8;
+    }
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+    .empty-state p { font-size: 13px; }
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .list-item:hover { border-color: #2563eb; background: #f8fafc; }
+    .list-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #eff6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #2563eb;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .list-info { flex: 1; min-width: 0; }
+    .list-company { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list-url { font-size: 11px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list-badge { flex-shrink: 0; }
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    .count-badge {
+      display: inline-block;
+      background: #2563eb;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      margin-left: 4px;
+    }
+    #profile-status {
+      text-align: center;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    #profile-status.show { display: block; }
+    #profile-status.success { background: #dcfce7; color: #166534; }
+    #profile-status.error { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Job Tracker & Autofill</h1>
+    <p>Track applications & fill forms instantly</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="current" onclick="switchTab('current')">Current Page</button>
+    <button class="tab" data-tab="history" onclick="switchTab('history')">History <span class="count-badge" id="history-count">0</span></button>
+    <button class="tab" data-tab="profile" onclick="switchTab('profile')">Profile</button>
+  </div>
+
+  <!-- Current Page Panel -->
+  <div id="panel-current" class="panel active">
+    <div id="page-loading" class="empty-state">
+      <p>Loading page info...</p>
+    </div>
+    <div id="page-info" style="display:none;">
+      <div class="info-card">
+        <div class="info-row">
+          <span class="info-label">Company</span>
+          <span class="info-value" id="company-name">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Job Title</span>
+          <span class="info-value" id="job-title">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Status</span>
+          <span id="app-status"></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Form Detected</span>
+          <span class="info-value" id="form-detected">-</span>
+        </div>
+      </div>
+      <button id="btn-mark-applied" class="btn btn-success" onclick="markApplied()" style="display:none;">
+        Mark as Applied
+      </button>
+      <button id="btn-fill" class="btn btn-primary" onclick="fillForm()" style="display:none;">
+        Fill Form
+      </button>
+      <button id="btn-highlight" class="btn btn-outline" onclick="highlightFields()" style="display:none;">
+        Highlight Fillable Fields
+      </button>
+      <button id="btn-add-manual" class="btn btn-outline" onclick="addManualEntry()" style="display:none;">
+        + Track This Page
+      </button>
+    </div>
+    <div id="page-no-job" class="empty-state" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+      </svg>
+      <p>No job posting detected on this page.</p>
+      <button class="btn btn-outline" onclick="addManualEntry()" style="margin-top:12px;">
+        + Track This Page Manually
+      </button>
+    </div>
+  </div>
+
+  <!-- History Panel -->
+  <div id="panel-history" class="panel">
+    <div id="history-loading" class="empty-state">
+      <p>Loading history...</p>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- Profile Panel -->
+  <div id="panel-profile" class="panel">
+    <div id="profile-status"></div>
+    <div class="section-title">Personal Info</div>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="pf-fullName" placeholder="Snehal IT Eng">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="pf-email" placeholder="snehaliteng@gmail.com">
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="tel" id="pf-phone" placeholder="+91 XXXXX XXXXX">
+    </div>
+    <div class="section-title">Links</div>
+    <div class="form-group">
+      <label>LinkedIn URL</label>
+      <input type="url" id="pf-linkedIn" placeholder="https://linkedin.com/in/yourprofile">
+    </div>
+    <div class="form-group">
+      <label>Resume URL</label>
+      <input type="url" id="pf-resumeUrl" placeholder="https://your-resume-link.com">
+    </div>
+    <div class="form-group">
+      <label>Website / Portfolio</label>
+      <input type="url" id="pf-website" placeholder="https://yourwebsite.com">
+    </div>
+    <div class="section-title">Cover Letter</div>
+    <div class="form-group">
+      <label>Default Cover Letter</label>
+      <input type="text" id="pf-coverLetter" placeholder="Cover letter text...">
+    </div>
+    <button class="btn btn-primary" onclick="saveProfile()">Save Profile</button>
+    <button class="btn btn-outline" onclick="testAutofill()" style="margin-top:0;">Test Autofill on Current Page</button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

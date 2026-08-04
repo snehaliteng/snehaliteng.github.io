@@ -35,6 +35,7 @@
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">Job Applications</h1>
       <div class="flex gap-2">
+        <input type="search" id="search-input" placeholder="Search name, email or phone..." oninput="onSearchInput(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-72 focus:ring-2 focus:ring-blue-500 outline-none">
         <select id="filter-status" onchange="loadApplications(1)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
           <option value="all">All Status</option>
           <option value="Pending">Pending</option>
@@ -154,20 +155,40 @@
     </div>
 
     <div id="interview-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target===this)closeInterviewModal()">
-      <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6" onclick="event.stopPropagation()">
+      <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 p-6" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-4">
           <h2 class="font-bold text-lg">Schedule Interview</h2>
           <button onclick="closeInterviewModal()" class="text-gray-500 hover:text-black text-xl">&times;</button>
         </div>
         <input type="hidden" id="interview-id">
         <div id="interview-recipient" class="text-sm text-gray-600 mb-4"></div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Interview Slot</label>
+        <label for="interview-datetime" class="block text-sm font-semibold text-gray-700 mb-1">Interview Slot</label>
         <input type="datetime-local" id="interview-datetime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
         <div id="interview-current" class="text-xs text-gray-400 mt-2"></div>
+        <label for="interview-notes" class="block text-sm font-semibold text-gray-700 mb-1 mt-4">Interview Notes</label>
+        <textarea id="interview-notes" rows="8" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Add notes while interviewing — responses, skills observed, strengths/concerns, recommendation... (auto-saved)"></textarea>
+        <div id="interview-notes-saved" class="text-xs text-gray-400 mt-1"></div>
         <div class="flex justify-end gap-2 mt-4">
           <button onclick="closeInterviewModal()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
           <button onclick="clearInterviewSlot()" class="text-red-500 hover:underline px-4 py-2 text-sm">Clear</button>
-          <button onclick="saveInterviewSlot()" class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700">Save</button>
+          <button onclick="saveInterviewSlot()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Save</button>
+          <button onclick="scheduleTeamsInterview()" class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700">Schedule &amp; Send Teams Invite</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pdf-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" onclick="if(event.target===this)closePdfModal()">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl h-5/6 mx-4 flex flex-col" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center p-4 border-b">
+          <h2 class="font-bold text-lg truncate" id="pdf-modal-title">CV Preview</h2>
+          <button onclick="closePdfModal()" class="text-gray-500 hover:text-black text-xl">&times;</button>
+        </div>
+        <div class="flex-1 min-h-0 p-4">
+          <iframe id="pdf-viewer" class="w-full h-full rounded-lg border border-gray-200" title="CV Preview"></iframe>
+        </div>
+        <div class="flex justify-end gap-2 p-4 border-t">
+          <button onclick="closePdfModal()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Close</button>
+          <button onclick="downloadCV(pdfContactId)" class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700">Download CV</button>
         </div>
       </div>
     </div>
@@ -190,6 +211,15 @@
     var expChart = null, techChart = null;
     var archivedContacts = {};
     var interviewContactId = null;
+    var interviewCandidate = null;
+    var notesSaveTimer = null;
+    var pdfContactId = null;
+    var searchTimer = null;
+
+    function onSearchInput() {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function() { loadApplications(1); }, 400);
+    }
 
     async function loadArchiveSet() {
       archivedContacts = {};
@@ -205,6 +235,8 @@
       initJobStore().then(function() { updateFolderStatus(); }).catch(function(e) { console.error('Folder store init failed', e); });
       loadApplications();
       syncPositionFilter();
+      var notesEl = document.getElementById('interview-notes');
+      if (notesEl) notesEl.addEventListener('input', autoSaveInterviewNotes);
     });
 
     function statusBadge(s) {
@@ -233,12 +265,16 @@
       return 'Career Application - ' + base + ' - ' + newStatus;
     }
 
-    function applyContactFilters(query, filterStatus, filterPosition) {
+    function applyContactFilters(query, filterStatus, filterPosition, searchTerm) {
       query = query.ilike('service', 'Career Application -%');
       if (filterPosition !== 'all') query = query.ilike('service', 'Career Application - ' + filterPosition + '%');
       if (filterStatus === 'Shortlisted') query = query.ilike('service', '% - Shortlisted');
       else if (filterStatus === 'Rejected') query = query.ilike('service', '% - Rejected');
       else if (filterStatus === 'Pending') query = query.not('service', 'ilike', '% - Shortlisted').not('service', 'ilike', '% - Rejected');
+      if (searchTerm && searchTerm.trim()) {
+        var esc = searchTerm.trim().replace(/[\\%_]/g, function(m) { return '\\' + m; });
+        query = query.or('name.ilike.%' + esc + '%,email.ilike.%' + esc + '%,phone.ilike.%' + esc + '%');
+      }
       return query;
     }
 
@@ -250,13 +286,14 @@
       try {
         var filterStatus = document.getElementById('filter-status').value;
         var filterPosition = document.getElementById('filter-position').value;
+        var searchTerm = document.getElementById('search-input').value;
 
         if (page) currentPage = page;
         if (currentPage < 1) currentPage = 1;
 
         var countQuery = applyContactFilters(
           _admin.from('contact').select('id', { count: 'exact', head: true }).order('created_at', { ascending: sortAppliedAsc }),
-          filterStatus, filterPosition
+          filterStatus, filterPosition, searchTerm
         );
         var { count, error: countErr } = await countQuery;
         if (countErr) throw countErr;
@@ -268,7 +305,7 @@
         var start = (currentPage - 1) * pageSize;
         var dataQuery = applyContactFilters(
           _admin.from('contact').select('*').order('created_at', { ascending: sortAppliedAsc }),
-          filterStatus, filterPosition
+          filterStatus, filterPosition, searchTerm
         );
         var { data, error } = await dataQuery.range(start, start + pageSize - 1);
         if (error) throw error;
@@ -291,7 +328,8 @@
       try {
         var filterStatus = document.getElementById('filter-status').value;
         var filterPosition = document.getElementById('filter-position').value;
-        var q = applyContactFilters(_admin.from('contact').select('*'), filterStatus, filterPosition);
+        var searchTerm = document.getElementById('search-input').value;
+        var q = applyContactFilters(_admin.from('contact').select('*'), filterStatus, filterPosition, searchTerm);
         var { data, error } = await q;
         if (error) throw error;
         var rows = (data || []).map(function(r) {
@@ -359,7 +397,8 @@
               + '<td class="p-3 text-xs">' + escapeHtml(loc || '-') + '</td>'
               + '<td class="p-3 max-w-xs"><div class="truncate" title="' + escapeHtml(msgPreview) + '">' + escapeHtml(msgPreview) + '</div>'
               + '<div class="flex items-center gap-2 flex-wrap mt-1">'
-              + (hasCV ? '<span class="text-green-600 text-xs font-medium">\u2713 CV:</span> ' + (archivedContacts[r.id] ? '<button class="text-blue-600 hover:underline text-xs font-medium download-cv" data-id="' + r.id + '" title="CV saved in local archive folder">Download (Local)</button>' : '<button class="text-blue-600 hover:underline text-xs font-medium download-cv" data-id="' + r.id + '" title="Download CV from application">Download</button>') : '')
+              + (hasCV ? '<span class="text-green-600 text-xs font-medium">\u2713 CV:</span> <button class="text-blue-600 hover:underline text-xs font-medium" onclick="previewCV(' + r.id + ')" title="Preview CV in browser">Preview</button> '
+              + (archivedContacts[r.id] ? '<button class="text-blue-600 hover:underline text-xs font-medium download-cv" data-id="' + r.id + '" title="CV saved in local archive folder">Download (Local)</button>' : '<button class="text-blue-600 hover:underline text-xs font-medium download-cv" data-id="' + r.id + '" title="Download CV from application">Download</button>') : '')
               + '<button class="text-blue-600 hover:underline text-xs font-medium" onclick="moveLocal(' + r.id + ')">Move Local</button>'
               + '<button class="text-blue-600 hover:underline text-xs font-medium" onclick="showMessage(' + r.id + ')">View</button>'
               + '</div></td>'
@@ -677,13 +716,17 @@
 
     async function openInterview(id) {
       try {
-        var { data: row, error } = await _admin.from('contact').select('id,name,email,service,interview_at').eq('id', id).single();
+        var { data: row, error } = await _admin.from('contact').select('id,name,email,service,interview_at,interview_notes').eq('id', id).single();
         if (error) throw error;
         interviewContactId = row.id;
+        interviewCandidate = { name: row.name, email: row.email, service: row.service };
         document.getElementById('interview-id').value = row.id;
         document.getElementById('interview-recipient').textContent = row.name + ' — ' + parsePosition(row.service) + (row.email ? ' (' + row.email + ')' : '');
         document.getElementById('interview-datetime').value = row.interview_at ? toLocalInput(row.interview_at) : '';
         document.getElementById('interview-current').textContent = row.interview_at ? 'Current slot: ' + formatSlot(row.interview_at) : 'No slot set yet.';
+        document.getElementById('interview-notes').value = row.interview_notes || '';
+        var notesSaved = document.getElementById('interview-notes-saved');
+        if (notesSaved) { notesSaved.textContent = row.interview_notes ? 'Notes saved.' : ''; }
         document.getElementById('interview-modal').classList.remove('hidden');
       } catch (err) {
         showAlert(err.message, 'error');
@@ -694,14 +737,16 @@
       var m = document.getElementById('interview-modal');
       if (m) m.classList.add('hidden');
       interviewContactId = null;
+      interviewCandidate = null;
     }
 
     async function saveInterviewSlot() {
       if (interviewContactId === null) return;
       var dt = document.getElementById('interview-datetime').value;
       if (!dt) { showAlert('Please pick a date & time for the interview.', 'error'); return; }
+      var notes = document.getElementById('interview-notes').value;
       try {
-        var { error } = await _admin.from('contact').update({ interview_at: new Date(dt).toISOString() }).eq('id', interviewContactId);
+        var { error } = await _admin.from('contact').update({ interview_at: new Date(dt).toISOString(), interview_notes: notes }).eq('id', interviewContactId);
         if (error) throw error;
         closeInterviewModal();
         showAlert('Interview slot saved.', 'success');
@@ -719,6 +764,60 @@
         if (error) throw error;
         closeInterviewModal();
         showAlert('Interview slot cleared.', 'success');
+        loadApplications(currentPage);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
+
+    function autoSaveInterviewNotes() {
+      if (interviewContactId === null) return;
+      clearTimeout(notesSaveTimer);
+      var status = document.getElementById('interview-notes-saved');
+      if (status) { status.textContent = 'Saving...'; }
+      notesSaveTimer = setTimeout(async function() {
+        try {
+          var notes = document.getElementById('interview-notes').value;
+          var { error } = await _admin.from('contact').update({ interview_notes: notes }).eq('id', interviewContactId);
+          if (error) throw error;
+          if (status) { status.textContent = 'Notes saved.'; status.className = 'text-xs text-green-600 mt-1'; }
+        } catch (err) {
+          if (status) { status.textContent = 'Save failed: ' + err.message; status.className = 'text-xs text-red-600 mt-1'; }
+        }
+      }, 1000);
+    }
+
+    async function scheduleTeamsInterview() {
+      if (interviewContactId === null) return;
+      var dt = document.getElementById('interview-datetime').value;
+      if (!dt) { showAlert('Please pick a date & time for the interview.', 'error'); return; }
+      var notes = document.getElementById('interview-notes').value;
+      try {
+        var row = interviewCandidate;
+        if (!row) {
+          var res = await _admin.from('contact').select('name,email,service').eq('id', interviewContactId).single();
+          if (res.error) throw res.error;
+          row = res.data;
+        }
+        var { error } = await _admin.from('contact').update({ interview_at: new Date(dt).toISOString(), interview_notes: notes }).eq('id', interviewContactId);
+        if (error) throw error;
+
+        var position = parsePosition(row.service);
+        var subject = 'Interview: ' + (row.name || 'Candidate') + ' - ' + position;
+        var startIso = new Date(dt).toISOString();
+        var endIso = new Date(new Date(dt).getTime() + 60 * 60 * 1000).toISOString();
+        var content = 'Thank you for applying to Snehal IT Eng.\n\nYou have an interview scheduled for the ' + position + ' position.';
+        if (notes) content += '\n\nInterview details:\n' + notes;
+        var url = 'https://teams.microsoft.com/l/meeting/new'
+          + '?subject=' + encodeURIComponent(subject)
+          + '&startTime=' + encodeURIComponent(startIso)
+          + '&endTime=' + encodeURIComponent(endIso)
+          + '&content=' + encodeURIComponent(content)
+          + (row.email ? '&attendees=' + encodeURIComponent(row.email) : '');
+        window.open(url, '_blank');
+
+        closeInterviewModal();
+        showAlert('Interview saved and Teams invite opened — confirm the meeting in Teams/Outlook to send it to ' + (row.email || 'the candidate') + '.', 'success');
         loadApplications(currentPage);
       } catch (err) {
         showAlert(err.message, 'error');
@@ -771,6 +870,56 @@
       }
     }
 
+    function closePdfModal() {
+      var m = document.getElementById('pdf-modal');
+      if (m) m.classList.add('hidden');
+      var iframe = document.getElementById('pdf-viewer');
+      if (iframe) iframe.src = 'about:blank';
+      pdfContactId = null;
+    }
+
+    async function previewCV(id) {
+      try {
+        var rec = null;
+        try { rec = await getLocalRecord(id); } catch (e) {}
+        var url = null, label = '';
+
+        if (rec && rec.cvFile) {
+          if (rec.cvMime && rec.cvMime.indexOf('pdf') === -1) {
+            showAlert('Preview is only available for PDF files. Use Download instead.', 'error');
+            return;
+          }
+          var dir = await ensureJobFolder();
+          var fh = await dir.getFileHandle(rec.cvFile);
+          var file = await fh.getFile();
+          url = URL.createObjectURL(file);
+          label = String(rec.cvFile).replace(/^contact_\d+__/, '');
+        } else {
+          var { data: row, error } = await _admin.from('contact').select('*').eq('id', id).single();
+          if (error) throw error;
+          var msg = row.message || '';
+          var cvDataMatch = msg.match(/--- CV Data ---\n(data:([^,]+);base64,([\s\S]+))/);
+          if (!cvDataMatch) throw new Error('No CV file data found in this application.');
+          var mime = cvDataMatch[2].trim();
+          if (mime.indexOf('pdf') === -1) {
+            showAlert('Preview is only available for PDF files. Use Download instead.', 'error');
+            return;
+          }
+          var bytes = base64ToBytes(cvDataMatch[3].trim().replace(/\s+/g, ''));
+          url = URL.createObjectURL(new Blob([bytes], { type: mime || 'application/pdf' }));
+          var cvInfoMatch = msg.match(/--- CV ---\n(.+?) \(/);
+          label = cvInfoMatch ? cvInfoMatch[1].trim() : ('CV_' + (row.name || 'applicant').replace(/\s+/g, '_') + '.pdf');
+        }
+
+        pdfContactId = id;
+        document.getElementById('pdf-modal-title').textContent = label ? ('CV: ' + label) : 'CV Preview';
+        document.getElementById('pdf-viewer').src = url;
+        document.getElementById('pdf-modal').classList.remove('hidden');
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
+
     function showMessage(id) {
       var find = document.querySelector('#contacts-table');
       // Simple: find the row and open message in alert
@@ -796,7 +945,7 @@
         var r2 = res.data;
         var msg = r2.message || '';
         function gf(f) { var re = new RegExp(f + ':\\s*(.+?)(?:\\n|$)'); var x = msg.match(re); return x ? x[1].trim() : '-'; }
-        var txt = 'Name: ' + (r2.name || '') + '\nEmail: ' + r2.email + '\nPhone: ' + (r2.phone || '') + '\nPosition: ' + parsePosition(r2.service) + '\nExperience: ' + gf('Experience') + '\nStatus: ' + parseStatus(r2.service) + '\nDate: ' + new Date(r2.created_at).toLocaleString() + '\nInterview: ' + (r2.interview_at ? formatSlot(r2.interview_at) : 'Not scheduled') + '\nCurrent CTC: ' + gf('Current CTC') + '\nExpected CTC: ' + gf('Expected CTC') + '\nLocation: ' + gf('Location') + '\n\n--- Cover Letter ---\n' + msg.replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
+        var txt = 'Name: ' + (r2.name || '') + '\nEmail: ' + r2.email + '\nPhone: ' + (r2.phone || '') + '\nPosition: ' + parsePosition(r2.service) + '\nExperience: ' + gf('Experience') + '\nStatus: ' + parseStatus(r2.service) + '\nDate: ' + new Date(r2.created_at).toLocaleString() + '\nInterview: ' + (r2.interview_at ? formatSlot(r2.interview_at) : 'Not scheduled') + '\nCurrent CTC: ' + gf('Current CTC') + '\nExpected CTC: ' + gf('Expected CTC') + '\nLocation: ' + gf('Location') + '\nLast Working Day: ' + gf('Last Working Day') + '\nNotice Period: ' + gf('Notice Period') + '\nReason for Change: ' + gf('Reason for Change') + '\n\n--- Cover Letter ---\n' + msg.replace(/--- CV Data ---[\s\S]*/, '').replace(/--- CV ---[\s\S]*/, '');
 
         var hasCvData = msg.indexOf('--- CV Data ---') !== -1;
         var cvMatch = msg.match(/--- CV ---\n(.+?) \(/);
