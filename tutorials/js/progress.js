@@ -105,7 +105,10 @@
             ? '<p style="margin:10px 0 0;color:#166534;font-size:.9rem;">You have finished every chapter of this tutorial.</p>'
             : (continueLink
                 ? '<a href="' + continueLink.getAttribute('href') + '" style="display:inline-block;margin-top:12px;background:#16a34a;color:#fff;padding:8px 18px;border-radius:6px;font-size:.9rem;font-weight:600;text-decoration:none;">Continue &rarr;</a>'
-                : ''));
+                : '')) +
+          '<div style="margin-top:12px;border-top:1px solid #bbf7d0;padding-top:10px;">' +
+            '<a href="../my-progress.html" style="color:#166534;font-size:.85rem;font-weight:600;text-decoration:none;">View all my progress &rarr;</a>' +
+          '</div>';
 
         const firstList = chapterLinks[0].closest('ol, ul');
         const insertTarget = firstList && firstList.parentNode ? firstList : document.querySelector('ul.toc');
