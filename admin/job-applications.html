@@ -62,6 +62,13 @@
     <div class="flex flex-wrap items-center gap-2 mb-4">
       <button id="toggle-charts" onclick="toggleCharts()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50">Show Salary Charts</button>
       <button id="toggle-jobs" onclick="toggleJobs()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50">Manage Jobs</button>
+      <div class="relative inline-block">
+        <button id="toggle-columns" onclick="toggleColumnPanel()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50">Columns</button>
+        <div id="column-panel" class="hidden absolute left-0 z-30 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-3 min-w-48">
+          <div class="text-xs font-semibold text-gray-500 mb-2">Show / hide columns</div>
+          <div id="column-options" class="space-y-1.5 text-sm"></div>
+        </div>
+      </div>
       <button id="save-selected" onclick="moveLocalSelected()" class="border border-indigo-300 rounded-lg px-3 py-2 text-sm bg-indigo-50 text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 disabled:cursor-not-allowed" disabled>Move Selected (0) to Local</button>
       <button id="connect-folder" onclick="connectFolder()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white hover:bg-gray-50">Connect Folder</button>
       <span id="folder-status" class="text-xs text-gray-400"></span>
@@ -190,6 +197,18 @@
           <button onclick="closePdfModal()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">Close</button>
           <button onclick="downloadCV(pdfContactId)" class="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700">Download CV</button>
         </div>
+      </div>
+    </div>
+
+    <div id="jd-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target===this)closeJDModal()">
+      <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto p-6" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="jd-title" class="font-bold text-lg">Job Description</h2>
+          <button onclick="closeJDModal()" class="text-gray-500 hover:text-black text-xl">&times;</button>
+        </div>
+        <div id="jd-meta" class="flex flex-wrap gap-2 mb-4"></div>
+        <div id="jd-body" class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+        <div id="jd-empty" class="hidden text-sm text-gray-500"></div>
       </div>
     </div>
 
@@ -362,17 +381,17 @@
         <table class="w-full text-sm">
           <thead><tr class="bg-gray-50 border-b text-left">
             <th class="p-3"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" title="Select all on this page"></th>
-            <th class="p-3 font-semibold">Name</th>
-            <th class="p-3 font-semibold">Email</th>
-            <th class="p-3 font-semibold">Phone</th>
-            <th class="p-3 font-semibold">Exp</th>
-            <th class="p-3 font-semibold">Position</th>
-            <th class="p-3 font-semibold">Curr CTC</th>
-            <th class="p-3 font-semibold">Exp CTC</th>
-            <th class="p-3 font-semibold">Location</th>
-            <th class="p-3 font-semibold">Message</th>
-            <th class="p-3 font-semibold">Date</th>
-            <th class="p-3 font-semibold">Status</th>
+            <th class="p-3 font-semibold" data-col="name">Name</th>
+            <th class="p-3 font-semibold" data-col="email">Email</th>
+            <th class="p-3 font-semibold" data-col="phone">Phone</th>
+            <th class="p-3 font-semibold" data-col="exp">Exp</th>
+            <th class="p-3 font-semibold" data-col="position">Position</th>
+            <th class="p-3 font-semibold" data-col="curr-ctc">Curr CTC</th>
+            <th class="p-3 font-semibold" data-col="exp-ctc">Exp CTC</th>
+            <th class="p-3 font-semibold" data-col="location">Location</th>
+            <th class="p-3 font-semibold" data-col="message">Message</th>
+            <th class="p-3 font-semibold" data-col="date">Date</th>
+            <th class="p-3 font-semibold" data-col="status">Status</th>
             <th class="p-3 font-semibold">Actions</th>
           </tr></thead>
           <tbody>${pageData.map(function(r) {
@@ -387,25 +406,26 @@
             if (r.message && r.message.length > 120 && !r.message.match(/--- CV Data ---/)) msgPreview += '...';
             return '<tr class="border-b hover:bg-gray-50">'
               + '<td class="p-3"><input type="checkbox" class="row-check" data-id="' + r.id + '" onchange="updateSaveSelected()"></td>'
-              + '<td class="p-3 font-medium">' + escapeHtml(r.name || '-') + '</td>'
-              + '<td class="p-3"><a href="mailto:' + escapeHtml(r.email) + '" class="text-blue-600 hover:underline">' + escapeHtml(r.email) + '</a></td>'
-              + '<td class="p-3">' + escapeHtml(r.phone || '-') + '</td>'
-              + '<td class="p-3 text-xs font-medium">' + escapeHtml(expYrs || '-') + '</td>'
-              + '<td class="p-3"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">' + escapeHtml(parsePosition(r.service)) + '</span></td>'
-              + '<td class="p-3 text-xs font-medium">' + escapeHtml(currCtc || '-') + '</td>'
-              + '<td class="p-3 text-xs font-medium">' + escapeHtml(expCtc || '-') + '</td>'
-              + '<td class="p-3 text-xs">' + escapeHtml(loc || '-') + '</td>'
-              + '<td class="p-3 max-w-xs"><div class="truncate" title="' + escapeHtml(msgPreview) + '">' + escapeHtml(msgPreview) + '</div>'
+              + '<td class="p-3 font-medium" data-col="name">' + escapeHtml(r.name || '-') + '</td>'
+              + '<td class="p-3" data-col="email"><a href="mailto:' + escapeHtml(r.email) + '" class="text-blue-600 hover:underline">' + escapeHtml(r.email) + '</a></td>'
+              + '<td class="p-3" data-col="phone">' + (r.phone ? '<span class="inline-flex items-center gap-1">' + escapeHtml(r.phone) + ' <a href="' + waLink(r.phone) + '" target="_blank" rel="noopener" title="Send WhatsApp message"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="#25D366" class="inline-block align-middle"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a></span>' : '-') + '</td>'
+              + '<td class="p-3 text-xs font-medium" data-col="exp">' + escapeHtml(expYrs || '-') + '</td>'
+              + '<td class="p-3" data-col="position"><span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">' + escapeHtml(parsePosition(r.service)) + '</span>'
+              + '<div class="mt-1"><button class="text-blue-600 hover:underline text-xs font-medium" onclick="showJD(' + r.id + ')">View JD</button></div></td>'
+              + '<td class="p-3 text-xs font-medium" data-col="curr-ctc">' + escapeHtml(currCtc || '-') + '</td>'
+              + '<td class="p-3 text-xs font-medium" data-col="exp-ctc">' + escapeHtml(expCtc || '-') + '</td>'
+              + '<td class="p-3 text-xs" data-col="location">' + escapeHtml(loc || '-') + '</td>'
+              + '<td class="p-3 max-w-xs" data-col="message"><div class="truncate" title="' + escapeHtml(msgPreview) + '">' + escapeHtml(msgPreview) + '</div>'
               + '<div class="flex items-center gap-2 flex-wrap mt-1">'
               + (hasCV ? '<span class="text-green-600 text-xs font-medium">\u2713 CV:</span> <button class="text-blue-600 hover:underline text-xs font-medium" onclick="previewCV(' + r.id + ')" title="Preview CV in browser">Preview</button> '
               + (archivedContacts[r.id] ? '<button class="text-blue-600 hover:underline text-xs font-medium download-cv" data-id="' + r.id + '" title="CV saved in local archive folder">Download (Local)</button>' : '<button class="text-blue-600 hover:underline text-xs font-medium download-cv" data-id="' + r.id + '" title="Download CV from application">Download</button>') : '')
               + '<button class="text-blue-600 hover:underline text-xs font-medium" onclick="moveLocal(' + r.id + ')">Move Local</button>'
               + '<button class="text-blue-600 hover:underline text-xs font-medium" onclick="showMessage(' + r.id + ')">View</button>'
               + '</div></td>'
-              + '<td class="p-3 text-gray-500 text-xs whitespace-nowrap">' + new Date(r.created_at).toLocaleString()
+              + '<td class="p-3 text-gray-500 text-xs whitespace-nowrap" data-col="date">' + new Date(r.created_at).toLocaleString()
               + (r.interview_at ? '<div class="text-indigo-600 font-medium mt-1 whitespace-nowrap">Interview: ' + escapeHtml(formatSlot(r.interview_at)) + '</div>' : '')
               + '</td>'
-              + '<td class="p-3" id="status-' + r.id + '">' + statusBadge(status) + '</td>'
+              + '<td class="p-3" data-col="status" id="status-' + r.id + '">' + statusBadge(status) + '</td>'
               + '<td class="p-3"><div class="flex gap-1 flex-wrap" id="actions-' + r.id + '">'
               + (status !== 'Shortlisted' ? '<button class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium hover:bg-green-200" onclick="updateStatus(' + r.id + ',\'Shortlisted\')">Shortlist</button>' : '')
               + (status !== 'Rejected' ? '<button class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium hover:bg-red-200" onclick="updateStatus(' + r.id + ',\'Rejected\')">Reject</button>' : '')
@@ -431,7 +451,81 @@
         selAll.indeterminate = checked > 0 && checked < checks.length;
       }
       updateSaveSelected();
+      applyColumnVisibility();
     }
+
+    function waLink(phone) {
+      var digits = String(phone).replace(/\D/g, '');
+      if (digits.length === 10) digits = '91' + digits;
+      if (digits.length === 11 && digits.charAt(0) === '0') digits = '91' + digits.substring(1);
+      return 'https://wa.me/' + digits + '?text=' + encodeURIComponent('Hello, I am contacting you regarding your job application.');
+    }
+
+    var COLUMN_DEFS = [
+      ['name', 'Name'],
+      ['email', 'Email'],
+      ['phone', 'Phone'],
+      ['exp', 'Exp'],
+      ['position', 'Position'],
+      ['curr-ctc', 'Curr CTC'],
+      ['exp-ctc', 'Exp CTC'],
+      ['location', 'Location'],
+      ['message', 'Message'],
+      ['date', 'Date'],
+      ['status', 'Status']
+    ];
+    var COLUMNS_KEY = 'siteng_app_columns_v1';
+
+    function getColumnState() {
+      try { return JSON.parse(localStorage.getItem(COLUMNS_KEY)) || {}; } catch (e) { return {}; }
+    }
+
+    function isColVisible(key) {
+      return getColumnState()[key] !== false;
+    }
+
+    function setColVisible(key, v) {
+      var s = getColumnState();
+      s[key] = v;
+      try { localStorage.setItem(COLUMNS_KEY, JSON.stringify(s)); } catch (e) {}
+    }
+
+    function applyColumnVisibility() {
+      document.querySelectorAll('#applications-table [data-col]').forEach(function(el) {
+        el.classList.toggle('hidden', !isColVisible(el.getAttribute('data-col')));
+      });
+    }
+
+    function renderColumnOptions() {
+      var box = document.getElementById('column-options');
+      if (!box) return;
+      box.innerHTML = '';
+      COLUMN_DEFS.forEach(function(c) {
+        var label = document.createElement('label');
+        label.className = 'flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = isColVisible(c[0]);
+        cb.className = 'h-4 w-4 text-blue-600 border-gray-300 rounded';
+        cb.onchange = function() { setColVisible(c[0], cb.checked); applyColumnVisibility(); };
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(c[1]));
+        box.appendChild(label);
+      });
+    }
+
+    function toggleColumnPanel() {
+      renderColumnOptions();
+      var panel = document.getElementById('column-panel');
+      if (panel) panel.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+      var btn = document.getElementById('toggle-columns');
+      var panel = document.getElementById('column-panel');
+      if (!panel || panel.classList.contains('hidden')) return;
+      if (!btn || (!panel.contains(e.target) && !btn.contains(e.target))) panel.classList.add('hidden');
+    });
 
     function renderPagination(pages) {
       if (pages <= 1) return '';
@@ -683,8 +777,38 @@
         if (error) throw error;
 
         loadApplications(currentPage);
+        if (newStatus === 'Rejected') sendRejectEmail(id);
       } catch (err) {
         document.getElementById('alert').innerHTML = '<div class="bg-red-100 text-red-700 p-3 rounded text-sm">' + err.message + '</div>';
+      }
+    }
+
+    function getAdminToken() {
+      return _admin.auth.getSession().then(function(s) {
+        if (s.data && s.data.session && s.data.session.access_token) return s.data.session.access_token;
+        return _admin.auth.refreshSession().then(function(s2) {
+          return (s2.data && s2.data.session && s2.data.session.access_token) || '';
+        });
+      });
+    }
+
+    async function sendRejectEmail(id) {
+      try {
+        var token = await getAdminToken();
+        var res = await fetch(SUPABASE_URL + '/functions/v1/send-job-reject-email', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Email send failed');
+        if (data.status === 'logged') {
+          showAlert('Rejected, but Gmail is not configured on the server - email was not sent.', 'error');
+        } else {
+          showAlert('Rejected. Rejection email sent to the candidate.', 'success');
+        }
+      } catch (err) {
+        showAlert('Rejected, but email failed: ' + err.message, 'error');
       }
     }
 
@@ -917,6 +1041,51 @@
         document.getElementById('pdf-modal').classList.remove('hidden');
       } catch (err) {
         showAlert(err.message, 'error');
+      }
+    }
+
+    function closeJDModal() {
+      var m = document.getElementById('jd-modal');
+      if (m) m.classList.add('hidden');
+    }
+
+    async function showJD(id) {
+      try {
+        var { data: row, error: err } = await _admin.from('contact').select('service').eq('id', id).single();
+        if (err) throw err;
+        var title = parsePosition(row.service);
+        var { data: jobs, error: jerr } = await _admin.from('jobs').select('*').ilike('title', title).limit(1);
+        if (jerr) throw jerr;
+        var j = jobs && jobs[0];
+
+        var modal = document.getElementById('jd-modal');
+        var titleEl = document.getElementById('jd-title');
+        var metaEl = document.getElementById('jd-meta');
+        var bodyEl = document.getElementById('jd-body');
+        var emptyEl = document.getElementById('jd-empty');
+
+        if (j) {
+          titleEl.textContent = j.title;
+          var meta = [];
+          if (j.type) meta.push(j.type);
+          if (j.location) meta.push(j.location);
+          if (j.experience) meta.push(j.experience);
+          metaEl.innerHTML = meta.map(function(x) { return '<span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-medium">' + escapeHtml(x) + '</span>'; }).join(' ');
+          bodyEl.textContent = j.description || j.summary || 'No description provided.';
+          titleEl.classList.remove('hidden');
+          metaEl.classList.remove('hidden');
+          bodyEl.classList.remove('hidden');
+          emptyEl.classList.add('hidden');
+        } else {
+          titleEl.classList.add('hidden');
+          metaEl.classList.add('hidden');
+          bodyEl.classList.add('hidden');
+          emptyEl.textContent = 'No JD found for this position (' + title + '). Add one under "Manage Jobs".';
+          emptyEl.classList.remove('hidden');
+        }
+        modal.classList.remove('hidden');
+      } catch (e) {
+        showAlert('Could not load JD: ' + e.message, 'error');
       }
     }
 

@@ -346,6 +346,18 @@
 
             function val(id) { return document.getElementById(id).value; }
 
+            function sendApplicationAck(id) {
+                fetch(SUPABASE_URL + '/functions/v1/send-job-ack-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+                    body: JSON.stringify({ id: id })
+                }).then(function(r) {
+                    if (!r.ok) console.error('Ack email error', r.status);
+                }).catch(function(e) {
+                    console.error('Ack email failed', e);
+                });
+            }
+
             var msg = 'Position: ' + val('position')
                 + '\nName: ' + val('name')
                 + '\nEmail: ' + val('email');
@@ -383,6 +395,11 @@
                 });
 
                 if (response.ok) {
+                    try {
+                        var inserted = await response.json();
+                        var newId = inserted && inserted[0] ? inserted[0].id : null;
+                        if (newId) sendApplicationAck(newId);
+                    } catch (ignore) {}
                     document.getElementById('form-success').classList.remove('hidden');
                     document.getElementById('applicationForm').classList.add('hidden');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
