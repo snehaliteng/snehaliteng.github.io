@@ -825,21 +825,44 @@ document.addEventListener('mousedown', function(e) {
     e.preventDefault();
     var targetCard = targetItem.closest('.perm-task-card');
     targetCard.classList.remove('drag-over');
-    var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    var data;
+    try { data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (ex) { return; }
     var draggedId = data.id;
     var draggedParent = data.parent;
     var targetId = parseInt(targetItem.dataset.id);
     var targetParent = targetItem.dataset.parent;
     if (draggedId === targetId || draggedParent !== targetParent) return;
-    var cards = Array.from(c.querySelectorAll('.perm-task-card')).filter(function(el) {
-      return el.querySelector('.task-item').dataset.parent === draggedParent;
-    });
-    if (cards.length < 2) return;
-    var newOrder = cards.map(function(el) { return parseInt(el.querySelector('.task-item').dataset.id); });
-    var updates = newOrder.map(function(id, idx) {
-      return sb.from('todo_permanent_tasks').update({ order_index: idx }).eq('id', id);
-    });
-    await Promise.all(updates);
+
+    var sameParent = function() {
+      return Array.from(c.querySelectorAll('.perm-task-card')).filter(function(el) {
+        var item = el.querySelector('.task-item');
+        return item && item.dataset.parent === draggedParent;
+      });
+    };
+
+    var draggedCard = sameParent().find(function(el) { return parseInt(el.querySelector('.task-item').dataset.id) === draggedId; });
+    if (!draggedCard) return;
+
+    var rect = targetCard.getBoundingClientRect();
+    var placeBefore = (e.clientY - rect.top) < rect.height / 2;
+
+    if (placeBefore) {
+      targetCard.parentNode.insertBefore(draggedCard, targetCard);
+    } else {
+      targetCard.parentNode.insertBefore(draggedCard, targetCard.nextSibling);
+    }
+
+    var newOrder = sameParent().map(function(el) { return parseInt(el.querySelector('.task-item').dataset.id); });
+    var overlay = document.getElementById('reorder-overlay');
+    if (overlay) overlay.classList.add('show');
+    try {
+      var updates = newOrder.map(function(id, idx) {
+        return sb.from('todo_permanent_tasks').update({ order_index: idx }).eq('id', id);
+      });
+      await Promise.all(updates);
+    } finally {
+      if (overlay) overlay.classList.remove('show');
+    }
     loadPermanentTasks();
   });
   c.addEventListener('dragend', function(e) {
