@@ -82,10 +82,12 @@ async function loadCurrentPage() {
         const check = await sendMessage({ action: 'checkCompanyApplied', company });
         if (check && check.found) {
           const prev = (check.data && check.data[0]) || null;
-          const when = prev && prev.visited_at
-            ? ' on ' + new Date(prev.visited_at).toLocaleDateString() : '';
-          alertEl.textContent = `You already applied to ${company} within the last month${when}.`;
-          alertEl.style.display = 'block';
+          if (prev && (prev.applied === true || prev.status === 'applied')) {
+            const when = prev.visited_at
+              ? ' on ' + new Date(prev.visited_at).toLocaleDateString() : '';
+            alertEl.textContent = `You already applied to ${company} within the last month${when}.`;
+            alertEl.style.display = 'block';
+          }
         }
       }
 
@@ -145,6 +147,8 @@ async function markApplied() {
         showToast('Job not found in tracker — track it first');
       }
       await loadCurrentPage();
+      const alertEl = document.getElementById('company-alert');
+      if (alertEl) alertEl.style.display = 'none';
     } else {
       showToast('Error marking as applied: ' + ((result && result.message) || 'no response'));
     }
@@ -226,31 +230,116 @@ async function loadHistory() {
 
   const result = await sendMessage({ action: 'getAllApplications' });
   allApplications = (result && result.data) || [];
-  document.getElementById('history-count').textContent = allApplications.length;
 
   const list = document.getElementById('history-list');
   if (allApplications.length === 0) {
+    document.getElementById('history-count').textContent = '0';
     list.innerHTML = '<div class="empty-state"><p>No tracked applications yet.</p></div>';
     return;
   }
 
-  list.innerHTML = allApplications.map(app => {
-    const badge = app.applied ?
-      '<span class="badge badge-applied list-badge">Applied</span>' :
-      '<span class="badge badge-visited list-badge">Visited</span>';
-    const initials = getInitials(app.company_name);
-    const date = new Date(app.visited_at).toLocaleDateString();
-    const title = app.job_title || '';
-    return `<div class="list-item" data-url="${escapeAttr(app.job_url)}" data-id="${app.id}">
-      <div class="list-icon">${escapeHtml(initials)}</div>
-      <div class="list-info">
-        <div class="list-company">${escapeHtml(app.company_name)}</div>
-        <div class="list-url">${escapeHtml(title)} - ${date}</div>
-      </div>
-      ${badge}
-      <button class="btn-delete" data-id="${app.id}" title="Delete entry">&times;</button>
-    </div>`;
-  }).join('');
+  // Group by company (case-insensitive); allApplications is newest-first.
+  const groups = new Map();
+  for (const app of allApplications) {
+    const key = (app.company_name || 'Unknown').toLowerCase();
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(app);
+  }
+
+  document.getElementById('history-count').textContent = groups.size;
+
+  let html = '<div class="history-toolbar">'
+    + '<label class="sel-all-label"><input type="checkbox" id="history-select-all"> Select all</label>'
+    + '<button id="btn-delete-selected" class="btn-delete-selected" disabled>Delete Selected (0)</button>'
+    + '</div>';
+
+  groups.forEach(group => {
+    html += renderCompanyGroup(group);
+  });
+
+  list.innerHTML = html;
+}
+
+function renderCompanyGroup(group) {
+  const company = group[0].company_name || 'Unknown';
+  const initials = getInitials(company);
+  const anyApplied = group.some(a => a.applied);
+  const latest = group[0];
+  const latestTitle = latest.job_title || 'Tracked job';
+  const sub = group.length + ' job' + (group.length > 1 ? 's' : '') + ' \u00B7 ' + latestTitle;
+
+  let h = '<div class="company-item">';
+  h += '<div class="company-header">'
+    + '<input type="checkbox" class="company-check" title="Select all entries for this company">'
+    + '<div class="list-icon">' + escapeHtml(initials) + '</div>'
+    + '<div class="list-info">'
+    + '<div class="list-company">' + escapeHtml(company) + '</div>'
+    + '<div class="list-url">' + escapeHtml(sub) + '</div>'
+    + '</div>'
+    + '<span class="badge ' + (anyApplied ? 'badge-applied' : 'badge-visited') + ' list-badge">' + (anyApplied ? 'Applied' : 'Visited') + '</span>'
+    + '<button class="btn-toggle" title="Show entries">\u25BE</button>'
+    + '</div>';
+
+  h += '<div class="company-details" style="display:none;">';
+  group.forEach(app => {
+    h += renderDetailRow(app);
+  });
+  h += '</div></div>';
+  return h;
+}
+
+function renderDetailRow(app) {
+  const title = app.job_title || 'Tracked job';
+  const date = new Date(app.visited_at).toLocaleDateString();
+  const applied = !!app.applied;
+  return '<div class="detail-row" data-id="' + app.id + '">'
+    + '<input type="checkbox" class="entry-check" data-id="' + app.id + '">'
+    + '<div class="list-info">'
+    + '<a href="#" class="detail-title" data-url="' + escapeAttr(app.job_url) + '">' + escapeHtml(title) + '</a>'
+    + '<div class="list-url">' + date + '</div>'
+    + '</div>'
+    + '<button class="btn-status ' + (!applied ? 'active-visited' : '') + '" data-status="visited" title="Mark as visited">Visited</button>'
+    + '<button class="btn-status ' + (applied ? 'active-applied' : '') + '" data-status="applied" title="Mark as applied">Applied</button>'
+    + '<button class="btn-delete" data-id="' + app.id + '" title="Delete entry">&times;</button>'
+    + '</div>';
+}
+
+async function markJobStatus(id, status) {
+  const result = await sendMessage({ action: 'setJobStatus', id: Number(id), status });
+  if (result && result.status === 'ok') {
+    showToast('Marked as ' + status);
+    loadHistory();
+  } else {
+    showToast('Error: ' + ((result && result.message) || 'failed'));
+  }
+}
+
+function updateHistorySelection() {
+  const checks = document.querySelectorAll('#history-list .entry-check');
+  const checked = document.querySelectorAll('#history-list .entry-check:checked');
+  const btn = document.getElementById('btn-delete-selected');
+  const selAll = document.getElementById('history-select-all');
+  if (btn) {
+    btn.disabled = checked.length === 0;
+    btn.textContent = 'Delete Selected (' + checked.length + ')';
+  }
+  if (selAll) {
+    selAll.checked = checks.length > 0 && checked.length === checks.length;
+    selAll.indeterminate = checked.length > 0 && checked.length < checks.length;
+  }
+}
+
+async function deleteSelected() {
+  const checks = document.querySelectorAll('#history-list .entry-check:checked');
+  if (!checks.length) return;
+  if (!confirm('Delete ' + checks.length + ' selected entr' + (checks.length > 1 ? 'ies' : 'y') + '?')) return;
+  let ok = 0;
+  for (const check of checks) {
+    const res = await sendMessage({ action: 'deleteJob', id: Number(check.getAttribute('data-id')) });
+    if (res && res.status === 'deleted') ok++;
+  }
+  showToast('Deleted ' + ok + ' entr' + (ok === 1 ? 'y' : 'ies'));
+  loadHistory();
 }
 
 function openUrl(url) {
@@ -415,6 +504,20 @@ async function logout() {
   loadCurrentPage();
 }
 
+async function refreshPageInfo() {
+  const btn = document.getElementById('btn-refresh-page');
+  if (btn) { btn.disabled = true; btn.textContent = '\u21BB Scanning...'; }
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.id) {
+      chrome.tabs.sendMessage(tab.id, { action: 'rescan' }).catch(() => {});
+    }
+    await loadCurrentPage();
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '\u21BB Refresh'; }
+  }
+}
+
 function setupEvents() {
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
@@ -426,6 +529,8 @@ function setupEvents() {
   document.getElementById('btn-add-manual').addEventListener('click', addManualEntry);
   document.getElementById('btn-edit-details').addEventListener('click', toggleDetailsForm);
   document.getElementById('btn-save-details').addEventListener('click', saveJobDetails);
+  const refreshBtn = document.getElementById('btn-refresh-page');
+  if (refreshBtn) refreshBtn.addEventListener('click', refreshPageInfo);
   document.getElementById('btn-save-profile').addEventListener('click', saveProfile);
   document.getElementById('btn-test-autofill').addEventListener('click', testAutofill);
   document.getElementById('btn-track-manual').addEventListener('click', addManualEntry);
@@ -450,13 +555,18 @@ function setupEvents() {
   }
 
   document.getElementById('history-list').addEventListener('click', async (e) => {
+    const bulkBtn = e.target.closest('#btn-delete-selected');
+    if (bulkBtn) {
+      deleteSelected();
+      return;
+    }
+
     const delBtn = e.target.closest('.btn-delete');
     if (delBtn) {
       e.stopPropagation();
       e.preventDefault();
       const id = delBtn.getAttribute('data-id');
       if (!id) return;
-      if (!confirm('Delete this entry?')) return;
       const result = await sendMessage({ action: 'deleteJob', id: Number(id) });
       if (result && result.status === 'deleted') {
         showToast('Entry deleted');
@@ -466,8 +576,55 @@ function setupEvents() {
       }
       return;
     }
-    const item = e.target.closest('.list-item');
-    if (item && item.dataset.url) openUrl(item.dataset.url);
+
+    const statusBtn = e.target.closest('.btn-status');
+    if (statusBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const row = statusBtn.closest('.detail-row');
+      if (!row) return;
+      await markJobStatus(row.getAttribute('data-id'), statusBtn.getAttribute('data-status'));
+      return;
+    }
+
+    const header = e.target.closest('.company-header');
+    if (header) {
+      if (e.target.closest('.company-check')) return;
+      const details = header.parentElement.querySelector('.company-details');
+      if (details) {
+        const open = details.style.display !== 'none';
+        details.style.display = open ? 'none' : 'block';
+        const toggle = header.querySelector('.btn-toggle');
+        if (toggle) toggle.textContent = open ? '\u25BE' : '\u25B4';
+      }
+      return;
+    }
+
+    const link = e.target.closest('.detail-title');
+    if (link) {
+      e.preventDefault();
+      if (link.getAttribute('data-url')) openUrl(link.getAttribute('data-url'));
+    }
+  });
+
+  document.getElementById('history-list').addEventListener('change', (e) => {
+    if (e.target.id === 'history-select-all') {
+      document.querySelectorAll('#history-list .entry-check').forEach(c => { c.checked = e.target.checked; });
+      updateHistorySelection();
+      return;
+    }
+    const companyCheck = e.target.closest('.company-check');
+    if (companyCheck) {
+      const group = companyCheck.closest('.company-item');
+      if (group) {
+        group.querySelectorAll('.entry-check').forEach(c => { c.checked = companyCheck.checked; });
+      }
+      updateHistorySelection();
+      return;
+    }
+    if (e.target.closest('.entry-check')) {
+      updateHistorySelection();
+    }
   });
 }
 

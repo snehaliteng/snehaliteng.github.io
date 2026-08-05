@@ -303,6 +303,19 @@ async function markApplied(url) {
   }
 }
 
+async function setJobStatus(id, status) {
+  try {
+    const applied = status === 'applied';
+    const body = { status: applied ? 'applied' : 'visited', applied };
+    if (applied) body.applied_at = new Date().toISOString();
+    const result = await supabaseUpdate('job_tracker', body, `id=eq.${id}`);
+    return { status: 'ok', data: result[0] };
+  } catch (err) {
+    console.error('Set job status error:', err);
+    return { status: 'error', message: err.message };
+  }
+}
+
 async function deleteJob(id) {
   try {
     await supabaseDelete('job_tracker', `id=eq.${id}`);
@@ -340,7 +353,7 @@ async function getCompanyApplied(company) {
     if (!company) return { found: false };
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     const data = await supabaseGet('job_tracker',
-      `company_name=ilike.${encodeURIComponent(company)}&applied=eq.true&visited_at=gte.${since}&limit=5`);
+      `company_name=ilike.${encodeURIComponent(company)}&applied=eq.true&status=eq.applied&visited_at=gte.${since}&limit=5`);
     return { found: !!(data && data.length > 0), data: data || [] };
   } catch (err) {
     console.error('Check company applied error:', err);
@@ -439,6 +452,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.action === 'markApplied') {
     markApplied(request.url)
+      .then(result => sendResponse(result));
+    return true;
+  }
+
+  if (request.action === 'setJobStatus') {
+    setJobStatus(request.id, request.status)
       .then(result => sendResponse(result));
     return true;
   }

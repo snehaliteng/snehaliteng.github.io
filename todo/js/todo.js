@@ -756,7 +756,9 @@ async function loadPermanentTasks() {
       (depth === 0 ? '<button class="btn btn-sm btn-ghost" onclick="showPermanentTaskModal(null,' + t.id + ')" title="Add subtask">+ Sub</button>' : '') +
       '<button class="btn btn-sm tt-btn btn-success" data-tt-type="permanent" data-tt-id="' + t.id + '" data-tt-title="' + escHtml(t.title) + '" style="font-size:11px;padding:2px 10px;min-width:54px;">Start</button>' +
       '<button class="btn btn-sm btn-secondary" onclick="showPermanentTaskModal(' + t.id + ')">Edit</button>' +
-      '<button class="btn btn-sm btn-danger" onclick="deletePermanentTask(' + t.id + ')">Del</button></div></div>';
+      '<button class="btn btn-sm btn-danger" onclick="deletePermanentTask(' + t.id + ')">Del</button></div>' +
+      (t.note ? '<div class="task-note" title="Click to edit note" onclick="showPermanentTaskModal(' + t.id + ')">' + escHtml(t.note) + '</div>' : '') +
+      '</div>';
   }
 
   function renderSubtree(parentId, depth) {
@@ -913,6 +915,7 @@ function showPermanentTaskModal(id, parentId) {
     const html = '<h3>' + title + '</h3>' +
       parentOptions +
       '<label>Task Description</label><textarea id="pt-title" placeholder="e.g. Morning exercise (supports HTML: <b>bold</b>, <ul>...</ul>)">' + (task ? escHtml(task.title) : '') + '</textarea>' +
+      '<label>Note</label><textarea id="pt-note" placeholder="Optional note for this task">' + (task ? escHtml(task.note || '') : '') + '</textarea>' +
       '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
       '<button class="btn btn-primary" onclick="' + action + '">Save</button></div>';
     showModal(html);
@@ -922,12 +925,13 @@ function showPermanentTaskModal(id, parentId) {
 async function savePermanentTask(id, parentId) {
   const title = document.getElementById('pt-title').value.trim();
   if (!title) return alert('Task description is required');
+  const note = document.getElementById('pt-note') ? document.getElementById('pt-note').value.trim() : '';
   const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
   const parentSelect = document.getElementById('pt-parent');
   const actualParentId = parentId || (parentSelect ? (parentSelect.value || null) : null);
 
   if (id) {
-    const updateData = { title };
+    const updateData = { title, note };
     if (parentSelect !== null) updateData.parent_id = actualParentId;
     if (parentId) updateData.parent_id = parentId;
     const { error } = await sb.from('todo_permanent_tasks').update(updateData).eq('id', id);
@@ -938,7 +942,7 @@ async function savePermanentTask(id, parentId) {
     const { data: lastOrder } = await sb.from('todo_permanent_tasks').select('order_index').eq('user_id', currentUser.id).order('order_index', { ascending: false }).limit(1);
     const nextOrder = (lastOrder && lastOrder.length) ? lastOrder[0].order_index + 1 : 0;
     const { error } = await sb.from('todo_permanent_tasks').insert({
-      id: newId, title, parent_id: actualParentId,
+      id: newId, title, note, parent_id: actualParentId,
       user_id: currentUser.id, created_at: now, order_index: nextOrder
     });
     if (error) return alert('Error: ' + error.message);

@@ -189,6 +189,124 @@
       transition: all 0.15s;
     }
     .btn-delete:hover { color: #dc2626; background: #fee2e2; }
+    .history-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    .sel-all-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+    }
+    .btn-delete-selected {
+      border: 1px solid #fca5a5;
+      background: #fef2f2;
+      color: #b91c1c;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-delete-selected:hover:not(:disabled) { background: #fee2e2; }
+    .btn-delete-selected:disabled { opacity: 0.4; cursor: not-allowed; }
+    .company-item { margin-bottom: 8px; }
+    .company-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .company-header:hover { border-color: #2563eb; background: #f8fafc; }
+    .company-check, .entry-check { flex-shrink: 0; cursor: pointer; }
+    .btn-toggle {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px;
+      flex-shrink: 0;
+      border-radius: 6px;
+    }
+    .btn-toggle:hover { background: #e2e8f0; }
+    .company-details {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      margin-top: -1px;
+      padding: 4px 8px;
+    }
+    .detail-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 4px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #2563eb;
+      text-decoration: none;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .detail-title:hover { text-decoration: underline; }
+    .btn-status {
+      border: 1px solid #d1d5db;
+      background: white;
+      color: #475569;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .btn-status:hover { border-color: #2563eb; color: #2563eb; }
+    .btn-status.active-visited { background: #fef9c3; border-color: #fef9c3; color: #854d0e; }
+    .btn-status.active-applied { background: #dcfce7; border-color: #dcfce7; color: #166534; }
+    .refresh-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+    .btn-refresh {
+      background: white;
+      border: 1px solid #d1d5db;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-refresh:hover { background: #eff6ff; border-color: #2563eb; }
     .toast {
       position: fixed;
       bottom: 16px;
@@ -327,6 +445,9 @@
       <p>Loading page info...</p>
     </div>
     <div id="page-info" style="display:none;">
+      <div class="refresh-row">
+        <button id="btn-refresh-page" class="btn-refresh" title="Re-scan current page">&#x21BB; Refresh</button>
+      </div>
       <div id="company-alert" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;font-weight:600;"></div>
       <div class="info-card">
         <div class="info-row">

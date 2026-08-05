@@ -185,9 +185,10 @@
     return null;
   }
 
-  function firstText(selectors, skipSites) {
+  function firstTextIn(root, selectors, skipSites) {
+    const base = root || document;
     for (const selector of selectors) {
-      const el = document.querySelector(selector);
+      const el = base.querySelector(selector);
       if (!el) continue;
       const text = cleanText(el.textContent);
       if (!text) continue;
@@ -197,14 +198,73 @@
     return null;
   }
 
+  function firstText(selectors, skipSites) {
+    return firstTextIn(document, selectors, skipSites);
+  }
+
+  function isLinkedIn() {
+    const h = window.location.hostname.toLowerCase();
+    return h === 'linkedin.com' || h.endsWith('.linkedin.com');
+  }
+
+  function detectLinkedInCompany() {
+    // 1) Right-rail details panel of the currently open job (most reliable).
+    const detail = firstText([
+      '[data-testid="job-details-company-name"]',
+      '.job-details-jobs-unified-top-card__company-name',
+      '.jobs-unified-top-card__company-name',
+      'a[data-tracking-control-name*="org-name"]',
+      '.topcard__org-name-link',
+      '.job-details-jobs-unified-top-card__primary-description a[href*="/company/"]',
+      '[class*="top-card"] a[href*="/company/"]'
+    ], true);
+    if (detail) return detail;
+
+    // 2) If a specific job is selected, read company from exactly that card.
+    const jobId = new URLSearchParams(window.location.search).get('currentJobId');
+    if (jobId) {
+      const card = document.querySelector(
+        '[data-job-id="' + jobId + '"],' +
+        '[data-id="' + jobId + '"],' +
+        '[data-entity-urn$="jobPosting:' + jobId + '"],' +
+        '[data-entity-urn*="' + jobId + '"]'
+      );
+      if (card) {
+        const name = firstTextIn(card, [
+          '.job-card-container__company-name',
+          '.base-search-card__subtitle',
+          'h4 a',
+          'a[href*="/company/"]',
+          '[class*="company-name"]'
+        ], true);
+        if (name) return name;
+      }
+    }
+
+    // 3) Fallback: first company name in any result card.
+    return firstText([
+      '.job-card-container__company-name',
+      '.base-search-card__subtitle',
+      'h4 a',
+      'a[href*="/company/"]'
+    ], true);
+  }
+
   function detectCompany() {
     const ld = findJobPostingJsonLd();
     if (ld && ld.hiringOrganization && ld.hiringOrganization.name) {
       return cleanText(ld.hiringOrganization.name);
     }
+
+    if (isLinkedIn()) {
+      const li = detectLinkedInCompany();
+      if (li) return li;
+    }
+
     const fromDom = firstText([
       'a[href*="-company-jobs"]',
       'a[href*="/companies/"]',
+      'a[href*="/company/"]',
       'a[href*="/company-"]',
       '[class*="company-link"]',
       '[class*="company-name"]',
@@ -486,6 +546,13 @@
         hasForm: detectApplicationForm(),
         url: window.location.href
       });
+      return true;
+    }
+
+    if (request.action === 'rescan') {
+      lastSignature = '';
+      scheduleBroadcast();
+      sendResponse({ ok: true });
       return true;
     }
 
