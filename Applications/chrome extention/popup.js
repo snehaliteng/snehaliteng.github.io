@@ -1,5 +1,9 @@
 let currentPageInfo = null;
 let allApplications = [];
+let statsData = [];
+let statsBase = [];
+let statsDailyChart = null;
+let statsPlatformChart = null;
 
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -8,6 +12,7 @@ function switchTab(name) {
   document.getElementById(`panel-${name}`).classList.add('active');
 
   if (name === 'history') loadHistory();
+  if (name === 'stats') loadStats();
 }
 
 function showToast(msg) {
@@ -76,7 +81,7 @@ async function loadCurrentPage() {
       document.getElementById('job-salary').textContent = pageInfo.salary || jobData?.salary_expected || '-';
 
       const alertEl = document.getElementById('company-alert');
-      if (alertEl) alertEl.style.display = 'none';
+      if (alertEl) { alertEl.style.display = 'none'; alertEl.className = ''; }
       const company = pageInfo.company || jobData?.company_name || '';
       if (company && alertEl) {
         const check = await sendMessage({ action: 'checkCompanyApplied', company });
@@ -86,7 +91,21 @@ async function loadCurrentPage() {
             const when = prev.visited_at
               ? ' on ' + new Date(prev.visited_at).toLocaleDateString() : '';
             alertEl.textContent = `You already applied to ${company} within the last month${when}.`;
+            alertEl.className = 'alert-applied';
             alertEl.style.display = 'block';
+          }
+        }
+        if (alertEl.style.display === 'none') {
+          const vCheck = await sendMessage({ action: 'checkCompanyVisited', company });
+          if (vCheck && vCheck.found) {
+            const prev = (vCheck.data && vCheck.data[0]) || null;
+            if (prev && !(prev.applied === true || prev.status === 'applied')) {
+              const when = prev.visited_at
+                ? ' on ' + new Date(prev.visited_at).toLocaleDateString() : '';
+              alertEl.textContent = `You already visited ${company} within the last month${when}.`;
+              alertEl.className = 'alert-visited';
+              alertEl.style.display = 'block';
+            }
           }
         }
       }
@@ -396,9 +415,15 @@ async function saveProfile() {
   };
 
   await setStoredProfile(profile);
-  await sendMessage({ action: 'saveProfile', profile });
+  const resp = await sendMessage({ action: 'saveProfile', profile });
 
   const status = document.getElementById('profile-status');
+  if (resp && resp.result && resp.result.error) {
+    status.textContent = 'Save failed: ' + resp.result.error;
+    status.className = 'show error';
+    setTimeout(() => status.className = '', 4000);
+    return;
+  }
   status.textContent = 'Profile saved!';
   status.className = 'show success';
   setTimeout(() => status.className = '', 3000);
@@ -518,6 +543,198 @@ async function refreshPageInfo() {
   }
 }
 
+async function applyKeywordSettings() {
+  const enabled = document.getElementById('kw-enabled').checked;
+  const keywords = document.getElementById('kw-list').value.split(',').map(s => s.trim()).filter(Boolean);
+  const finalKeywords = keywords.length ? keywords : ['Remote', 'Ahmedabad'];
+  await new Promise(resolve => chrome.storage.local.set({
+    jtHighlightEnabled: enabled,
+    jtKeywords: finalKeywords
+  }, resolve));
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (tab && tab.id) {
+    chrome.tabs.sendMessage(tab.id, { action: 'setKeywordHighlight', enabled, keywords: finalKeywords }).catch(() => {});
+  }
+  showToast(enabled ? 'Highlighting: ' + finalKeywords.join(', ') : 'Keyword highlighting off');
+}
+
+function initKeywordUI() {
+  chrome.storage.local.get({ jtHighlightEnabled: true, jtKeywords: ['Remote', 'Ahmedabad'] }, data => {
+    const enabledEl = document.getElementById('kw-enabled');
+    const listEl = document.getElementById('kw-list');
+    if (enabledEl) enabledEl.checked = data.jtHighlightEnabled !== false;
+    if (listEl) listEl.value = (data.jtKeywords && data.jtKeywords.length ? data.jtKeywords : ['Remote', 'Ahmedabad']).join(', ');
+  });
+}
+
+function statsLocalDateKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function statsAppliedDate(r) {
+  if (!r.applied) return null;
+  return r.applied_at ? new Date(r.applied_at) : new Date(r.visited_at);
+}
+
+function statsPlatformFromUrl(url) {
+  try {
+    const host = new URL(url || '').hostname.replace(/^www\./, '').toLowerCase();
+    const map = [
+      ['linkedin', 'LinkedIn'], ['naukri', 'Naukri'], ['indeed', 'Indeed'],
+      ['glassdoor', 'Glassdoor'], ['wellfound', 'Wellfound'], ['angellist', 'AngelList'],
+      ['dice', 'Dice'], ['ziprecruiter', 'ZipRecruiter'], ['monster', 'Monster'],
+      ['greenhouse', 'Greenhouse'], ['lever', 'Lever'], ['workday', 'Workday'],
+      ['icims', 'iCIMS'], ['smartrecruiters', 'SmartRecruiters'], ['ashby', 'Ashby'],
+      ['jazzhr', 'JazzHR'], ['bamboohr', 'BambooHR'], ['successfactors', 'SAP SuccessFactors'],
+      ['hirewith', 'Hirewith'], ['join', 'Join'], ['instahyre', 'Instahyre'], ['cutshort', 'Cutshort']
+    ];
+    for (const [key, label] of map) if (host.includes(key)) return label;
+    return host || 'Other';
+  } catch (e) {
+    return 'Other';
+  }
+}
+
+async function loadStats() {
+  const result = await sendMessage({ action: 'getAllApplications' });
+  statsData = (result && result.data && Array.isArray(result.data)) ? result.data : [];
+  populateStatsPlatform();
+  applyStatsFilters();
+}
+
+function populateStatsPlatform() {
+  const sel = document.getElementById('st-platform');
+  if (!sel) return;
+  const platforms = new Set();
+  statsData.forEach(r => platforms.add(statsPlatformFromUrl(r.job_url)));
+  const current = sel.value;
+  sel.innerHTML = '<option value="all">All Platforms</option>' +
+    Array.from(platforms).sort().map(p =>
+      '<option value="' + escapeAttr(p) + '">' + escapeAttr(p) + '</option>').join('');
+  sel.value = platforms.has(current) ? current : 'all';
+}
+
+function applyStatsFilters() {
+  const status = document.getElementById('st-status').value;
+  const platform = document.getElementById('st-platform').value;
+  const dateField = document.getElementById('st-date-field').value;
+  const from = document.getElementById('st-from').value;
+  const to = document.getElementById('st-to').value;
+  const search = document.getElementById('st-search').value.toLowerCase();
+
+  statsBase = statsData.filter(r => {
+    if (status !== 'all' && r.status !== status) return false;
+    if (platform !== 'all' && statsPlatformFromUrl(r.job_url) !== platform) return false;
+    if (search) {
+      const hay = ((r.company_name || '') + ' ' + (r.job_title || '')).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    if (from || to) {
+      const d = dateField === 'applied' ? statsAppliedDate(r) : (r.visited_at ? new Date(r.visited_at) : null);
+      if (!d) return false;
+      const t = d.getTime();
+      if (from && t < new Date(from + 'T00:00:00').getTime()) return false;
+      if (to && t > new Date(to + 'T23:59:59.999').getTime()) return false;
+    }
+    return true;
+  });
+  renderStatsChips();
+  renderStatsDailyChart();
+  renderStatsPlatformChart();
+}
+
+function resetStatsFilters() {
+  document.getElementById('st-status').value = 'all';
+  document.getElementById('st-platform').value = 'all';
+  document.getElementById('st-date-field').value = 'visited';
+  document.getElementById('st-from').value = '';
+  document.getElementById('st-to').value = '';
+  document.getElementById('st-search').value = '';
+  applyStatsFilters();
+}
+
+function renderStatsChips() {
+  const counts = { total: statsBase.length, visited: 0, applied: 0, interview: 0, offered: 0, accepted: 0, rejected: 0 };
+  statsBase.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
+  const order = [
+    ['total', 'Total', '#2563eb'], ['visited', 'Visited', '#f59e0b'],
+    ['applied', 'Applied', '#16a34a'], ['interview', 'Interview', '#6366f1'],
+    ['offered', 'Offered', '#10b981'], ['accepted', 'Accepted', '#0d9488'],
+    ['rejected', 'Rejected', '#ef4444']
+  ];
+  document.getElementById('st-chips').innerHTML = order.map(([k, lbl, color]) =>
+    '<div class="stat-chip"><div class="num" style="color:' + color + '">' + counts[k] +
+    '</div><div class="lbl">' + lbl + '</div></div>').join('');
+}
+
+function renderStatsDailyChart() {
+  const ctx = document.getElementById('chart-daily');
+  if (!ctx || typeof Chart === 'undefined') return;
+  if (statsDailyChart) { statsDailyChart.destroy(); statsDailyChart = null; }
+  const now = new Date();
+  const days = [];
+  const idx = {};
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const key = statsLocalDateKey(d);
+    days.push({ label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), count: 0 });
+    idx[key] = days.length - 1;
+  }
+  statsBase.forEach(r => {
+    const d = statsAppliedDate(r);
+    if (!d) return;
+    const key = statsLocalDateKey(d);
+    if (idx[key] !== undefined) days[idx[key]].count++;
+  });
+  statsDailyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: days.map(d => d.label),
+      datasets: [{ label: 'Applied', data: days.map(d => d.count), backgroundColor: '#16a34a', borderRadius: 3 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10 } } },
+        x: { ticks: { font: { size: 9 } } }
+      }
+    }
+  });
+}
+
+function renderStatsPlatformChart() {
+  const ctx = document.getElementById('chart-platform');
+  if (!ctx || typeof Chart === 'undefined') return;
+  if (statsPlatformChart) { statsPlatformChart.destroy(); statsPlatformChart = null; }
+  const counts = {};
+  statsBase.forEach(r => {
+    if (!statsAppliedDate(r)) return;
+    const p = statsPlatformFromUrl(r.job_url);
+    counts[p] = (counts[p] || 0) + 1;
+  });
+  const labels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  const palette = ['#2563eb', '#0ea5e9', '#16a34a', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#94a3b8'];
+  const hasData = labels.length > 0;
+  statsPlatformChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: hasData ? labels : ['No applied jobs'],
+      datasets: [{
+        data: hasData ? labels.map(l => counts[l]) : [1],
+        backgroundColor: hasData ? labels.map((l, i) => palette[i % palette.length]) : ['#e2e8f0'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } }
+    }
+  });
+}
+
 function setupEvents() {
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
@@ -531,9 +748,22 @@ function setupEvents() {
   document.getElementById('btn-save-details').addEventListener('click', saveJobDetails);
   const refreshBtn = document.getElementById('btn-refresh-page');
   if (refreshBtn) refreshBtn.addEventListener('click', refreshPageInfo);
+  const kwBtn = document.getElementById('btn-apply-kw');
+  if (kwBtn) kwBtn.addEventListener('click', applyKeywordSettings);
+  const kwChk = document.getElementById('kw-enabled');
+  if (kwChk) kwChk.addEventListener('change', applyKeywordSettings);
   document.getElementById('btn-save-profile').addEventListener('click', saveProfile);
   document.getElementById('btn-test-autofill').addEventListener('click', testAutofill);
   document.getElementById('btn-track-manual').addEventListener('click', addManualEntry);
+
+  const statsResetBtn = document.getElementById('btn-stats-reset');
+  if (statsResetBtn) statsResetBtn.addEventListener('click', resetStatsFilters);
+  ['st-status', 'st-platform', 'st-date-field', 'st-from', 'st-to'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', applyStatsFilters);
+  });
+  const stSearch = document.getElementById('st-search');
+  if (stSearch) stSearch.addEventListener('input', applyStatsFilters);
   document.getElementById('btn-login').addEventListener('click', loginWithPassword);
   document.getElementById('login-password').addEventListener('keydown', e => {
     if (e.key === 'Enter') loginWithPassword();
@@ -637,4 +867,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadCurrentPage();
   loadProfile();
   updateAuthUI();
+  initKeywordUI();
 });

@@ -516,7 +516,135 @@
     observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
   }
 
+  // ======= Keyword Highlight =======
+  const KW_STYLE_ID = 'jt-kw-style';
+  let kwEnabled = false;
+  let kwKeywords = ['Remote', 'Ahmedabad'];
+  let kwProcessed = new WeakSet();
+  let kwObserver = null;
+  let kwTimer = null;
+
+  function kwEscapeRegExp(str) {
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function kwRegex() {
+    const list = kwKeywords.map(kwEscapeRegExp).filter(Boolean);
+    if (!list.length) return null;
+    return new RegExp('\\b(' + list.join('|') + ')\\b', 'gi');
+  }
+
+  function kwInjectStyle() {
+    if (document.getElementById(KW_STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = KW_STYLE_ID;
+    style.textContent = 'mark.jt-kw{background:#fde68a!important;color:#78350f!important;border-radius:3px;padding:0 2px;font-weight:600;box-shadow:0 0 0 1px #f59e0b;}';
+    (document.head || document.documentElement).appendChild(style);
+  }
+
+  function kwWrapMatches(node) {
+    const re = kwRegex();
+    if (!re) return;
+    const parent = node.parentNode;
+    if (!parent) return;
+    const text = node.nodeValue;
+    re.lastIndex = 0;
+    const matches = [];
+    let m;
+    while ((m = re.exec(text))) matches.push(m);
+    if (!matches.length) return;
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    for (const match of matches) {
+      if (match.index > last) frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+      const mark = document.createElement('mark');
+      mark.className = 'jt-kw';
+      mark.textContent = text.slice(match.index, match.index + match[0].length);
+      frag.appendChild(mark);
+      last = match.index + match[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    parent.replaceChild(frag, node);
+  }
+
+  function kwWalk() {
+    if (!kwEnabled || !kwKeywords.length) return;
+    kwInjectStyle();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        const p = node.parentNode;
+        if (!p || !p.tagName) return NodeFilter.FILTER_REJECT;
+        const tag = p.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'TEXTAREA' || tag === 'MARK') return NodeFilter.FILTER_REJECT;
+        if (p.closest && p.closest('mark.jt-kw')) return NodeFilter.FILTER_REJECT;
+        if (kwProcessed.has(node)) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n => { kwProcessed.add(n); kwWrapMatches(n); });
+  }
+
+  function kwClear() {
+    document.querySelectorAll('mark.jt-kw').forEach(m => {
+      const parent = m.parentNode;
+      if (parent) parent.replaceChild(document.createTextNode(m.textContent), m);
+    });
+    kwProcessed = new WeakSet();
+  }
+
+  function kwWatch() {
+    if (kwObserver) { kwObserver.disconnect(); kwObserver = null; }
+    if (!kwEnabled) return;
+    kwObserver = new MutationObserver(() => {
+      clearTimeout(kwTimer);
+      kwTimer = setTimeout(kwWalk, 600);
+    });
+    kwObserver.observe(document.body || document.documentElement, { childList: true, subtree: true, characterData: true });
+  }
+
+  function kwApply() {
+    kwClear();
+    if (kwEnabled) {
+      kwWalk();
+      kwWatch();
+    } else if (kwObserver) {
+      kwObserver.disconnect();
+      kwObserver = null;
+    }
+  }
+
+  function kwInit() {
+    chrome.storage.local.get({ jtHighlightEnabled: true, jtKeywords: ['Remote', 'Ahmedabad'] }, data => {
+      kwEnabled = data.jtHighlightEnabled !== false;
+      kwKeywords = (Array.isArray(data.jtKeywords) && data.jtKeywords.length) ? data.jtKeywords : ['Remote', 'Ahmedabad'];
+      kwApply();
+    });
+  }
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local') return;
+    if (changes.jtHighlightEnabled || changes.jtKeywords) {
+      if (changes.jtHighlightEnabled) kwEnabled = changes.jtHighlightEnabled.newValue !== false;
+      if (changes.jtKeywords) {
+        const v = changes.jtKeywords.newValue;
+        kwKeywords = (Array.isArray(v) && v.length) ? v : ['Remote', 'Ahmedabad'];
+      }
+      kwApply();
+    }
+  });
+
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'setKeywordHighlight') {
+      if (typeof request.enabled === 'boolean') kwEnabled = request.enabled;
+      if (Array.isArray(request.keywords)) kwKeywords = request.keywords.map(s => String(s).trim()).filter(Boolean);
+      kwApply();
+      sendResponse({ success: true, enabled: kwEnabled, keywords: kwKeywords });
+      return true;
+    }
+
     if (request.action === 'autofill') {
       const count = autofillProfile(request.profile);
       sendResponse({ success: count > 0, filledCount: count });
@@ -576,8 +704,9 @@
   });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initTracking);
+    document.addEventListener('DOMContentLoaded', () => { initTracking(); kwInit(); });
   } else {
     initTracking();
+    kwInit();
   }
 })();

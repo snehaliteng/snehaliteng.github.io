@@ -228,7 +228,8 @@
         </div>
         <div id="instructions-body" class="p-4">
           <textarea id="instruction-input" rows="6" placeholder="Write a big instruction / note here..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"></textarea>
-          <button onclick="addInstruction()" class="mt-2 w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700">Add Instruction</button>
+          <button id="btn-add-instruction" onclick="addInstruction()" class="mt-2 w-full bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700">Add Instruction</button>
+          <button id="btn-cancel-instruction" onclick="cancelEditInstruction()" class="mt-2 w-full bg-gray-200 text-gray-700 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-300" style="display:none;">Cancel Edit</button>
           <div class="mt-4">
             <table class="w-full text-sm">
               <thead><tr class="text-left text-gray-500 text-xs border-b">
@@ -304,6 +305,7 @@
     });
 
     var INSTRUCTIONS_KEY = 'siteng_admin_instructions';
+    var editingInstructionIndex = null;
 
     function getInstructions() {
       try { return JSON.parse(localStorage.getItem(INSTRUCTIONS_KEY)) || []; } catch (e) { return []; }
@@ -311,6 +313,30 @@
 
     function saveInstructions(list) {
       try { localStorage.setItem(INSTRUCTIONS_KEY, JSON.stringify(list)); } catch (e) {}
+    }
+
+    function setInstructionMode(editing) {
+      editingInstructionIndex = editing;
+      var btn = document.getElementById('btn-add-instruction');
+      var cancel = document.getElementById('btn-cancel-instruction');
+      if (btn) btn.textContent = editing !== null ? 'Update Instruction' : 'Add Instruction';
+      if (cancel) cancel.style.display = editing !== null ? '' : 'none';
+    }
+
+    function editInstruction(idx) {
+      var list = getInstructions();
+      var it = list[idx];
+      if (!it) return;
+      var ta = document.getElementById('instruction-input');
+      ta.value = it.text;
+      ta.focus();
+      setInstructionMode(idx);
+    }
+
+    function cancelEditInstruction() {
+      var ta = document.getElementById('instruction-input');
+      if (ta) ta.value = '';
+      setInstructionMode(null);
     }
 
     function renderInstructions() {
@@ -322,7 +348,10 @@
         return '<tr class="border-b align-top">'
           + '<td class="py-2 pr-2 text-xs text-gray-400 whitespace-nowrap">' + new Date(it.ts).toLocaleDateString() + '</td>'
           + '<td class="py-2 text-sm whitespace-pre-wrap break-words">' + escapeHtml(it.text) + '</td>'
-          + '<td class="py-2 text-right whitespace-nowrap"><button class="text-red-500 hover:underline text-xs" onclick="deleteInstruction(' + idx + ')">Delete</button></td>'
+          + '<td class="py-2 text-right whitespace-nowrap">'
+          + '<button class="text-blue-500 hover:underline text-xs mr-2" onclick="editInstruction(' + idx + ')">Edit</button>'
+          + '<button class="text-red-500 hover:underline text-xs" onclick="deleteInstruction(' + idx + ')">Delete</button>'
+          + '</td>'
           + '</tr>';
       }).join('');
       if (empty) empty.style.display = list.length ? 'none' : '';
@@ -333,6 +362,17 @@
       var text = ta.value.trim();
       if (!text) { showAlert('Type an instruction first.', 'error'); return; }
       var list = getInstructions();
+      if (editingInstructionIndex !== null) {
+        if (list[editingInstructionIndex]) {
+          list[editingInstructionIndex] = { text: text, ts: list[editingInstructionIndex].ts };
+        }
+        saveInstructions(list);
+        ta.value = '';
+        setInstructionMode(null);
+        renderInstructions();
+        showAlert('Instruction updated.', 'success');
+        return;
+      }
       list.unshift({ text: text, ts: new Date().toISOString() });
       saveInstructions(list);
       ta.value = '';

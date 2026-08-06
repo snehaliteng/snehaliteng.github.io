@@ -295,6 +295,19 @@
       justify-content: flex-end;
       margin-bottom: 10px;
     }
+    #company-alert { display: none; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px; font-weight: 600; }
+    #company-alert.alert-applied { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    #company-alert.alert-visited { background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; }
+    .stats-filter-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .stats-filter-row select, .stats-filter-row input[type="date"] { flex: 1 1 auto; min-width: 0; padding: 7px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: #fff; }
+    .stats-search { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; margin-bottom: 8px; }
+    .stats-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .stat-chip { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; text-align: center; min-width: 62px; }
+    .stat-chip .num { font-size: 16px; font-weight: 700; color: #2563eb; }
+    .stat-chip .lbl { font-size: 10px; color: #64748b; }
+    .chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+    .chart-title { font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; }
+    .chart-wrap { position: relative; height: 180px; }
     .btn-refresh {
       background: white;
       border: 1px solid #d1d5db;
@@ -307,6 +320,19 @@
       transition: all 0.15s;
     }
     .btn-refresh:hover { background: #eff6ff; border-color: #2563eb; }
+    .kw-card { margin-top: 4px; }
+    .kw-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .kw-toggle input { width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; }
+    .kw-hint { font-size: 11px; color: #94a3b8; margin-top: 6px; }
     .toast {
       position: fixed;
       bottom: 16px;
@@ -435,6 +461,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="current">Current Page</button>
     <button class="tab" data-tab="history">History <span class="count-badge" id="history-count">0</span></button>
+    <button class="tab" data-tab="stats">Stats</button>
     <button class="tab" data-tab="profile">Profile</button>
   </div>
 
@@ -447,7 +474,7 @@
       <div class="refresh-row">
         <button id="btn-refresh-page" class="btn-refresh" title="Re-scan current page">&#x21BB; Refresh</button>
       </div>
-      <div id="company-alert" style="display:none;background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;font-weight:600;"></div>
+      <div id="company-alert"></div>
       <div class="info-card">
         <div class="info-row">
           <span class="info-label">Company</span>
@@ -519,6 +546,19 @@
       <button id="btn-add-manual" class="btn btn-outline" style="display:none;">
         + Track This Page
       </button>
+      <div class="info-card kw-card">
+        <div class="section-title">Keyword Highlight</div>
+        <label class="kw-toggle">
+          <input type="checkbox" id="kw-enabled">
+          <span>Highlight keywords on this page</span>
+        </label>
+        <div class="form-group">
+          <label>Keywords (comma separated)</label>
+          <input type="text" id="kw-list" placeholder="Remote, Ahmedabad, Work From Home">
+        </div>
+        <button id="btn-apply-kw" class="btn btn-outline" style="margin-bottom:0;">Apply</button>
+        <div class="kw-hint">Highlights matching words in yellow. Auto-applies on job pages.</div>
+      </div>
     </div>
     <div id="page-no-job" class="empty-state" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -538,6 +578,41 @@
       <p>Loading history...</p>
     </div>
     <div id="history-list"></div>
+  </div>
+
+  <!-- Stats Panel -->
+  <div id="panel-stats" class="panel">
+    <div class="stats-filter-row">
+      <select id="st-status">
+        <option value="all">All Status</option>
+        <option value="visited">Visited</option>
+        <option value="applied">Applied</option>
+        <option value="interview">Interview</option>
+        <option value="offered">Offered</option>
+        <option value="accepted">Accepted</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <select id="st-platform">
+        <option value="all">All Platforms</option>
+      </select>
+      <select id="st-date-field">
+        <option value="visited">Visited Date</option>
+        <option value="applied">Applied Date</option>
+      </select>
+      <input type="date" id="st-from" title="From date">
+      <input type="date" id="st-to" title="To date">
+      <button id="btn-stats-reset" class="btn btn-outline" style="margin:0;">Reset</button>
+    </div>
+    <input type="text" id="st-search" class="stats-search" placeholder="Search company or job title...">
+    <div class="stats-chips" id="st-chips"></div>
+    <div class="chart-card">
+      <div class="chart-title">Applications (Last 30 Days)</div>
+      <div class="chart-wrap"><canvas id="chart-daily"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Applications by Platform</div>
+      <div class="chart-wrap"><canvas id="chart-platform"></canvas></div>
+    </div>
   </div>
 
   <!-- Profile Panel -->
@@ -580,6 +655,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

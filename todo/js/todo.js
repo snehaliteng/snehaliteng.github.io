@@ -729,6 +729,15 @@ async function loadPermanentTasks() {
   const logMap = {};
   if (logs) logs.forEach(l => { logMap[l.task_id] = l; });
 
+  const ttDayStart = istDateStr() + ' 00:00:00';
+  const { data: ttToday } = await sb.from('todo_time_tracking')
+    .select('task_id')
+    .eq('user_id', currentUser.id)
+    .eq('task_type', 'permanent')
+    .gte('start_time', ttDayStart);
+  const workedTaskIds = new Set();
+  if (ttToday) ttToday.forEach(r => workedTaskIds.add(r.task_id));
+
   selectedPermTaskIds.clear();
   document.getElementById('delete-selected-perm-btn').style.display = 'none';
 
@@ -746,7 +755,7 @@ async function loadPermanentTasks() {
     const indent = depth * 24;
     const isExpanded = expandedPermTaskIds.has(t.id);
     return '<div class="card perm-task-card" style="margin-left:' + indent + 'px;border-left:' + (depth ? '2px solid #e8e8e8' : 'none') + '">' +
-      '<div class="task-item" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '" draggable="true">' +
+      '<div class="task-item' + (workedTaskIds.has(t.id) ? ' worked' : '') + '" data-id="' + t.id + '" data-parent="' + (t.parent_id || '') + '" draggable="true">' +
       '<span class="drag-handle">&#x2630;</span>' +
       (hasChildren ? '<span class="perm-expand-icon ' + (isExpanded ? 'open' : '') + '" onclick="event.stopPropagation();togglePermChildren(' + t.id + ');loadPermanentTasks()">&#x25B6;</span>' : '<span class="perm-expand-placeholder"></span>') +
       '<input type="checkbox" class="task-select" onchange="togglePermSelect(' + t.id + ', this.checked)" style="width:16px;height:16px;accent-color:#d93025;cursor:pointer;">' +
@@ -1122,6 +1131,7 @@ async function toggleTracking(type, id, title) {
   }
   updateTimerButtons();
   if (currentView === 'time') loadTimeTracking();
+  loadPermanentTasks();
 }
 
 async function stopTracker(id) {
@@ -1136,6 +1146,7 @@ async function deleteTimeEntry(id) {
   await sb.from('todo_time_tracking').delete().eq('id', id);
   await loadRunningTrackers();
   loadTimeTracking();
+  loadPermanentTasks();
 }
 
 document.addEventListener('click', function(e) {
@@ -1319,13 +1330,67 @@ function titleHash(s) {
   return Math.abs(h);
 }
 
+let ttPickTasks = [];
+let ttPickId = '';
+
+function taskPickerHTML() {
+  return '<label>Task</label>' +
+    '<div class="tt-picker">' +
+    '<input type="text" id="tt-add-search" placeholder="Search or type a task..." autocomplete="off" oninput="filterTaskPicker()" onfocus="filterTaskPicker()" onkeydown="taskPickerKey(event)">' +
+    '<div class="tt-picker-list" id="tt-add-list"></div>' +
+    '</div>';
+}
+
+function renderTaskPickerList(filter) {
+  const list = document.getElementById('tt-add-list');
+  if (!list) return;
+  const q = (filter || '').toLowerCase();
+  let html = '<div class="tt-picker-opt" data-id="" onclick="selectTaskPicker(\'\', this)">Custom (type a title)...</div>';
+  ttPickTasks.forEach(function(t) {
+    if (q && String(t.title).toLowerCase().indexOf(q) === -1) return;
+    const selected = ttPickId === String(t.id) ? ' selected' : '';
+    html += '<div class="tt-picker-opt' + selected + '" data-id="' + t.id + '" onclick="selectTaskPicker(' + t.id + ', this)">' + escHtml(t.title) + '</div>';
+  });
+  list.innerHTML = html;
+  list.style.display = 'block';
+}
+
+function selectTaskPicker(id, el) {
+  ttPickId = String(id);
+  const search = document.getElementById('tt-add-search');
+  if (id === '') {
+    if (search) search.value = '';
+  } else if (el && el.textContent) {
+    if (search) search.value = el.textContent;
+  }
+  const list = document.getElementById('tt-add-list');
+  if (list) list.style.display = 'none';
+  toggleCustomTaskInput();
+}
+
+function filterTaskPicker() {
+  const search = document.getElementById('tt-add-search');
+  renderTaskPickerList(search ? search.value : '');
+}
+
+function taskPickerKey(e) {
+  if (e.key === 'Escape') {
+    const list = document.getElementById('tt-add-list');
+    if (list) list.style.display = 'none';
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const first = document.querySelector('#tt-add-list .tt-picker-opt:not([data-id=""])');
+    if (first) first.click();
+  }
+}
+
 async function showAddTimeEntryModal() {
   const { data: tasks } = await sb.from('todo_permanent_tasks').select('id,title').eq('user_id', currentUser.id).order('order_index');
-  let opts = '<option value="">Custom (type a title)...</option>';
-  if (tasks) tasks.forEach(function(t) { opts += '<option value="' + t.id + '">' + escHtml(t.title) + '</option>'; });
+  ttPickTasks = (tasks || []).map(function(t) { return { id: t.id, title: t.title }; });
+  ttPickId = '';
   const now = istNowStr().substring(0, 16);
   const html = '<h3>Add Time Entry</h3>' +
-    '<label>Task</label><select id="tt-add-task" onchange="toggleCustomTaskInput()">' + opts + '</select>' +
+    taskPickerHTML() +
     '<label>Custom Task Title</label><input type="text" id="tt-add-custom" placeholder="e.g. Deep work">' +
     '<label>Start (IST)</label><input type="datetime-local" id="tt-add-start" value="' + now + '">' +
     '<label>End (IST)</label><input type="datetime-local" id="tt-add-end">' +
@@ -1333,14 +1398,14 @@ async function showAddTimeEntryModal() {
     '<div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Cancel</button>' +
     '<button class="btn btn-primary" onclick="saveTimeEntry()">Save</button></div>';
   showModal(html);
+  renderTaskPickerList('');
   toggleCustomTaskInput();
 }
 
 function toggleCustomTaskInput() {
-  const sel = document.getElementById('tt-add-task');
   const cust = document.getElementById('tt-add-custom');
-  if (!sel || !cust) return;
-  cust.style.display = sel.value === '' ? '' : 'none';
+  if (!cust) return;
+  cust.style.display = ttPickId === '' ? '' : 'none';
 }
 
 function normDatetime(v) {
@@ -1350,15 +1415,17 @@ function normDatetime(v) {
 }
 
 async function saveTimeEntry(id) {
-  const sel = document.getElementById('tt-add-task');
-  const title = sel.value === '' ? (document.getElementById('tt-add-custom').value || '').trim() : sel.options[sel.selectedIndex].text.trim();
+  const isCustom = ttPickId === '';
+  const title = isCustom
+    ? (document.getElementById('tt-add-custom').value || '').trim()
+    : (ttPickTasks.find(function(t) { return String(t.id) === ttPickId; }) || {}).title || '';
   const start = normDatetime(document.getElementById('tt-add-start').value);
   const end = normDatetime(document.getElementById('tt-add-end').value) || null;
   if (!title) return alert('Task title is required');
   if (!start) return alert('Start time is required');
   if (end && istToMs(end) < istToMs(start)) return alert('End time cannot be before start time.');
-  const taskType = sel.value === '' ? 'manual' : 'permanent';
-  const taskId = sel.value === '' ? titleHash(title) : parseInt(sel.value, 10);
+  const taskType = isCustom ? 'manual' : 'permanent';
+  const taskId = isCustom ? titleHash(title) : parseInt(ttPickId, 10);
   const duration = end ? Math.max(0, Math.round((istToMs(end) - istToMs(start)) / 1000)) : null;
   const payload = {
     task_id: taskId, task_type: taskType, task_title: title,

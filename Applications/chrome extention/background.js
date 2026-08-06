@@ -361,6 +361,19 @@ async function getCompanyApplied(company) {
   }
 }
 
+async function getCompanyVisited(company) {
+  try {
+    if (!company) return { found: false };
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const data = await supabaseGet('job_tracker',
+      `company_name=ilike.${encodeURIComponent(company)}&visited_at=gte.${since}&limit=5`);
+    return { found: !!(data && data.length > 0), data: data || [] };
+  } catch (err) {
+    console.error('Check company visited error:', err);
+    return { found: false, error: err.message };
+  }
+}
+
 async function getProfileData() {
   try {
     const data = await supabaseGet('job_profile', 'limit=1');
@@ -375,7 +388,16 @@ async function saveProfileData(profile) {
     const session = await getValidSession();
     if (!session) return { error: 'Please login first' };
     const existing = await getProfileData();
-    const payload = { ...profile, user_id: session.user.id };
+    const payload = {
+      full_name: profile.fullName || '',
+      email: profile.email || '',
+      phone: profile.phone || '',
+      linked_in: profile.linkedIn || '',
+      resume_url: profile.resumeUrl || '',
+      website: profile.website || '',
+      cover_letter: profile.coverLetter || '',
+      user_id: session.user.id
+    };
     if (existing) {
       return await supabaseUpdate('job_profile', payload, `id=eq.${existing.id}`);
     }
@@ -482,6 +504,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.action === 'checkCompanyApplied') {
     getCompanyApplied(request.company)
+      .then(result => sendResponse(result));
+    return true;
+  }
+
+  if (request.action === 'checkCompanyVisited') {
+    getCompanyVisited(request.company)
       .then(result => sendResponse(result));
     return true;
   }

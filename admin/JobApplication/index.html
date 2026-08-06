@@ -79,6 +79,18 @@
       </div>
     </div>
 
+    <!-- Charts -->
+    <div class="grid md:grid-cols-2 gap-4 mb-6">
+      <div class="bg-white rounded-xl shadow-sm border p-4">
+        <h2 class="font-semibold text-gray-700 mb-3">Applications Applied (Last 30 Days)</h2>
+        <div class="relative h-64"><canvas id="chart-daily"></canvas></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm border p-4">
+        <h2 class="font-semibold text-gray-700 mb-3">Applications by Platform</h2>
+        <div class="relative h-64"><canvas id="chart-platform"></canvas></div>
+      </div>
+    </div>
+
     <!-- Filters -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
       <select id="filter-status" onchange="applyFilters()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
@@ -96,10 +108,26 @@
         <option value="oldest">Oldest First</option>
         <option value="company">Company A-Z</option>
       </select>
+      <select id="filter-date-field" onchange="applyFilters()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" title="Date to filter on">
+        <option value="visited">Visited Date</option>
+        <option value="applied">Applied Date</option>
+      </select>
+      <input type="date" id="filter-date-from" onchange="applyFilters()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" title="From date">
+      <input type="date" id="filter-date-to" onchange="applyFilters()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" title="To date">
+      <select id="filter-platform" onchange="applyFilters()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" title="Platform">
+        <option value="all">All Platforms</option>
+      </select>
       <span id="result-count" class="text-xs text-gray-400"></span>
+      <button onclick="resetFilters()" class="text-xs text-gray-500 hover:text-blue-600 hover:underline">Reset</button>
     </div>
 
     <div id="alert"></div>
+
+    <!-- Bulk Delete Bar -->
+    <div id="bulk-bar" class="hidden items-center justify-between bg-white rounded-xl shadow-sm border p-3 mb-3">
+      <span class="text-sm text-gray-600">Selected: <span id="selected-count" class="font-bold">0</span> application(s)</span>
+      <button onclick="deleteSelected()" class="bg-red-500 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-red-600">Delete Selected</button>
+    </div>
 
     <!-- Loading -->
     <div id="loading" class="text-gray-500 text-center py-8">Loading applications...</div>
@@ -176,10 +204,12 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/admin.js"></script>
   <script>
     let allData = [];
+    let filteredBase = [];
     let filteredData = [];
     let currentFilter = 'all';
 
@@ -202,7 +232,7 @@
 
         if (error) throw error;
         allData = data || [];
-        updateStats();
+        populatePlatformFilter();
         applyFilters();
       } catch (err) {
         document.getElementById('loading').classList.add('hidden');
@@ -212,8 +242,8 @@
     }
 
     function updateStats() {
-      const stats = { total: allData.length, visited: 0, applied: 0, interview: 0, offered: 0, rejected: 0 };
-      allData.forEach(r => {
+      const stats = { total: filteredBase.length, visited: 0, applied: 0, interview: 0, offered: 0, rejected: 0 };
+      filteredBase.forEach(r => {
         if (stats[r.status] !== undefined) stats[r.status]++;
       });
       document.getElementById('stat-total').textContent = stats.total;
@@ -224,30 +254,165 @@
       document.getElementById('stat-rejected').textContent = stats.rejected;
     }
 
+    let dailyChart = null;
+    let platformChart = null;
+
+    function localDateKey(d) {
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function appliedDate(r) {
+      if (!r.applied) return null;
+      return r.applied_at ? new Date(r.applied_at) : new Date(r.visited_at);
+    }
+
+    function platformFromUrl(url) {
+      try {
+        const host = new URL(url || '').hostname.replace(/^www\./, '').toLowerCase();
+        const map = [
+          ['linkedin', 'LinkedIn'], ['naukri', 'Naukri'], ['indeed', 'Indeed'],
+          ['glassdoor', 'Glassdoor'], ['wellfound', 'Wellfound'], ['angellist', 'AngelList'],
+          ['dice', 'Dice'], ['ziprecruiter', 'ZipRecruiter'], ['monster', 'Monster'],
+          ['greenhouse', 'Greenhouse'], ['lever', 'Lever'], ['workday', 'Workday'],
+          ['icims', 'iCIMS'], ['smartrecruiters', 'SmartRecruiters'], ['ashby', 'Ashby'],
+          ['jazzhr', 'JazzHR'], ['bamboohr', 'BambooHR'], ['successfactors', 'SAP SuccessFactors'],
+          ['hirewith', 'Hirewith'], ['join', 'Join'], ['instahyre', 'Instahyre'], ['cutshort', 'Cutshort']
+        ];
+        for (const [key, label] of map) if (host.includes(key)) return label;
+        return host || 'Other';
+      } catch (e) {
+        return 'Other';
+      }
+    }
+
+    function renderCharts() {
+      const dailyCtx = document.getElementById('chart-daily');
+      const platformCtx = document.getElementById('chart-platform');
+      if (dailyChart) { dailyChart.destroy(); dailyChart = null; }
+      if (platformChart) { platformChart.destroy(); platformChart = null; }
+      if (!dailyCtx || !platformCtx) return;
+
+      const now = new Date();
+      const days = [];
+      const idx = {};
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        const key = localDateKey(d);
+        days.push({ key, label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), count: 0 });
+        idx[key] = days.length - 1;
+      }
+      filteredBase.forEach(r => {
+        const d = appliedDate(r);
+        if (!d) return;
+        const key = localDateKey(d);
+        if (idx[key] !== undefined) days[idx[key]].count++;
+      });
+
+      dailyChart = new Chart(dailyCtx, {
+        type: 'bar',
+        data: {
+          labels: days.map(d => d.label),
+          datasets: [{
+            label: 'Applications Applied',
+            data: days.map(d => d.count),
+            backgroundColor: '#16a34a',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
+
+      const counts = {};
+      filteredBase.forEach(r => {
+        if (!appliedDate(r)) return;
+        const p = platformFromUrl(r.job_url);
+        counts[p] = (counts[p] || 0) + 1;
+      });
+      const labels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+      const colors = ['#2563eb', '#0ea5e9', '#16a34a', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#94a3b8', '#f97316'];
+
+      platformChart = new Chart(platformCtx, {
+        type: 'doughnut',
+        data: {
+          labels: labels.length ? labels : ['No applied jobs'],
+          datasets: [{ data: labels.length ? labels.map(l => counts[l]) : [1], backgroundColor: labels.length ? colors : ['#e2e8f0'], borderWidth: 2 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
+
     function filterByStatus(status) {
       document.getElementById('filter-status').value = status;
       applyFilters();
     }
 
-    function applyFilters() {
+    function populatePlatformFilter() {
+      const sel = document.getElementById('filter-platform');
+      const platforms = new Set();
+      allData.forEach(r => platforms.add(platformFromUrl(r.job_url)));
+      const current = sel.value;
+      sel.innerHTML = '<option value="all">All Platforms</option>' +
+        Array.from(platforms).sort().map(p => '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>').join('');
+      sel.value = platforms.has(current) ? current : 'all';
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-status').value = 'all';
+      document.getElementById('filter-search').value = '';
+      document.getElementById('filter-sort').value = 'newest';
+      document.getElementById('filter-date-field').value = 'visited';
+      document.getElementById('filter-date-from').value = '';
+      document.getElementById('filter-date-to').value = '';
+      document.getElementById('filter-platform').value = 'all';
+      applyFilters();
+    }
+
+    function matchesFilters(r) {
       const statusFilter = document.getElementById('filter-status').value;
       const search = document.getElementById('filter-search').value.toLowerCase();
+      const dateField = document.getElementById('filter-date-field').value;
+      const from = document.getElementById('filter-date-from').value;
+      const to = document.getElementById('filter-date-to').value;
+      const platform = document.getElementById('filter-platform').value;
+
+      if (statusFilter !== 'all' && r.status !== statusFilter) return false;
+      if (platform !== 'all' && platformFromUrl(r.job_url) !== platform) return false;
+      if (search) {
+        const haystack = (r.company_name + ' ' + r.job_title + ' ' + r.job_url).toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      if (from || to) {
+        const d = dateField === 'applied' ? appliedDate(r) : (r.visited_at ? new Date(r.visited_at) : null);
+        if (!d) return false;
+        const t = d.getTime();
+        if (from && t < new Date(from + 'T00:00:00').getTime()) return false;
+        if (to && t > new Date(to + 'T23:59:59.999').getTime()) return false;
+      }
+      return true;
+    }
+
+    function applyFilters() {
       const sort = document.getElementById('filter-sort').value;
 
-      filteredData = allData.filter(r => {
-        if (statusFilter !== 'all' && r.status !== statusFilter) return false;
-        if (search) {
-          const haystack = (r.company_name + ' ' + r.job_title + ' ' + r.job_url).toLowerCase();
-          if (!haystack.includes(search)) return false;
-        }
-        return true;
-      });
+      filteredBase = allData.filter(matchesFilters);
+      filteredData = filteredBase.slice();
 
       if (sort === 'newest') filteredData.sort((a, b) => new Date(b.visited_at) - new Date(a.visited_at));
       else if (sort === 'oldest') filteredData.sort((a, b) => new Date(a.visited_at) - new Date(b.visited_at));
       else if (sort === 'company') filteredData.sort((a, b) => (a.company_name || '').localeCompare(b.company_name || ''));
 
       document.getElementById('result-count').textContent = filteredData.length + ' result' + (filteredData.length !== 1 ? 's' : '');
+      updateStats();
+      renderCharts();
       renderTable();
     }
 
@@ -287,6 +452,7 @@
       const html = `
         <table class="w-full text-sm">
           <thead><tr class="bg-gray-50 border-b text-left">
+            <th class="p-3"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this.checked)"></th>
             <th class="p-3 font-semibold">#</th>
             <th class="p-3 font-semibold">Company</th>
             <th class="p-3 font-semibold">Job Title</th>
@@ -297,7 +463,9 @@
           </tr></thead>
           <tbody>${filteredData.map(function(r, i) {
             const initials = (r.company_name || '?').split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase();
+            const checked = selectedIds.has(r.id) ? 'checked' : '';
             return '<tr class="border-b hover:bg-gray-50 fade-in" style="animation-delay:' + (i * 0.02) + 's">'
+              + '<td class="p-3"><input type="checkbox" class="app-check" data-id="' + r.id + '" ' + checked + ' onchange="toggleSelect(' + r.id + ', this.checked)"></td>'
               + '<td class="p-3 text-gray-400 text-xs">' + (i + 1) + '</td>'
               + '<td class="p-3"><div class="flex items-center gap-3">'
               + '<div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs">' + escapeHtml(initials) + '</div>'
@@ -317,6 +485,10 @@
         </table>
       `;
       div.innerHTML = html;
+      const allSelected = filteredData.length > 0 && filteredData.every(r => selectedIds.has(r.id));
+      const selAll = document.getElementById('select-all');
+      if (selAll) selAll.checked = allSelected;
+      updateBulkBar();
     }
 
     function openEdit(id) {
@@ -355,6 +527,45 @@
         closeEditModal();
         await loadData();
         showAlert('Application updated.', 'success');
+      } catch (err) {
+        showAlert(err.message, 'error');
+      }
+    }
+
+    let selectedIds = new Set();
+
+    function toggleSelect(id, checked) {
+      if (checked) selectedIds.add(id); else selectedIds.delete(id);
+      updateBulkBar();
+      const selAll = document.getElementById('select-all');
+      if (selAll) selAll.checked = filteredData.length > 0 && filteredData.every(r => selectedIds.has(r.id));
+    }
+
+    function toggleSelectAll(checked) {
+      filteredData.forEach(r => {
+        if (checked) selectedIds.add(r.id); else selectedIds.delete(r.id);
+      });
+      document.querySelectorAll('.app-check').forEach(c => { c.checked = checked; });
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const bar = document.getElementById('bulk-bar');
+      document.getElementById('selected-count').textContent = selectedIds.size;
+      bar.classList.toggle('hidden', selectedIds.size === 0);
+      bar.classList.toggle('flex', selectedIds.size > 0);
+    }
+
+    async function deleteSelected() {
+      const ids = Array.from(selectedIds);
+      if (!ids.length) return;
+      if (!confirm('Delete ' + ids.length + ' selected application(s)?')) return;
+      try {
+        const { error } = await _admin.from('job_tracker').delete().in('id', ids);
+        if (error) throw error;
+        selectedIds.clear();
+        await loadData();
+        showAlert('Deleted ' + ids.length + ' application(s).', 'success');
       } catch (err) {
         showAlert(err.message, 'error');
       }
