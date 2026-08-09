@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
             append(getString(R.string.wa_footer))
         }
 
-        val url = "https://wa.me/91123456780?text=" + Uri.encode(message)
+        val url = "https://wa.me/918825064385?text=" + Uri.encode(message)
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         intent.setPackage("com.whatsapp")
 

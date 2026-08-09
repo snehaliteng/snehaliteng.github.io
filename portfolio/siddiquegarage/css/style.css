@@ -133,6 +133,17 @@ img, svg {
   transform: translateY(-2px);
 }
 
+.btn-android {
+  background: #3ddc84;
+  color: #10233f;
+  box-shadow: 0 8px 20px rgba(61, 220, 132, .35);
+}
+
+.btn-android:hover {
+  background: #2cc173;
+  transform: translateY(-2px);
+}
+
 /* ---------- Header ---------- */
 .site-header {
   position: fixed;
