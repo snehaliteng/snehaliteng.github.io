@@ -28,7 +28,8 @@
     'system-design-fundamentals':'system-design-fundamentals-tutorial',
     'ai-system-design':'ai-system-design-tutorial','ml-system-design':'ml-system-design-tutorial',
     'mindset-mastery':'mindset-mastery-tutorial','cost-takeout-sourcing':'cost-takeout-sourcing-tutorial',
-    'rpa-ai':'rpa-ai-tutorial','enterprise-architecture-ai-governance':'enterprise-architecture-ai-governance-tutorial'
+    'rpa-ai':'rpa-ai-tutorial','enterprise-architecture-ai-governance':'enterprise-architecture-ai-governance-tutorial',
+    'ai-fundamentals':'ai-fundamentals-tutorial'
   };
 
   var productSlug = PRODUCT_SLUGS[slug];
