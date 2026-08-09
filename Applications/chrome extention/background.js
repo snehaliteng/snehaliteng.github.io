@@ -53,7 +53,11 @@ async function refreshSession(session) {
   try {
     const resp = await fetch(`${SUPABASE_AUTH_URL}/token?grant_type=refresh_token`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY
+      },
       body: JSON.stringify({
         refresh_token: session.refresh_token
       })

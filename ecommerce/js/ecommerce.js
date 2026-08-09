@@ -178,7 +178,8 @@ async function ecLoadProducts(page, filters) {
     query = query.eq('category_id', filters.category_id);
   }
   if (filters.search) {
-    query = query.ilike('name', `%${filters.search}%`);
+    const term = String(filters.search).replace(/\*/g, '');
+    query = query.or(`name.ilike.*${term}*,slug.ilike.*${term}*,tutorial_slug.ilike.*${term}*`);
   }
   if (filters.min_price) {
     query = query.gte('price', parseFloat(filters.min_price));
