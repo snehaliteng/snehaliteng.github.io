@@ -1,5 +1,7 @@
 package com.garshop.user.ui
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
 import com.google.android.material.button.MaterialButton
 import android.widget.EditText
@@ -11,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.garshop.user.api.Session
 import com.garshop.user.api.Supabase
 import org.json.JSONObject
+import java.util.Calendar
+import java.util.Locale
 
 class BookActivity : AppCompatActivity() {
 
@@ -37,14 +41,59 @@ class BookActivity : AppCompatActivity() {
         }
         val etCarId = EditText(this).apply { hint = "Car ID"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
         val etServiceId = EditText(this).apply { hint = "Service ID (optional)"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
-        val etDateTime = EditText(this).apply { hint = "Date & time (YYYY-MM-DDTHH:MM:SS)"; setSingleLine(true) }
+        val intentSid = intent.getLongExtra("service_id", -1L)
+        val intentSname = intent.getStringExtra("service_name")
+        if (intentSid > 0) {
+            etServiceId.setText(intentSid.toString())
+            if (intentSname != null) etServiceId.hint = intentSname
+        }
+
         val etNotes = EditText(this).apply { hint = "Notes (e.g. doorstep pickup)" }
         val btnBook = MaterialButton(this).apply { text = "Book Appointment" }
+
+        // ---- Date & time picker (replaces the free-text field) ----
+        var chosenDate: String? = null
+        var chosenTime: String? = null
+        val tvDateTime = TextView(this).apply {
+            text = "No date & time selected yet"
+            setTextColor(android.graphics.Color.parseColor("#8aa0b8"))
+            setPadding(16, 14, 16, 14)
+            background = android.graphics.drawable.ColorDrawable(android.graphics.Color.parseColor("#F2F5F9"))
+        }
+        fun updateDateTime() {
+            if (chosenDate != null && chosenTime != null) {
+                tvDateTime.text = "$chosenDate $chosenTime"
+                tvDateTime.setTextColor(android.graphics.Color.parseColor("#101828"))
+            }
+        }
+        val btnDate = MaterialButton(this).apply { text = "Pick Date" }
+        btnDate.setOnClickListener {
+            val cal = Calendar.getInstance()
+            DatePickerDialog(this, { _, y, m, d ->
+                chosenDate = String.format(Locale.US, "%04d-%02d-%02d", y, m + 1, d)
+                updateDateTime()
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+        }
+        val btnTime = MaterialButton(this).apply { text = "Pick Time" }
+        btnTime.setOnClickListener {
+            val cal = Calendar.getInstance()
+            TimePickerDialog(this, { _, h, min ->
+                chosenTime = String.format(Locale.US, "%02d:%02d:00", h, min)
+                updateDateTime()
+            }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
+        }
+        val dateTimeRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        dateTimeRow.addView(btnDate)
+        dateTimeRow.addView(btnTime)
 
         root.addView(etGarageId)
         root.addView(etCarId)
         root.addView(etServiceId)
-        root.addView(etDateTime)
+        root.addView(tvDateTime)
+        root.addView(dateTimeRow)
         root.addView(etNotes)
         root.addView(btnBook)
 
@@ -54,7 +103,7 @@ class BookActivity : AppCompatActivity() {
         btnBook.setOnClickListener {
             val gid = etGarageId.text.toString().trim()
             val cid = etCarId.text.toString().trim()
-            val dt = etDateTime.text.toString().trim()
+            val dt = if (chosenDate != null && chosenTime != null) "$chosenDate" + "T" + chosenTime else ""
             if (gid.isEmpty() || cid.isEmpty() || dt.isEmpty()) {
                 Toast.makeText(this, "Garage ID, Car ID and date/time required", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

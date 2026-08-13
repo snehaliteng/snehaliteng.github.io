@@ -58,7 +58,9 @@ class MainActivity : AppCompatActivity() {
 
         val btnCars = hubButton("My Cars")
         val btnIssue = hubButton("Report a Car Problem")
+        val btnServices = hubButton("Garage Services & Prices")
         val btnGarages = hubButton("Nearby Garages & Services")
+        val btnChecklist = hubButton("Service Checklist")
         val btnBook = hubButton("Book Appointment")
         val btnNotifs = hubButton("Notifications")
         val btnHistory = hubButton("Service History")
@@ -66,7 +68,9 @@ class MainActivity : AppCompatActivity() {
 
         btnCars.setOnClickListener { startActivity(Intent(this, CarsActivity::class.java)) }
         btnIssue.setOnClickListener { startActivity(Intent(this, IssueActivity::class.java)) }
+        btnServices.setOnClickListener { startActivity(Intent(this, ServicesActivity::class.java)) }
         btnGarages.setOnClickListener { startActivity(Intent(this, GaragesActivity::class.java)) }
+        btnChecklist.setOnClickListener { startActivity(Intent(this, ChecklistActivity::class.java)) }
         btnBook.setOnClickListener { startActivity(Intent(this, BookActivity::class.java)) }
         btnNotifs.setOnClickListener { startActivity(Intent(this, NotificationsActivity::class.java)) }
         btnHistory.setOnClickListener { startActivity(Intent(this, HistoryActivity::class.java)) }
@@ -78,7 +82,9 @@ class MainActivity : AppCompatActivity() {
 
         root.addView(btnCars)
         root.addView(btnIssue)
+        root.addView(btnServices)
         root.addView(btnGarages)
+        root.addView(btnChecklist)
         root.addView(btnBook)
         root.addView(btnNotifs)
         root.addView(btnHistory)

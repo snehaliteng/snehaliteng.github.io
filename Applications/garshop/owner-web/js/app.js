@@ -12,6 +12,7 @@ const VIEW_TITLES = {
   garage: 'My Garage',
   requests: 'Service Requests',
   appointments: 'Appointments',
+  checklists: 'Customer Checklists',
   services: 'Services Catalog',
   users: 'Connected Users',
   reminders: 'Send Reminders'
@@ -86,6 +87,7 @@ async function loadView(view) {
     if (view === 'garage') await loadGarageForm();
     if (view === 'requests') await loadRequests();
     if (view === 'appointments') await loadAppointments();
+    if (view === 'checklists') await loadChecklists();
     if (view === 'services') await loadServices();
     if (view === 'users') await loadUsers();
     if (view === 'reminders') await loadReminders();
@@ -322,6 +324,93 @@ async function deleteService(id) {
   if (!confirm('Delete this service?')) return;
   const { error } = await sb.from('gs_garage_services').delete().eq('id', id);
   if (error) alert(error.message); else loadServices();
+}
+
+// ---------- Checklists ----------
+async function loadChecklists() {
+  const g = await getGarage();
+  const c = document.getElementById('checklistsContainer');
+  if (!g) { c.innerHTML = '<p style="color:var(--gray-600)">Register your garage first.</p>'; return; }
+  const { data, error } = await sb.rpc('gs_owner_checklists', { p_garage_id: g.id });
+  if (error) { c.innerHTML = '<p style="color:var(--red)">' + error.message + '</p>'; return; }
+  if (!data || !data.length) {
+    c.innerHTML = '<p style="color:var(--gray-600)">No checklists yet. Ask connected users to submit a checklist from the app.</p>';
+    return;
+  }
+  c.innerHTML = data.map(cl => {
+    const items = cl.items || [];
+    const flagged = items.filter(i => i.checked).length;
+    const fixedCount = items.filter(i => i.fixed).length;
+    return `
+    <div class="panel" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
+        <div>
+          <strong>${cl.user_name || 'Unknown user'}</strong>
+          ${cl.phone ? '<span style="color:var(--gray-600);margin-left:8px">' + cl.phone + '</span>' : ''}
+          <span style="color:var(--gray-600);margin-left:8px">· ${cl.car || '—'} · ${new Date(cl.created_at).toLocaleString()}</span>
+        </div>
+        <span class="badge badge-${cl.status}">${cl.status}</span>
+      </div>
+      <h4 style="margin:10px 0 4px">${cl.title}</h4>
+      <p style="color:var(--gray-600);font-size:.85rem;margin-bottom:10px">
+        Flagged ${flagged} of ${items.length} · Fixed ${fixedCount}
+        ${cl.notes ? '· Notes: ' + cl.notes : ''}
+      </p>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Item</th><th>Flagged by user</th><th>Fixed</th><th>Fix note</th></tr></thead>
+        <tbody>
+          ${items.map(it => `
+            <tr>
+              <td>${it.item}</td>
+              <td>${it.checked ? '<span class="badge badge-pending">yes</span>' : '—'}</td>
+              <td><input type="checkbox" ${it.fixed ? 'checked' : ''} onchange="setItemFixed(${it.id}, this.checked, ${cl.id})"></td>
+              <td><input class="fixed-note" data-item="${it.id}" style="width:100%;padding:6px 8px;border:1px solid #dbe3ee;border-radius:8px"
+                         placeholder="Note (e.g. replaced pads)" value="${(it.note || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"
+                         onchange="setItemFixed(${it.id}, true, ${cl.id})"></td>
+            </tr>`).join('')}
+        </tbody>
+      </table></div>
+      ${cl.status !== 'completed'
+        ? `<div style="margin-top:10px"><button class="btn btn-sm btn-success" onclick="completeChecklist(${cl.id})">Mark all fixed &amp; completed</button></div>`
+        : '<p style="color:var(--green);margin-top:10px;font-weight:600">Completed — user has been notified.</p>'}
+    </div>`;
+  }).join('');
+}
+
+async function setItemFixed(itemId, fixed, checklistId) {
+  const noteEl = document.querySelector('.fixed-note[data-item="' + itemId + '"]');
+  const { error } = await sb.from('gs_checklist_items').update({
+    owner_fixed: fixed,
+    fixed_note: noteEl ? noteEl.value.trim() : ''
+  }).eq('id', itemId);
+  if (error) { alert(error.message); return; }
+  if (fixed) {
+    const { data: rows } = await sb.from('gs_checklist_items').select('id,owner_fixed').eq('checklist_id', checklistId);
+    if ((rows || []).some(r => r.owner_fixed)) {
+      await sb.from('gs_checklists').update({ status: 'in_progress' }).eq('id', checklistId).eq('status', 'pending');
+    }
+  }
+  loadChecklists();
+}
+
+async function completeChecklist(id) {
+  const g = await getGarage();
+  if (!g) return;
+  const { data: list } = await sb.rpc('gs_owner_checklists', { p_garage_id: g.id });
+  const cur = (list || []).find(c => c.id === id);
+  if (!cur) return;
+  if (!confirm('Mark all items as fixed and complete this checklist?')) return;
+  const e1 = await sb.from('gs_checklist_items').update({ owner_fixed: true }).eq('checklist_id', id);
+  const e2 = await sb.from('gs_checklists').update({ status: 'completed' }).eq('id', id);
+  if (e1.error || e2.error) { alert((e1.error || e2.error).message); return; }
+  await sb.from('gs_notifications').insert({
+    user_id: cur.user_id,
+    title: 'Checklist completed',
+    message: 'Your service checklist "' + (cur.title || 'Service Checklist') + '" is completed — the flagged items have been fixed.',
+    type: 'success'
+  });
+  alert('Checklist marked as completed. User notified.');
+  loadChecklists();
 }
 
 // ---------- Users ----------

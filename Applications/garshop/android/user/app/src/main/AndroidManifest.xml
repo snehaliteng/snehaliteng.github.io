@@ -31,6 +31,8 @@
         <activity android:name=".ui.AuthActivity" android:exported="false" />
         <activity android:name=".ui.CarsActivity" android:exported="false" />
         <activity android:name=".ui.IssueActivity" android:exported="false" />
+        <activity android:name=".ui.ServicesActivity" android:exported="false" />
+        <activity android:name=".ui.ChecklistActivity" android:exported="false" />
         <activity android:name=".ui.GaragesActivity" android:exported="false" />
         <activity android:name=".ui.BookActivity" android:exported="false" />
         <activity android:name=".ui.NotificationsActivity" android:exported="false" />
