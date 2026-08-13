@@ -1,7 +1,7 @@
 package com.garshop.owner.ui
 
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -95,7 +95,7 @@ class RequestsActivity : AppCompatActivity() {
 
                         if (status != "completed") {
                             val next = if (status == "pending") "in_progress" else "completed"
-                            val btn = Button(this).apply {
+                            val btn = MaterialButton(this).apply {
                                 text = "Mark $next"
                                 setOnClickListener {
                                     Thread {

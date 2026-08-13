@@ -1,7 +1,7 @@
 package com.garshop.user.ui
 
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -34,7 +34,7 @@ class BookActivity : AppCompatActivity() {
         val etServiceId = EditText(this).apply { hint = "Service ID (optional)"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
         val etDateTime = EditText(this).apply { hint = "Date & time (YYYY-MM-DDTHH:MM:SS)"; setSingleLine(true) }
         val etNotes = EditText(this).apply { hint = "Notes (e.g. doorstep pickup)" }
-        val btnBook = Button(this).apply { text = "Book Appointment" }
+        val btnBook = MaterialButton(this).apply { text = "Book Appointment" }
 
         root.addView(etGarageId)
         root.addView(etCarId)

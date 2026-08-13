@@ -1,7 +1,7 @@
 package com.garshop.user.ui
 
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -17,7 +17,7 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var etPhone: EditText
     private lateinit var etEmail: EditText
     private lateinit var etPassword: EditText
-    private lateinit var btnSubmit: Button
+    private lateinit var btnSubmit: MaterialButton
     private lateinit var tvToggle: TextView
     private var isRegister = false
 
@@ -48,7 +48,7 @@ class AuthActivity : AppCompatActivity() {
             setSingleLine(true)
             inputType = android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD or android.text.InputType.TYPE_CLASS_TEXT
         }
-        btnSubmit = Button(this).apply { text = "Login" }
+        btnSubmit = MaterialButton(this).apply { text = "Login" }
         tvToggle = TextView(this).apply {
             text = "New user? Register"
             setPadding(0, 24, 0, 0)

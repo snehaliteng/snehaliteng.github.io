@@ -1,7 +1,6 @@
 package com.garshop.user.ui
 
 import android.os.Bundle
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView

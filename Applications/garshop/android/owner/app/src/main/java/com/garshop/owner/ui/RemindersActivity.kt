@@ -1,7 +1,7 @@
 package com.garshop.owner.ui
 
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -35,7 +35,7 @@ class RemindersActivity : AppCompatActivity() {
         val etCarId = EditText(this).apply { hint = "Car ID (optional)"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
         val etTitle = EditText(this).apply { hint = "Reminder title (e.g. Service due)"; setSingleLine(true) }
         val etMessage = EditText(this).apply { hint = "Reminder message" }
-        val btnSend = Button(this).apply { text = "Send Reminder" }
+        val btnSend = MaterialButton(this).apply { text = "Send Reminder" }
 
         root.addView(etUserId)
         root.addView(etCarId)

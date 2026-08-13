@@ -1,7 +1,7 @@
 package com.garshop.owner.ui
 
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -19,7 +19,7 @@ class GarageActivity : AppCompatActivity() {
     private lateinit var etPhone: EditText
     private lateinit var etDescription: EditText
     private lateinit var etServices: EditText
-    private lateinit var btnSave: Button
+    private lateinit var btnSave: MaterialButton
     private var existingId: Long? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +45,7 @@ class GarageActivity : AppCompatActivity() {
         etPhone = EditText(this).apply { hint = "Contact phone"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_PHONE }
         etDescription = EditText(this).apply { hint = "Short description" }
         etServices = EditText(this).apply { hint = "Services offered (comma separated)" }
-        btnSave = Button(this).apply { text = "Save Garage" }
+        btnSave = MaterialButton(this).apply { text = "Save Garage" }
 
         root.addView(etName)
         root.addView(etLocation)

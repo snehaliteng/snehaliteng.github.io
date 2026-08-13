@@ -1,7 +1,7 @@
 package com.garshop.user.ui
 
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -32,7 +32,7 @@ class CarsActivity : AppCompatActivity() {
         val etBrand = EditText(this).apply { hint = "Brand (e.g. Maruti)"; setSingleLine(true) }
         val etModel = EditText(this).apply { hint = "Model (e.g. Swift)"; setSingleLine(true) }
         val etYear = EditText(this).apply { hint = "Year"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
-        val btnAdd = Button(this).apply { text = "Add Car" }
+        val btnAdd = MaterialButton(this).apply { text = "Add Car" }
 
         root.addView(etBrand)
         root.addView(etModel)

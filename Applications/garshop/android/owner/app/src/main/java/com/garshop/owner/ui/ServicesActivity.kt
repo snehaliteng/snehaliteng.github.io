@@ -1,7 +1,7 @@
 package com.garshop.owner.ui
 
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -36,7 +36,7 @@ class ServicesActivity : AppCompatActivity() {
         val etName = EditText(this).apply { hint = "Service name (e.g. Engine Oil Change)"; setSingleLine(true) }
         val etDesc = EditText(this).apply { hint = "Description" }
         val etPrice = EditText(this).apply { hint = "Price (₹)"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL }
-        val btnAdd = Button(this).apply { text = "Add Service" }
+        val btnAdd = MaterialButton(this).apply { text = "Add Service" }
 
         root.addView(etName)
         root.addView(etDesc)
@@ -125,7 +125,7 @@ class ServicesActivity : AppCompatActivity() {
                             text = s.optString("description")
                             textSize = 13f
                         }
-                        val del = Button(this).apply {
+                        val del = MaterialButton(this).apply {
                             text = "Delete"
                             setOnClickListener {
                                 Thread {

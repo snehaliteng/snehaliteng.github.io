@@ -2,7 +2,7 @@ package com.garshop.owner.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         val btnAppointments = hubButton("Appointments")
         val btnReminders = hubButton("Send Service Reminders")
         val btnUsers = hubButton("Registered Users")
-        val btnLogout = Button(this).apply { text = "Logout" }
+        val btnLogout = MaterialButton(this).apply { text = "Logout" }
 
         btnGarage.setOnClickListener { startActivity(Intent(this, GarageActivity::class.java)) }
         btnServices.setOnClickListener { startActivity(Intent(this, ServicesActivity::class.java)) }
@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(scroll)
     }
 
-    private fun hubButton(text: String) = Button(this).apply {
+    private fun hubButton(text: String) = MaterialButton(this).apply {
         this.text = text
         setPadding(0, 0, 0, 0)
         android.widget.LinearLayout.LayoutParams(

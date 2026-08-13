@@ -1,7 +1,7 @@
 package com.garshop.owner.ui
 
 import android.os.Bundle
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -85,7 +85,7 @@ class AppointmentsActivity : AppCompatActivity() {
                         card.addView(info)
 
                         if (status == "pending") {
-                            val btn = Button(this).apply {
+                            val btn = MaterialButton(this).apply {
                                 text = "Confirm"
                                 setOnClickListener {
                                     Thread {
@@ -100,7 +100,7 @@ class AppointmentsActivity : AppCompatActivity() {
                             }
                             card.addView(btn)
                         } else if (status == "confirmed") {
-                            val btn = Button(this).apply {
+                            val btn = MaterialButton(this).apply {
                                 text = "Mark Completed"
                                 setOnClickListener {
                                     Thread {

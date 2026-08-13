@@ -7,7 +7,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.widget.Button
+import com.google.android.material.button.MaterialButton
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -47,8 +47,8 @@ class IssueActivity : AppCompatActivity() {
         etTitle = EditText(this).apply { hint = "Problem title"; setSingleLine(true) }
         etDesc = EditText(this).apply { hint = "Describe the problem" }
         etGarageId = EditText(this).apply { hint = "Preferred garage ID (optional)"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
-        val btnPhoto = Button(this).apply { text = "Attach Photo" }
-        val btnSubmit = Button(this).apply { text = "Submit Issue" }
+        val btnPhoto = MaterialButton(this).apply { text = "Attach Photo" }
+        val btnSubmit = MaterialButton(this).apply { text = "Submit Issue" }
 
         root.addView(etCarId)
         root.addView(etTitle)
