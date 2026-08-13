@@ -47,6 +47,11 @@ class IssueActivity : AppCompatActivity() {
         etTitle = EditText(this).apply { hint = "Problem title"; setSingleLine(true) }
         etDesc = EditText(this).apply { hint = "Describe the problem" }
         etGarageId = EditText(this).apply { hint = "Preferred garage ID (optional)"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
+        Session.garageId()?.let { gid ->
+            etGarageId.setText(gid.toString())
+            etGarageId.isEnabled = false
+            etGarageId.hint = "Connected garage (locked)"
+        }
         val btnPhoto = MaterialButton(this).apply { text = "Attach Photo" }
         val btnSubmit = MaterialButton(this).apply { text = "Submit Issue" }
 

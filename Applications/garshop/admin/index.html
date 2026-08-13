@@ -57,6 +57,7 @@
         <a href="#" data-view="dashboard" class="active">Dashboard</a>
         <a href="#" data-view="garages">Garages</a>
         <a href="#" data-view="users">Users</a>
+        <a href="#" data-view="garage-users">Garage ↔ Users</a>
         <a href="#" data-view="appointments">Appointments</a>
         <a href="#" data-view="issues">Car Issues</a>
         <a href="#" data-view="reminders">Reminders</a>
@@ -98,6 +99,17 @@
         <div class="panel">
           <div class="panel-head"><h3>All Users</h3></div>
           <div class="table-wrap"><table class="table" id="usersTable"></table></div>
+        </div>
+      </section>
+
+      <!-- Garage Users -->
+      <section id="view-garage-users" class="view" hidden>
+        <div class="panel">
+          <div class="panel-head"><h3>Which garage has which users</h3></div>
+          <p style="color:var(--gray-600);font-size:.9rem;margin-bottom:14px">
+            Users connect to a garage by installing the app from that garage's public page. Connected users can only submit requests / book appointments to their garage.
+          </p>
+          <div class="table-wrap"><table class="table" id="garageUsersTable"></table></div>
         </div>
       </section>
 

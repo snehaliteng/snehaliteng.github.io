@@ -19,6 +19,15 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.BindActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="garshop" android:host="bind" />
+            </intent-filter>
+        </activity>
+
         <activity android:name=".ui.AuthActivity" android:exported="false" />
         <activity android:name=".ui.CarsActivity" android:exported="false" />
         <activity android:name=".ui.IssueActivity" android:exported="false" />

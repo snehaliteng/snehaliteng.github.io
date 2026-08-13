@@ -11,6 +11,7 @@ const VIEW_TITLES = {
   dashboard: 'Dashboard',
   garages: 'Manage Garages',
   users: 'All Users',
+  'garage-users': 'Garage ↔ Users',
   appointments: 'Appointments',
   issues: 'Car Issues & Repair Status',
   reminders: 'Service Reminders'
@@ -75,6 +76,7 @@ async function loadView(view) {
     if (view === 'dashboard') await loadDashboard();
     if (view === 'garages') await loadGarages();
     if (view === 'users') await loadUsers();
+    if (view === 'garage-users') await loadGarageUsers();
     if (view === 'appointments') await loadAppointments();
     if (view === 'issues') await loadIssues();
     if (view === 'reminders') await loadReminders();
@@ -189,6 +191,39 @@ async function loadUsers() {
           <td>${u.phone || '—'}</td>
           <td><span class="badge badge-${u.role === 'admin' ? 'confirmed' : u.role === 'owner' ? 'in_progress' : 'scheduled'}">${u.role}</span></td>
         </tr>`).join('')}
+    </tbody>`;
+}
+
+// ---------- Garage Users ----------
+async function loadGarageUsers() {
+  const { data } = await sb.rpc('gs_admin_garage_users');
+  const t = document.getElementById('garageUsersTable');
+
+  if (!data || !data.length) {
+    t.innerHTML = '<tr><td class="empty" colspan="5">No users connected to any garage yet. When a user installs the app from a garage\u2019s page they appear here.</td></tr>';
+    return;
+  }
+
+  const byGarage = new Map();
+  data.forEach(r => {
+    if (!byGarage.has(r.garage_id)) byGarage.set(r.garage_id, []);
+    byGarage.get(r.garage_id).push(r);
+  });
+
+  t.innerHTML = `
+    <thead><tr><th>Garage</th><th>Connected Users</th><th>Phone</th><th>Email</th><th>Connected on</th></tr></thead>
+    <tbody>
+      ${[...byGarage.entries()].map(([gid, rows]) => {
+        const name = rows[0].garage_name;
+        return rows.map((r, idx) => `
+          <tr>
+            ${idx === 0 ? `<td rowspan="${rows.length}"><strong>${name}</strong><br><small style="color:#8aa0b8">Garage #${gid}</small><br><a href="../garage.html?id=${gid}" target="_blank">Public page ↗</a></td>` : ''}
+            <td>${r.full_name || '—'}<br><small style="color:#8aa0b8">${r.user_id}</small></td>
+            <td>${r.phone || '—'}</td>
+            <td>${r.email || '—'}</td>
+            <td>${new Date(r.bound_at).toLocaleString()}</td>
+          </tr>`).join('');
+      }).join('')}
     </tbody>`;
 }
 

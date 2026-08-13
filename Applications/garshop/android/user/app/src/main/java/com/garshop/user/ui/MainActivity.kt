@@ -35,6 +35,27 @@ class MainActivity : AppCompatActivity() {
             setPadding(0, 0, 0, 24)
         })
 
+        val boundGid = Session.garageId()
+        if (boundGid != null) {
+            val garageLine = TextView(this).apply {
+                text = "Connected to ${Session.garageName() ?: "garage #$boundGid"}"
+                setPadding(0, 0, 0, 20)
+            }
+            root.addView(garageLine)
+            Thread {
+                try {
+                    val arr = Supabase.select("gs_garages", "id=eq.$boundGid&select=name")
+                    if (arr.length() > 0) {
+                        val name = arr.getJSONObject(0).optString("name").ifEmpty { null }
+                        if (name != null) {
+                            Session.saveGarageName(name)
+                            runOnUiThread { garageLine.text = "Connected to $name" }
+                        }
+                    }
+                } catch (e: Exception) { /* ignore */ }
+            }.start()
+        }
+
         val btnCars = hubButton("My Cars")
         val btnIssue = hubButton("Report a Car Problem")
         val btnGarages = hubButton("Nearby Garages & Services")

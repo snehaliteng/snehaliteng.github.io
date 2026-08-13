@@ -30,6 +30,11 @@ class BookActivity : AppCompatActivity() {
         })
 
         val etGarageId = EditText(this).apply { hint = "Garage ID"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
+        Session.garageId()?.let { gid ->
+            etGarageId.setText(gid.toString())
+            etGarageId.isEnabled = false
+            etGarageId.hint = "Connected garage (locked)"
+        }
         val etCarId = EditText(this).apply { hint = "Car ID"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
         val etServiceId = EditText(this).apply { hint = "Service ID (optional)"; setSingleLine(true); inputType = android.text.InputType.TYPE_CLASS_NUMBER }
         val etDateTime = EditText(this).apply { hint = "Date & time (YYYY-MM-DDTHH:MM:SS)"; setSingleLine(true) }

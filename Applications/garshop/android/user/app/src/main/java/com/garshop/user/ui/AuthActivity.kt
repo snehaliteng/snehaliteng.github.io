@@ -96,6 +96,7 @@ class AuthActivity : AppCompatActivity() {
                         .put("phone", phone)
                         .put("role", "user")
                     Supabase.insert("gs_profiles", profile)
+                    syncBinding(uid)
                     Session.save(signin.optString("access_token"), uid, email)
                     runOnUiThread {
                         Toast.makeText(this, "Registered successfully!", Toast.LENGTH_SHORT).show()
@@ -104,6 +105,7 @@ class AuthActivity : AppCompatActivity() {
                 } else {
                     val signin = Supabase.signIn(email, password)
                     val uid = JSONObject(signin.optString("user")).optString("id")
+                    syncBinding(uid)
                     Session.save(signin.optString("access_token"), uid, email)
                     runOnUiThread { finish() }
                 }
@@ -114,5 +116,15 @@ class AuthActivity : AppCompatActivity() {
                 }
             }
         }.start()
+    }
+
+    private fun syncBinding(uid: String) {
+        val gid = Session.garageId() ?: return
+        try {
+            val existing = Supabase.select("gs_garage_users", "user_id=eq.$uid&garage_id=eq.$gid")
+            if (existing.length() == 0) {
+                Supabase.insert("gs_garage_users", JSONObject().put("user_id", uid).put("garage_id", gid))
+            }
+        } catch (e: Exception) { /* non-fatal: binding sync failure should not block auth */ }
     }
 }
