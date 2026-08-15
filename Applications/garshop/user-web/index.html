@@ -121,10 +121,28 @@
             </div>
             <div class="field" style="grid-column:1/-1"><label>Describe the problem</label><textarea id="iDesc"></textarea></div>
             <div class="field" style="grid-column:1/-1">
-              <label>Photo (optional)</label>
-              <input type="file" id="iPhoto" accept="image/*">
+              <label>Location (where is the car?)</label>
+              <div class="loc-row">
+                <button type="button" class="btn btn-primary" id="iLocBtn" onclick="getIssueLocation()">📍 Send My Location</button>
+                <button type="button" class="btn btn-outline btn-sm" id="iLocClear" onclick="clearIssueLocation()" hidden>Remove</button>
+              </div>
+              <div id="iLocMap" class="loc-map" hidden></div>
+              <small class="hint" id="iLocHint">Optional — helps the garage reach you.</small>
+              <div class="loc-row" id="iLocManual" hidden>
+                <input type="text" id="iLat" placeholder="Latitude" inputmode="decimal">
+                <input type="text" id="iLng" placeholder="Longitude" inputmode="decimal">
+              </div>
             </div>
-            <div class="field" style="grid-column:1/-1"><button type="submit" class="btn btn-primary">Submit Issue</button></div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Photo (optional)</label>
+              <div class="loc-row">
+                <label class="btn btn-outline" for="iPhoto" id="iPhotoBtn">📷 Take / Choose Photo</label>
+                <button type="button" class="btn btn-outline btn-sm" id="iPhotoClear" onclick="clearIssuePhoto()" hidden>Remove photo</button>
+              </div>
+              <input type="file" id="iPhoto" accept="image/*" hidden>
+              <img id="iPhotoPreview" class="photo-preview" hidden alt="photo preview">
+            </div>
+            <div class="field" style="grid-column:1/-1"><button type="submit" class="btn btn-primary btn-block btn-lg">Submit Issue</button></div>
           </form>
         </div>
         <div class="panel">

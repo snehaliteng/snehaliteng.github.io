@@ -151,7 +151,7 @@ async function loadGarages() {
         const owner = ownerMap.get(g.owner_id) || {};
         return `
         <tr>
-          <td><strong>${g.name}</strong><br><small style="color:#8aa0b8">${g.phone || ''}</small></td>
+          <td><strong>${g.name}</strong><br><small style="color:#8aa0b8">${g.phone || ''}</small><br><a href="../garage.html?id=${g.id}" target="_blank">Public page ↗</a></td>
           <td>${owner.full_name || '—'}<br><small style="color:#8aa0b8">${owner.phone || ''}</small></td>
           <td>${g.location}<br><small style="color:#8aa0b8">${g.city || ''}</small></td>
           <td style="max-width:220px">${g.services_offered || '—'}</td>
@@ -172,6 +172,127 @@ async function garageAction(id, status) {
   if (!error) loadGarages();
   else alert(error.message);
 }
+
+// ---------- Add Garage (admin) ----------
+let allAdminUsers = [];
+
+async function loadAdminUsers() {
+  const { data } = await sb.rpc('gs_admin_users');
+  allAdminUsers = data || [];
+  return allAdminUsers;
+}
+
+async function openGarageModal() {
+  document.getElementById('garageModalError').textContent = '';
+  document.getElementById('garageModalForm').reset();
+  document.getElementById('gmNewOwner').checked = false;
+  toggleNewOwner();
+  await loadAdminUsers();
+  const sel = document.getElementById('gmOwner');
+  sel.innerHTML = allAdminUsers
+    .filter(u => u.role !== 'admin')
+    .map(u => `<option value="${u.user_id}">${u.full_name || '—'} (${u.email || u.user_id})</option>`)
+    .join('');
+  if (currentUser) sel.value = currentUser.id;
+  document.getElementById('garageModal').hidden = false;
+}
+
+function toggleNewOwner() {
+  const isNew = document.getElementById('gmNewOwner').checked;
+  document.getElementById('newOwnerFields').hidden = !isNew;
+  document.getElementById('existingOwnerField').hidden = isNew;
+}
+
+function closeGarageModal() {
+  document.getElementById('garageModal').hidden = true;
+}
+
+async function submitGarageModal(e) {
+  e.preventDefault();
+  const err = document.getElementById('garageModalError');
+  err.textContent = '';
+
+  let ownerId = document.getElementById('gmOwner').value;
+  let createdOwnerEmail = '';
+
+  if (document.getElementById('gmNewOwner').checked) {
+    const name = document.getElementById('gmOwnerName').value.trim();
+    const email = document.getElementById('gmOwnerEmail').value.trim();
+    const phone = document.getElementById('gmOwnerPhone').value.trim();
+    const password = document.getElementById('gmOwnerPassword').value;
+    if (!name || !email || !password) {
+      err.textContent = 'Owner name, email and password are required to create a new owner.';
+      return;
+    }
+    const { data, error } = await sb.rpc('gs_admin_create_owner', {
+      p_email: email,
+      p_password: password,
+      p_full_name: name,
+      p_phone: phone
+    });
+    if (error) { err.textContent = error.message; return; }
+    ownerId = data;
+    createdOwnerEmail = email;
+  }
+
+  const obj = {
+    name: document.getElementById('gmName').value.trim(),
+    location: document.getElementById('gmLocation').value.trim(),
+    city: document.getElementById('gmCity').value.trim(),
+    phone: document.getElementById('gmPhone').value.trim(),
+    description: document.getElementById('gmDescription').value.trim(),
+    services_offered: document.getElementById('gmServices').value.trim(),
+    owner_id: ownerId,
+    status: document.getElementById('gmStatus').value
+  };
+  if (!obj.name || !obj.location) { err.textContent = 'Garage name and location are required.'; return; }
+  if (!obj.owner_id) { err.textContent = 'Select an owner for this garage.'; return; }
+  const { error } = await sb.from('gs_garages').insert(obj);
+  if (error) { err.textContent = error.message; return; }
+  closeGarageModal();
+  if (createdOwnerEmail) alert('New owner account created for ' + createdOwnerEmail);
+  await loadGarages();
+}
+
+document.getElementById('garageModalForm').addEventListener('submit', submitGarageModal);
+
+// ---------- Add User (admin) ----------
+function openUserModal() {
+  document.getElementById('userModalError').textContent = '';
+  document.getElementById('userModalForm').reset();
+  document.getElementById('umRole').value = 'user';
+  document.getElementById('userModal').hidden = false;
+}
+
+function closeUserModal() {
+  document.getElementById('userModal').hidden = true;
+}
+
+async function submitUserModal(e) {
+  e.preventDefault();
+  const err = document.getElementById('userModalError');
+  err.textContent = '';
+  const name = document.getElementById('umName').value.trim();
+  const email = document.getElementById('umEmail').value.trim();
+  const phone = document.getElementById('umPhone').value.trim();
+  const role = document.getElementById('umRole').value;
+  const password = document.getElementById('umPassword').value;
+  if (!name || !email || !password) { err.textContent = 'Name, email and password are required.'; return; }
+
+  const { data, error } = await sb.rpc('gs_admin_create_user', {
+    p_email: email,
+    p_password: password,
+    p_full_name: name,
+    p_phone: phone,
+    p_role: role
+  });
+  if (error) { err.textContent = error.message; return; }
+  closeUserModal();
+  alert('User account created for ' + email + ' (' + role + ')');
+  await loadUsers();
+}
+
+document.getElementById('userModalForm').addEventListener('submit', submitUserModal);
 
 // ---------- Users ----------
 async function loadUsers() {
@@ -195,12 +316,65 @@ async function loadUsers() {
 }
 
 // ---------- Garage Users ----------
+let bindGarages = [];
+let bindUsers = [];
+
+async function populateBindGarages() {
+  const { data } = await sb.from('gs_garages')
+    .select('id, name, status')
+    .order('name');
+  bindGarages = data || [];
+  const sel = document.getElementById('bindGarageSelect');
+  const prev = sel.value;
+  sel.innerHTML = bindGarages.map(g =>
+    `<option value="${g.id}">${g.name} (${g.status})</option>`).join('');
+  if (prev) sel.value = prev;
+  await populateBindUsers();
+}
+
+async function populateBindUsers() {
+  const { data: users } = await sb.rpc('gs_admin_users');
+  bindUsers = (users || []).filter(u => u.role !== 'admin');
+  const sel = document.getElementById('bindUserSelect');
+  const gid = Number(document.getElementById('bindGarageSelect').value);
+
+  const { data: bound } = await sb.rpc('gs_admin_garage_users');
+  const boundIds = new Set((bound || [])
+    .filter(r => r.garage_id === gid)
+    .map(r => r.user_id));
+
+  sel.innerHTML = bindUsers
+    .filter(u => !boundIds.has(u.user_id))
+    .map(u => `<option value="${u.user_id}">${u.full_name || '—'} (${u.email || u.user_id})</option>`)
+    .join('');
+}
+
+async function bindUserToGarage() {
+  const garageId = Number(document.getElementById('bindGarageSelect').value);
+  const userId = document.getElementById('bindUserSelect').value;
+  if (!garageId || !userId) { alert('Select a garage and a user.'); return; }
+  const { error } = await sb.from('gs_garage_users').insert({ garage_id: garageId, user_id: userId });
+  if (error) { alert(error.message); return; }
+  await Promise.all([loadGarageUsers(), populateBindUsers()]);
+}
+
+async function unbindUser(garageId, userId) {
+  if (!confirm('Remove this user from this garage?')) return;
+  const { error } = await sb.from('gs_garage_users')
+    .delete()
+    .eq('garage_id', garageId)
+    .eq('user_id', userId);
+  if (error) { alert(error.message); return; }
+  await Promise.all([loadGarageUsers(), populateBindUsers()]);
+}
+
 async function loadGarageUsers() {
+  await populateBindGarages();
   const { data } = await sb.rpc('gs_admin_garage_users');
   const t = document.getElementById('garageUsersTable');
 
   if (!data || !data.length) {
-    t.innerHTML = '<tr><td class="empty" colspan="5">No users connected to any garage yet. When a user installs the app from a garage\u2019s page they appear here.</td></tr>';
+    t.innerHTML = '<tr><td class="empty" colspan="6">No users connected to any garage yet. Add a user from the dropdown above, or when a user installs the app from a garage\u2019s page they appear here.</td></tr>';
     return;
   }
 
@@ -211,7 +385,7 @@ async function loadGarageUsers() {
   });
 
   t.innerHTML = `
-    <thead><tr><th>Garage</th><th>Connected Users</th><th>Phone</th><th>Email</th><th>Connected on</th></tr></thead>
+    <thead><tr><th>Garage</th><th>Connected Users</th><th>Phone</th><th>Email</th><th>Connected on</th><th></th></tr></thead>
     <tbody>
       ${[...byGarage.entries()].map(([gid, rows]) => {
         const name = rows[0].garage_name;
@@ -222,6 +396,7 @@ async function loadGarageUsers() {
             <td>${r.phone || '—'}</td>
             <td>${r.email || '—'}</td>
             <td>${new Date(r.bound_at).toLocaleString()}</td>
+            <td><button class="btn btn-xs btn-danger" onclick="unbindUser(${r.garage_id},'${r.user_id}')">Remove</button></td>
           </tr>`).join('');
       }).join('')}
     </tbody>`;

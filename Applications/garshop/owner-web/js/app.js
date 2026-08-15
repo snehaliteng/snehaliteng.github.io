@@ -222,7 +222,7 @@ async function loadRequests() {
   const t = document.getElementById('requestsTable');
   if (!g) { t.innerHTML = '<tr><td class="empty" colspan="4">Register your garage first.</td></tr>'; return; }
   const { data } = await sb.from('gs_issues')
-    .select('id,title,description,status,user_id,created_at')
+    .select('id,title,description,status,user_id,created_at,photo_url,latitude,longitude')
     .eq('garage_id', g.id)
     .order('created_at', { ascending: false });
   if (!data || !data.length) {
@@ -233,7 +233,12 @@ async function loadRequests() {
   t.innerHTML = `<thead><tr><th>User</th><th>Issue</th><th>Status</th><th>Actions</th></tr></thead><tbody>
     ${data.map(i => `<tr>
       <td>${users.get(i.user_id) || '—'}</td>
-      <td><strong>${i.title}</strong><br><small style="color:#8aa0b8">${i.description || ''}</small></td>
+      <td>
+        <strong>${i.title}</strong><br>
+        <small style="color:#8aa0b8">${i.description || ''}</small>
+        ${i.photo_url ? `<br><a href="${i.photo_url}" target="_blank"><img src="${i.photo_url}" class="issue-photo" alt="issue photo"></a>` : ''}
+        ${i.latitude ? `<br><a class="btn btn-xs btn-success" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${i.latitude},${i.longitude}">🧭 Navigate</a>` : ''}
+      </td>
       <td><span class="badge badge-${i.status}">${i.status}</span></td>
       <td>${i.status !== 'completed' ? `
         <div class="actions">

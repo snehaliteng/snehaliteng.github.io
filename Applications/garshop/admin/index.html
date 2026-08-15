@@ -89,7 +89,10 @@
       <!-- Garages -->
       <section id="view-garages" class="view" hidden>
         <div class="panel">
-          <div class="panel-head"><h3>All Garages</h3></div>
+          <div class="panel-head">
+            <h3>All Garages</h3>
+            <button class="btn btn-primary btn-sm" onclick="openGarageModal()">+ Add Garage</button>
+          </div>
           <div class="table-wrap"><table class="table" id="garagesTable"></table></div>
         </div>
       </section>
@@ -97,7 +100,10 @@
       <!-- Users -->
       <section id="view-users" class="view" hidden>
         <div class="panel">
-          <div class="panel-head"><h3>All Users</h3></div>
+          <div class="panel-head">
+            <h3>All Users</h3>
+            <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
+          </div>
           <div class="table-wrap"><table class="table" id="usersTable"></table></div>
         </div>
       </section>
@@ -109,6 +115,11 @@
           <p style="color:var(--gray-600);font-size:.9rem;margin-bottom:14px">
             Users connect to a garage by installing the app from that garage's public page. Connected users can only submit requests / book appointments to their garage.
           </p>
+          <div class="bind-bar">
+            <select id="bindGarageSelect" onchange="populateBindUsers()"></select>
+            <select id="bindUserSelect"></select>
+            <button class="btn btn-primary btn-sm" onclick="bindUserToGarage()">Add User to Garage</button>
+          </div>
           <div class="table-wrap"><table class="table" id="garageUsersTable"></table></div>
         </div>
       </section>
@@ -137,6 +148,118 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- Garage Modal -->
+  <div class="modal" id="garageModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Add Garage</h3>
+        <button type="button" class="modal-close" onclick="closeGarageModal()" aria-label="Close">×</button>
+      </div>
+      <form id="garageModalForm">
+        <div class="field">
+          <label for="gmName">Name *</label>
+          <input type="text" id="gmName" required>
+        </div>
+        <div class="field">
+          <label for="gmLocation">Location *</label>
+          <input type="text" id="gmLocation" required>
+        </div>
+        <div class="field">
+          <label for="gmCity">City</label>
+          <input type="text" id="gmCity">
+        </div>
+        <div class="field">
+          <label for="gmPhone">Phone</label>
+          <input type="text" id="gmPhone">
+        </div>
+        <div class="field">
+          <label for="gmDescription">Description</label>
+          <textarea id="gmDescription"></textarea>
+        </div>
+        <div class="field">
+          <label for="gmServices">Services Offered</label>
+          <textarea id="gmServices"></textarea>
+        </div>
+        <div class="field">
+          <label class="checkbox-label">
+            <input type="checkbox" id="gmNewOwner" onchange="toggleNewOwner()">
+            Create a new owner account
+          </label>
+        </div>
+        <div id="newOwnerFields" hidden>
+          <div class="field">
+            <label for="gmOwnerName">Owner Full Name *</label>
+            <input type="text" id="gmOwnerName">
+          </div>
+          <div class="field">
+            <label for="gmOwnerEmail">Owner Email *</label>
+            <input type="email" id="gmOwnerEmail">
+          </div>
+          <div class="field">
+            <label for="gmOwnerPhone">Owner Phone</label>
+            <input type="text" id="gmOwnerPhone">
+          </div>
+          <div class="field">
+            <label for="gmOwnerPassword">Temporary Password *</label>
+            <input type="password" id="gmOwnerPassword" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="field" id="existingOwnerField">
+          <label for="gmOwner">Owner</label>
+          <select id="gmOwner"></select>
+        </div>
+        <div class="field">
+          <label for="gmStatus">Status</label>
+          <select id="gmStatus">
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Save Garage</button>
+      </form>
+      <p class="login-error" id="garageModalError"></p>
+    </div>
+  </div>
+
+  <!-- User Modal -->
+  <div class="modal" id="userModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Add User</h3>
+        <button type="button" class="modal-close" onclick="closeUserModal()" aria-label="Close">×</button>
+      </div>
+      <form id="userModalForm">
+        <div class="field">
+          <label for="umName">Full Name *</label>
+          <input type="text" id="umName" required>
+        </div>
+        <div class="field">
+          <label for="umEmail">Email *</label>
+          <input type="email" id="umEmail" required>
+        </div>
+        <div class="field">
+          <label for="umPhone">Phone</label>
+          <input type="text" id="umPhone">
+        </div>
+        <div class="field">
+          <label for="umRole">Role</label>
+          <select id="umRole">
+            <option value="user">User</option>
+            <option value="owner">Owner</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="umPassword">Temporary Password *</label>
+          <input type="password" id="umPassword" autocomplete="new-password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Save User</button>
+      </form>
+      <p class="login-error" id="userModalError"></p>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

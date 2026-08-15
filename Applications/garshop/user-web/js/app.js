@@ -26,6 +26,12 @@ const CHECKLIST_ITEMS = [
   'Suspension / shocks', 'Spark plugs', 'Horn', 'Exhaust smoke'
 ];
 
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 let currentUser = null;
 let profile = null;
 let boundGarage = null; // { id, name, ... }
@@ -118,6 +124,43 @@ async function loadSession() {
   return false;
 }
 
+class SessionExpiredError extends Error {
+  constructor() {
+    super('Session expired. Please log in again.');
+    this.name = 'SessionExpiredError';
+  }
+}
+
+async function ensureSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new SessionExpiredError();
+  const ttl = (session.expires_at || 0) - Math.floor(Date.now() / 1000);
+  if (ttl < 60) {
+    const { error } = await sb.auth.refreshSession();
+    if (error) throw new SessionExpiredError();
+  }
+  const { data: { user }, error: userErr } = await sb.auth.getUser();
+  if (userErr || !user || !user.id) throw new SessionExpiredError();
+  currentUser = user;
+}
+
+function handleSubmitError(err) {
+  const msg = String((err && err.message) || err || '');
+  if ((err && err.name === 'SessionExpiredError') || /row-level security/i.test(msg)) {
+    forceLogout('Session expired. Please log in again.');
+  } else {
+    alert('Failed: ' + msg);
+  }
+}
+
+function forceLogout(msg) {
+  currentUser = null; profile = null; boundGarage = null;
+  appScreen.hidden = true;
+  loginScreen.hidden = false;
+  document.getElementById('authForm').reset();
+  if (msg) alert(msg);
+}
+
 async function getProfile() {
   if (profile && profile.user_id === currentUser.id) return profile;
   const { data, error } = await sb.from('gs_profiles')
@@ -140,13 +183,12 @@ async function getBoundGarage(force) {
 }
 
 function onLogout() {
-  sb.auth.signOut().then(() => {
-    currentUser = null; profile = null; boundGarage = null;
-    appScreen.hidden = true;
-    loginScreen.hidden = false;
-    document.getElementById('authForm').reset();
-  });
+  sb.auth.signOut().then(forceLogout).catch(forceLogout);
 }
+
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT' && currentUser) forceLogout('Session expired. Please log in again.');
+});
 
 // ---------- Routing ----------
 async function loadView(view) {
@@ -248,13 +290,14 @@ async function loadCars() {
     const model = document.getElementById('cModel').value.trim();
     if (!brand || !model) return;
     try {
+      await ensureSession();
       await sb.from('gs_cars').insert({
         user_id: currentUser.id, brand, model,
         year: Number(document.getElementById('cYear').value) || 0
       });
       document.getElementById('carForm').reset();
       await renderCarsTable();
-    } catch (err) { alert('Failed: ' + err.message); }
+    } catch (err) { handleSubmitError(err); }
   };
   await renderCarsTable();
 }
@@ -287,6 +330,76 @@ async function renderCarOptions(selectId, selectedId) {
 }
 
 // ---------- Issue ----------
+function getIssueLocation() {
+  const map = document.getElementById('iLocMap');
+  const hint = document.getElementById('iLocHint');
+  const clearBtn = document.getElementById('iLocClear');
+  const btn = document.getElementById('iLocBtn');
+  btn.disabled = true;
+  hint.textContent = 'Getting your location…';
+
+  if (!navigator.geolocation) {
+    hint.textContent = 'Location not supported on this device — enter coordinates manually below.';
+    btn.disabled = false;
+    document.getElementById('iLocManual').hidden = false;
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
+      document.getElementById('iLat').value = lat;
+      document.getElementById('iLng').value = lng;
+      map.innerHTML = `<iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=16&output=embed" loading="lazy" allowfullscreen></iframe>`;
+      map.hidden = false;
+      clearBtn.hidden = false;
+      hint.textContent = `Location set: ${lat}, ${lng}`;
+      btn.textContent = '📍 Update Location';
+      btn.disabled = false;
+    },
+    (err) => {
+      hint.textContent = 'Could not get location (' + err.message + ') — enter coordinates manually below.';
+      document.getElementById('iLocManual').hidden = false;
+      btn.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+  );
+}
+
+function clearIssueLocation() {
+  document.getElementById('iLat').value = '';
+  document.getElementById('iLng').value = '';
+  document.getElementById('iLocMap').hidden = true;
+  document.getElementById('iLocMap').innerHTML = '';
+  document.getElementById('iLocClear').hidden = true;
+  document.getElementById('iLocManual').hidden = true;
+  const btn = document.getElementById('iLocBtn');
+  btn.textContent = '📍 Send My Location';
+  btn.disabled = false;
+  document.getElementById('iLocHint').textContent = 'Optional — helps the garage reach you.';
+}
+
+document.getElementById('iPhoto').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  const preview = document.getElementById('iPhotoPreview');
+  const clearBtn = document.getElementById('iPhotoClear');
+  const btn = document.getElementById('iPhotoBtn');
+  if (!file) { preview.hidden = true; clearBtn.hidden = true; btn.textContent = '📷 Take / Choose Photo'; return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => { preview.src = ev.target.result; preview.hidden = false; };
+  reader.readAsDataURL(file);
+  clearBtn.hidden = false;
+  btn.textContent = '📷 Change Photo';
+});
+
+function clearIssuePhoto() {
+  const input = document.getElementById('iPhoto');
+  input.value = '';
+  document.getElementById('iPhotoPreview').hidden = true;
+  document.getElementById('iPhotoClear').hidden = true;
+  document.getElementById('iPhotoBtn').textContent = '📷 Take / Choose Photo';
+}
+
 async function loadIssue() {
   const g = await getBoundGarage(true);
   await renderCarOptions('iCar');
@@ -308,19 +421,28 @@ async function loadIssue() {
     const garageId = document.getElementById('iGarage').value;
     const desc = document.getElementById('iDesc').value.trim();
     const photoFile = document.getElementById('iPhoto').files[0];
+    const lat = parseFloat(document.getElementById('iLat').value);
+    const lng = parseFloat(document.getElementById('iLng').value);
 
     try {
+      await ensureSession();
       let photoUrl = '';
       if (photoFile) {
-        const path = `${currentUser.id}/${Date.now()}-${photoFile.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        const ext = (photoFile.name.match(/\.([a-zA-Z0-9]+)$/) || [])[1] || 'jpg';
+        const path = `${currentUser.id}/${Date.now()}-photo.${ext}`;
         const { error: upErr } = await sb.storage.from('gs_images').upload(path, photoFile, {
-          contentType: photoFile.type
+          contentType: photoFile.type || 'image/jpeg'
         });
         if (upErr) throw new Error(upErr.message);
         const { data: pub } = sb.storage.from('gs_images').getPublicUrl(path);
         photoUrl = pub.publicUrl;
       }
-      const payload = { user_id: currentUser.id, car_id: Number(carId), title, description: desc, photo_url: photoUrl };
+      const payload = {
+        user_id: currentUser.id, car_id: Number(carId), title, description: desc,
+        photo_url: photoUrl,
+        latitude: isFinite(lat) ? lat : null,
+        longitude: isFinite(lng) ? lng : null
+      };
       if (garageId) payload.garage_id = Number(garageId);
       const { error } = await sb.from('gs_issues').insert(payload);
       if (error) throw new Error(error.message);
@@ -333,9 +455,11 @@ async function loadIssue() {
         });
       }
       document.getElementById('issueForm').reset();
+      clearIssuePhoto();
+      clearIssueLocation();
       alert('Issue submitted!');
       await renderMyIssues();
-    } catch (err) { alert('Failed: ' + err.message); }
+    } catch (err) { handleSubmitError(err); }
   };
   await renderMyIssues();
 }
@@ -402,23 +526,31 @@ async function loadChecklist() {
   await renderCarOptions('kCar');
 
   const container = document.getElementById('checklistItems');
-  container.innerHTML = CHECKLIST_ITEMS.map(item =>
-    `<label class="check-item"><input type="checkbox" value="${item}"> <span>${item}</span></label>`
+  const { data: catalog } = await sb.from('gs_garage_services')
+    .select('id, name')
+    .eq('garage_id', g.id)
+    .order('name');
+  const items = (catalog && catalog.length)
+    ? catalog
+    : CHECKLIST_ITEMS.map(name => ({ id: null, name }));
+  container.innerHTML = items.map(s =>
+    `<label class="check-item"><input type="checkbox" data-sid="${s.id || ''}" value="${escapeHtml(s.name)}"> <span>${escapeHtml(s.name)}</span></label>`
   ).join('');
 
   document.getElementById('checklistForm').onsubmit = async (e) => {
     e.preventDefault();
     const carId = document.getElementById('kCar').value;
     if (!carId) { alert('Select your car first'); return; }
+    try { await ensureSession(); } catch (err) { forceLogout(err.message); return; }
     const items = Array.from(container.querySelectorAll('input[type=checkbox]')).map(cb => ({
-      item: cb.value, checked: cb.checked
+      item: cb.value, checked: cb.checked, service_id: cb.dataset.sid || null
     }));
     const notes = document.getElementById('kNotes').value.trim();
     const { data, error } = await sb.rpc('gs_submit_checklist', {
       p_garage_id: g.id, p_car_id: Number(carId), p_title: 'Pre-Service Checklist',
       p_items: items, p_notes: notes
     });
-    if (error) { alert('Submit failed: ' + error.message); return; }
+    if (error) { handleSubmitError(error); return; }
     alert('Checklist submitted to your garage!');
     container.querySelectorAll('input[type=checkbox]').forEach(cb => (cb.checked = false));
     document.getElementById('kNotes').value = '';
@@ -485,6 +617,7 @@ async function loadBook() {
     if (!garageId || !carId || !date || !time) { alert('Garage, car and date/time required'); return; }
     const scheduledAt = `${date}T${time}:00`;
     try {
+      await ensureSession();
       const payload = {
         user_id: currentUser.id, garage_id: Number(garageId), car_id: Number(carId),
         scheduled_at: scheduledAt, notes: document.getElementById('bNotes').value.trim()
@@ -505,7 +638,7 @@ async function loadBook() {
       document.getElementById('bGarage').innerHTML = garageSel.innerHTML;
       alert('Appointment booked!');
       await loadBook();
-    } catch (err) { alert('Failed: ' + err.message); }
+    } catch (err) { handleSubmitError(err); }
   };
 }
 
