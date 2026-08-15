@@ -133,19 +133,28 @@ class SessionExpiredError extends Error {
 
 async function ensureSession() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) throw new SessionExpiredError();
+  console.log('[ensureSession] session?', !!session);
+  if (!session) {
+    const res = await sb.auth.getUser();
+    console.log('[ensureSession] no session; getUser?', res.data && res.data.user && res.data.user.id, res.error && res.error.message);
+    if (!res.error && res.data.user && res.data.user.id) { currentUser = res.data.user; return; }
+    throw new SessionExpiredError();
+  }
   const ttl = (session.expires_at || 0) - Math.floor(Date.now() / 1000);
   if (ttl < 60) {
     const { error } = await sb.auth.refreshSession();
+    console.log('[ensureSession] refresh error?', error && error.message);
     if (error) throw new SessionExpiredError();
   }
   const { data: { user }, error: userErr } = await sb.auth.getUser();
+  console.log('[ensureSession] getUser?', user && user.id, userErr && userErr.message);
   if (userErr || !user || !user.id) throw new SessionExpiredError();
   currentUser = user;
 }
 
 function handleSubmitError(err) {
   const msg = String((err && err.message) || err || '');
+  console.error('[submit] error:', err);
   if ((err && err.name === 'SessionExpiredError') || /row-level security/i.test(msg)) {
     forceLogout('Session expired. Please log in again.');
   } else {
@@ -187,6 +196,7 @@ function onLogout() {
 }
 
 sb.auth.onAuthStateChange((event) => {
+  console.log('[auth event]', event);
   if (event === 'SIGNED_OUT' && currentUser) forceLogout('Session expired. Please log in again.');
 });
 

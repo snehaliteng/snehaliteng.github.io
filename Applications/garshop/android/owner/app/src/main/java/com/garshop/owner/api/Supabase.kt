@@ -41,6 +41,10 @@ object Supabase {
         return if (res.isBlank()) JSONObject() else JSONObject(res)
     }
 
+    fun rpc(name: String, obj: JSONObject): String {
+        return request("$BASE/rest/v1/rpc/$name", "POST", obj.toString())
+    }
+
     fun select(table: String, query: String): JSONArray {
         val res = request("$BASE/rest/v1/$table?$query", "GET")
         return if (res.isBlank()) JSONArray() else JSONArray(res)
