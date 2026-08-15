@@ -152,14 +152,23 @@ async function ensureSession() {
   currentUser = user;
 }
 
-function handleSubmitError(err) {
+async function handleSubmitError(err) {
   const msg = String((err && err.message) || err || '');
   console.error('[submit] error:', err);
-  if ((err && err.name === 'SessionExpiredError') || /row-level security/i.test(msg)) {
+  if (err && err.name === 'SessionExpiredError') {
     forceLogout('Session expired. Please log in again.');
-  } else {
-    alert('Failed: ' + msg);
+    return;
   }
+  if (/row-level security/i.test(msg)) {
+    const { data: { session } } = await sb.auth.getSession();
+    let userOk = !!(session && session.user);
+    if (userOk) {
+      const { data: { user }, error: ue } = await sb.auth.getUser();
+      userOk = !ue && !!user;
+    }
+    if (!userOk) { forceLogout('Session expired. Please log in again.'); return; }
+  }
+  alert('Failed: ' + msg);
 }
 
 function forceLogout(msg) {

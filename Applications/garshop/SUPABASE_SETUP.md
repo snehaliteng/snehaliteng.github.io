@@ -16,6 +16,11 @@ Uses the same Supabase project as the todo app:
 1. **Storage → New bucket** → name: `gs_images`
 2. Public bucket: **ON** (photos are served publicly).
 3. Keep file size limit (default 50 MB) — the app compresses photos anyway.
+4. **Storage policies are required** — without them every upload fails with
+   `new row violates row-level security policy`. In **SQL Editor**, run
+   `supabase/add-gs-images-storage-policies.sql`. It lets any signed-in user
+   upload to their own `<auth.uid()>/` folder (the key all apps use) and allows
+   public reads.
 
 ## 3. Create the admin account
 
