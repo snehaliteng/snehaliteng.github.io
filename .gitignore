@@ -110,3 +110,4 @@ Applications/garshop/android/user-webview/app/build/*
 Applications/DesiPay/snehal upi/app/build/*
 Applications/DesiPay/snehal upi/.gradle/*
 Applications/DesiPay/snehal upi/local.properties
+Applications/garshop/android/backup/*

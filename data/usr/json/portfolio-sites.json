@@ -34,5 +34,14 @@
     "color": "bg-green-100 text-green-800",
     "image": "portfolio/medicalstore/data/usr/img/banner.svg",
     "url": "portfolio/medicalstore/"
+  },
+  {
+    "id": "torque-of-the-town",
+    "title": "Torque of the Town",
+    "description": "Premium car service website with doorstep pickup, pricing, WhatsApp integration and downloadable Android app.",
+    "category": "Automotive",
+    "color": "bg-orange-100 text-orange-800",
+    "image": "images/hero-bg.svg",
+    "url": "portfolio/torque-of-the-town/"
   }
 ]

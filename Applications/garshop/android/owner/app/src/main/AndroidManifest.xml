@@ -21,6 +21,7 @@
         <activity android:name=".ui.GarageActivity" android:exported="false" />
         <activity android:name=".ui.ServicesActivity" android:exported="false" />
         <activity android:name=".ui.RequestsActivity" android:exported="false" />
+        <activity android:name=".ui.ChecklistsActivity" android:exported="false" />
         <activity android:name=".ui.AppointmentsActivity" android:exported="false" />
         <activity android:name=".ui.RemindersActivity" android:exported="false" />
         <activity android:name=".ui.UsersActivity" android:exported="false" />
