@@ -133,7 +133,7 @@ class SessionExpiredError extends Error {
 
 async function ensureSession() {
   const { data: { session } } = await sb.auth.getSession();
-  console.log('[ensureSession] session?', !!session);
+  console.log('[ensureSession] session?', !!session, session && { uid: session.user && session.user.id, exp: session.expires_at, ttl: (session.expires_at || 0) - Math.floor(Date.now() / 1000) }, 'currentUser=', currentUser && currentUser.id);
   if (!session) {
     const res = await sb.auth.getUser();
     console.log('[ensureSession] no session; getUser?', res.data && res.data.user && res.data.user.id, res.error && res.error.message);
